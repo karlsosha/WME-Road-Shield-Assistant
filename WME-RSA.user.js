@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name         WME Road Shield Assistant
 // @namespace    https://greasyfork.org/en/users/286957-skidooguy
-// @version      2024.10.05.00
-// @description  Adds shield information display to WME 
-// @author       SkiDooGuy
+// @version      999999999999
+// @description  Adds shield information display to WME
+// @author       SkiDooGuy, jm6087, Karlsosha
 // @match        https://www.waze.com/editor*
 // @match        https://www.waze.com/*/editor*
 // @match        https://beta.waze.com/editor*
@@ -14,14 +14,10 @@
 // @contributionURL https://github.com/WazeDev/Thank-The-Authors
 // ==/UserScript==
 
-/* global W */
-/* global WazeWrap */
-/* global $ */
-/* global OL */
-/* global OpenLayers */
-/* global _ */
-/* global require */
-/* global I18n */
+/* global WazeWrap, W, $ */
+
+
+window.SDK_INITIALIZED.then(rsaBootstrap);
 
 const GF_LINK = 'https://greasyfork.org/en/scripts/425050-wme-road-shield-assisstant';
 const FORUM_LINK = 'https://www.waze.com/forum/viewtopic.php?f=1851&t=315748';
@@ -30,11 +26,11 @@ const RSA_UPDATE_NOTES = `<b>NEW:</b><br>
 <b>FIXES:</b><br>
 - No longer highlights alt street names when it shouldn't<br><br>`;
 
-    var [zm0, zm1, zm2, zm3, zm4, zm5, zm6, zm7, zm8, zm9, zm10] = [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]
+const [zm0, zm1, zm2, zm3, zm4, zm5, zm6, zm7, zm8, zm9, zm10] = [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22];
 
 const RoadAbbr = {
-    //Canada    
-	40: {
+    //Canada
+    40: {
         "Alberta": {
             'Hwy 1$': 5000, 						            // 5000: National-Trans-Canada Highway
             'Hwy 1A': 5011,  						            // 5011: Alberta - Provincial Hwy
@@ -46,8 +42,8 @@ const RoadAbbr = {
             'Hwy ([4-9]|1[0-5])\b' : 5011, 					    // 5011: Alberta - Provincial Hwy
             'Hwy (1[7-9]|[2-9]\d|1\d{2}|20\d|21[0-6])\b' : 5011,// 5011: Alberta - Provincial Hwy
             'Hwy (21[7-9]|2[2-9]\d|[3-9]\d{2})\b' : 5011		// 5011: Alberta - Provincial Hwy
-		},
-		"British Columbia": {
+        },
+        "British Columbia": {
             'Hwy 1': 5000, 							            // 5000: National-Trans-Canada Highway
             'Hwy 2': 5001,  						            // 5001: BC - Provincial Hwy
             'Hwy 3': 5002,  						            // 5002: BC - Crowsnest Hwy
@@ -55,23 +51,23 @@ const RoadAbbr = {
             'Hwy 113': 5004,						            // 5004: BC - Nisga'a Hwy
             'Hwy ([4-9]|[1-9]\d|10\d|11[0-2])\b' : 5001,		// 5001: BC - Provincial Hwy
             'Hwy (11[4-9]|1[2-9]\d|[2-9]\d{2})\b' : 5001		// 5001: BC - Provincial Hwy
-		},
-		"Saskatchewan": {
+        },
+        "Saskatchewan": {
             'Hwy 1': 5000, 							            // 5000: National - Trans-Canada Hwy
             'Hwy 16' : 5000,						            // 5000: National - Trans-Canada Hwy
             'Hwy ([2-9]|1[0-5])\b' : 5030,					    // 5030: Saskatchewan - Provincial Hwy
             'Hwy (1[7-9]|[2-9]\d|[1-3]\d{2})\b' : 5030,			// 5030: Saskatchewan - Provincial Hwy
             'Hwy (90\d|9[1-9]\d)\b' : 5031,					    // 5031: Saskatchewan - Northern Secondary Hwy
             'Hwy (60\d|6[1-9]\d|7\d{2})\b' : 5032			    // 5032: Saskatchewan - Municipal Road
-		},
-		"Manitoba": {
+        },
+        "Manitoba": {
             'Hwy 1': 5000, 							            // 5000: National - Trans-Canada Hwy
             'Hwy 16': 5000,							            // 5000: National - Trans-Canada Hwy
             'Hwy ([2-9]|1[0-5])\b': 5038,					    // 5038: Manitoba - Provincial Trunk Highway
             'Hwy (1[7-9]|[2-9]\d|1\d{2})\b': 5038,				// 5038: Manitoba - Provincial Trunk Highway
             'Hwy (20\d|2[1-9]\d|[3-9]\d{2})\b': 5039			// 5039: Manitoba - Provincial Rd
         },
-		"Ontario": {
+        "Ontario": {
             'QEW': 5058, 							            // 5058: Ontario QEW
             'Hwy 17' : 5000,						            // 5000: National - Trans-Canada Hwy
             'Hwy 407 ETR' : 5060,						        // 5060: Ontario ETR
@@ -84,14 +80,14 @@ const RoadAbbr = {
             'Hwy (419|4[2-9]\d)\b' : 5057,					    // 5057: Ontario King's Hwy 419-499
             'Hwy (50\d|5[1-9]\d|6\d{2})\b' : 5061,				// 5061: Ontario Secondary Hwy 500-699
             'Hwy (80\d|8[1-9]\d)\b' : 5057					    // 5057: Ontario Tertiary Hwy
-		},
-		"Quebec": {
+        },
+        "Quebec": {
             'Rte Transcanadienne' : 5093,					    // 5093: Quebec: Route Transcanadienne
             'Aut ([1-9]|[1-9]\d{1,2})\b' : 5090,				// 5090: Quebec Autoroute 1-999
             'Rte (10\d|1[1-9]\d|[23]\d{2})\b' : 5091,			// 5091: Quebec Route 100-399
             'R (10\d|1[1-9]\d|[2-9]\d{2}|1[0-4]\d{2}|15[0-5]\d)\b' : 5092	// 5092: Quebec Route 100-1559
-		},
-		"New Brunswick": {
+        },
+        "New Brunswick": {
             'Rte 2': 5000, 							            // 5000: Trans-Canada Hwy
             'Rte 16': 5000,							            // 5000: Trans-Canada Hwy
             'Rte 1': 5112,							            // 5112: NB Arterial Highway 1
@@ -99,23 +95,23 @@ const RoadAbbr = {
             'Rte (1[7-9]|[2-9]\d)\b' : 5112,				    // 5112: NB Arterial Highway 17-99
             'Rte (10\d|1[1-9]\d)\b' : 511,					    // 5113: NB Collector Highway 100-199
             'Rte (20\d|2[1-9]\d|[3-9]\d{2})\b' : 5114			// 5114: NB Local Highway 200-999
-		},
-		"Nova Scotia": {
+        },
+        "Nova Scotia": {
             'Hwy ([1-9]|[1-9]\d)\b': 5116, 					    // 5116: NS Trunk Hwy 1-99
             'Hwy (10[0-4])\b': 5115,					        // 5115: NS Arterial Hwy 100-104
             'Hwy (10[5-6])\b': 5000,					        // 5000: National Trans Canada Highway 105-106
             'Hwy (10[7-9]|1[1-9]\d)\b' : 5115,				    // 5115: NS Aterial Hwy 107-199
             'Hwy (20\d|2[1-9]\d|3\d{2})\b' : 5117				// 5117: NS Collector Hwy 200-399
-		},
-		"Newfoundland & Labrador": {
+        },
+        "Newfoundland & Labrador": {
             'Hwy 1': 5000, 							            // 5000: National - Trans-Canada Hwy 1
             'Hwy ([2-9]|[1-9]\d|[1-5]\d{2})\b' : 5129			// NLR: Newfoundland Labrador Route 2-599
-		},
-		"Prince Edward Island": {
+        },
+        "Prince Edward Island": {
             'Rte 1$': 5000,							            // 5000: National Trans-Canada Hwy
             'Rte ([2-9]|[1-9]\d{1,2})\b' : 5144				    // 5144: PEI - Provincial Highway
-		},
-		"Yukon": {
+        },
+        "Yukon": {
             'Hwy 1': 5145, 							            // 5145: Yukon - Territorial Hwy - Orange
             'Hwy 2': 5146, 							            // 5146: Yukon - Territorial Hwy - Amber
             'Hwy 3': 5147, 							            // 5147: Yukon - Territorial Hwy - Maroon
@@ -128,11 +124,11 @@ const RoadAbbr = {
             'Hwy 10': 5151, 						            // 5151: Yukon - Territorial Hwy - Black
             'Hwy 11': 5149, 						            // 5149: Yukon - Territorial Hwy - Blue
             'Hwy 37': 5147 							            // 5147: Yukon - Territorial Hwy - Maroon
-		},
-		"Northwest Territories": {
+        },
+        "Northwest Territories": {
             'Hwy ([1-9]|10)\b': 5152					        // 5152: NWT - Territorial Hwy 1-10
-		}
-	},
+        }
+    },
     // France
     73: {
         '': {
@@ -159,14 +155,14 @@ const RoadAbbr = {
     // Ukraine
     232: {
         '': {
-           '(E[0-9]{2,3})': 1048,
-           '(М-[0-9]{2})': 1071,
-           '(Н-[0-9]{2})': 1071,
-           '(Р-[0-9]{2})': 1008,
-           '(Т-[0-9]{2}-[0-9]{2,3})': 1008,
-           '(О[0-9]{6,7})': 1085,
-           '(С[0-9]{6,7})': 1085
-       } 
+            '(E[0-9]{2,3})': 1048,
+            '(М-[0-9]{2})': 1071,
+            '(Н-[0-9]{2})': 1071,
+            '(Р-[0-9]{2})': 1008,
+            '(Т-[0-9]{2}-[0-9]{2,3})': 1008,
+            '(О[0-9]{6,7})': 1085,
+            '(С[0-9]{6,7})': 1085
+        }
     },
     // US
     235: {
@@ -201,7 +197,7 @@ const RoadAbbr = {
             "CR-": 2002,
             "SH-": 1082,
             "SR-": 1082
-        },   
+        },
         "Colorado": {
             'I-': 5,
             'US-': 6,
@@ -579,9 +575,9 @@ const RoadAbbr = {
     },
     // Uruguay
     236: {
-       '': {
-           'Ruta': 1111
-       } 
+        '': {
+            'Ruta': 1111
+        }
     },
 
     // Réunion
@@ -627,6 +623,8 @@ const RoadAbbr = {
         }
     }
 };
+
+
 const Strings = {
     'en': {
         'enableScript': 'Script enabled',
@@ -796,41 +794,41 @@ const Strings = {
         "enableScript":"Script activé",
         "HighSegShields":"Segments avec cartouche",
         "HighSegShieldsClr":"Segments avec cartouche",
-        "ShowSegShields":"Afficher les cartouches sur la carte", 
-        "SegShieldMissing":"Segments dont le cartouche pourrait manquer", 
-        "SegShieldMissingClr":"Segments dont le cartouche pourrait manquer", 
-        "SegShieldError":"Segments ayant un cartouche mais ne devraient peut-être pas", 
-        "SegShieldErrorClr":"Segments ayant un cartouche mais ne devraient peut-être pas", 
-        "HighNodeShields":"Noeuds avec cartouche (TG)", 
-        "HighNodeShieldsClr":"Noeuds avec cartouche (TG)", 
-        "ShowNodeShields":"Afficher les infos des cartouches de noeuds", 
-        "ShowExitShields":"As des panneaux de sortie", 
-        "ShowTurnTTS":"Has TIO", 
-        "AlertTurnTTS":"Alert if TTS is different from default", 
-        "NodeShieldMissing":"Noeud dont le cartouche pourrait manquer", 
-        "NodeShieldMissingClr":"Noeud dont le cartouche pourrait manquer", 
-        "resetSettings":"Réinitialiser les paramètres", 
-        "disabledFeat":"Feature not configured for this country", 
-        "ShowTowards":'As "En direction de"', 
-        "ShowVisualInst":"As des instructions visuelles", 
-        "SegHasDir":"Cartouche de segment avec direction", 
-        "SegHasDirClr":"Cartouche de segment avec direction", 
-        "SegInvDir":"Cartouche de segment sans direction", 
-        "SegInvDirClr":"Cartouche de segment sans direction", 
-        "IconHead":"Icônes de carte", 
-        "HighlightHead":"Surlignages", 
-        "HighlightColors":"Couleurs de surlignage", 
-        "ShowRamps":"Inclure les bretelles", 
+        "ShowSegShields":"Afficher les cartouches sur la carte",
+        "SegShieldMissing":"Segments dont le cartouche pourrait manquer",
+        "SegShieldMissingClr":"Segments dont le cartouche pourrait manquer",
+        "SegShieldError":"Segments ayant un cartouche mais ne devraient peut-être pas",
+        "SegShieldErrorClr":"Segments ayant un cartouche mais ne devraient peut-être pas",
+        "HighNodeShields":"Noeuds avec cartouche (TG)",
+        "HighNodeShieldsClr":"Noeuds avec cartouche (TG)",
+        "ShowNodeShields":"Afficher les infos des cartouches de noeuds",
+        "ShowExitShields":"As des panneaux de sortie",
+        "ShowTurnTTS":"Has TIO",
+        "AlertTurnTTS":"Alert if TTS is different from default",
+        "NodeShieldMissing":"Noeud dont le cartouche pourrait manquer",
+        "NodeShieldMissingClr":"Noeud dont le cartouche pourrait manquer",
+        "resetSettings":"Réinitialiser les paramètres",
+        "disabledFeat":"Feature not configured for this country",
+        "ShowTowards":'As "En direction de"',
+        "ShowVisualInst":"As des instructions visuelles",
+        "SegHasDir":"Cartouche de segment avec direction",
+        "SegHasDirClr":"Cartouche de segment avec direction",
+        "SegInvDir":"Cartouche de segment sans direction",
+        "SegInvDirClr":"Cartouche de segment sans direction",
+        "IconHead":"Icônes de carte",
+        "HighlightHead":"Surlignages",
+        "HighlightColors":"Couleurs de surlignage",
+        "ShowRamps":"Inclure les bretelles",
         "mHPlus":"Only show on minor highways or greater",
         'Experimental': 'Experimental Features',
         'AlternativeShields': 'Alternative Name Shields',
         'AlternativePrimaryCity': 'Alternative Street with Primary City',
         'AlternativeNoCity': 'Alternative Street with No City',
         "titleCase":"Segments/nodes with direction not in large-and-small-caps format",
-        "TitleCaseClr":"Segments/nodes with direction not in large-and-small-caps format", 
-        "TitleCaseSftClr":"Direction in free text might not be in large-and-small-caps format", 
-        "checkTWD":'Inclure le champ "en direction de"', 
-        "checkTTS":"Inclure le champ TTS", 
+        "TitleCaseClr":"Segments/nodes with direction not in large-and-small-caps format",
+        "TitleCaseSftClr":"Direction in free text might not be in large-and-small-caps format",
+        "checkTWD":'Inclure le champ "en direction de"',
+        "checkTTS":"Inclure le champ TTS",
         "checkVI":"Inclure le champ d'instruction visuel"
     }
 };
@@ -839,18 +837,51 @@ const CheckAltName = [
     73
 ];
 let BadNames = [];
-let rsaSettings;
+let rsaSettings = {
+    lastSaveAction: 0,
+    enableScript: true,
+    HighSegShields: false,
+    ShowSegShields: true,
+    SegShieldMissing: false,
+    SegShieldError: false,
+    SegHasDir: false,
+    SegInvDir: false,
+    HighNodeShields: true,
+    ShowNodeShields: false,
+    ShowExitShields: false,
+    ShowTurnTTS: false,
+    AlertTurnTTS: false,
+    ShowTowards: false,
+    ShowVisualInst: false,
+    NodeShieldMissing: false,
+    HighSegClr: '#0066ff',
+    MissSegClr: '#00ff00',
+    ErrSegClr: '#cc00ff',
+    HighNodeClr: '#ff00bf',
+    MissNodeClr: '#ff0000',
+    SegHasDirClr: '#ffff00',
+    SegInvDirClr: '#66ffff',
+    TitleCaseClr: '#ff9933',
+    TitleCaseSftClr: '#ffff66',
+    ShowRamps: true,
+    AlternativeShields: false,
+    mHPlus: false,
+    titleCase: false,
+    checkTWD: false,
+    checkTTS: false,
+    checkVI: false,
+    addShield: false
+}
 let UpdateObj;
 let SetTurn;
-let rsaMapLayer;
-let rsaIconLayer;
+let rsaMapLayer  = "rsaMapLayer";
+let rsaIconLayer = "rsaIconLayer";
 let LANG;
-let alternativeType
-
-console.log('RSA: initializing...');
+let alternativeType;
+let sdk;
 
 function rsaBootstrap(tries = 0) {
-    if (W && W.map && W.model && W.loginManager.user && $ && WazeWrap.Ready) {
+    if (W.loginManager.user && $ && WazeWrap.Ready) {
         initRSA();
     } else if (tries < 500) {
         setTimeout(() => {
@@ -861,9 +892,18 @@ function rsaBootstrap(tries = 0) {
     }
 }
 
-function initRSA() {
-    UpdateObj = require('Waze/Action/UpdateObject');
-    SetTurn = require('Waze/Model/Graph/Actions/SetTurn');
+function initRSA(tries = 0) {
+    sdk = window.getWmeSdk(
+        {
+            scriptId: 'wme-road-shield-assistant',
+            scriptName: 'WME Road Shield-Assistant'
+        }
+    );
+
+    console.log("RSA: Initializing...");
+
+    // let UpdateObj = sdk.DataModel. require('Waze/Action/UpdateObject');
+    // let SetTurn = require('Waze/Model/Graph/Actions/SetTurn');
 
     const rsaCss = [
         '.rsa-wrapper {position:relative;width:100%;font-size:12px;font-family:"Rubik", "Boing-light", sans-serif;user-select:none;}',
@@ -883,166 +923,166 @@ function initRSA() {
     const $rsaTab = $('<div>');
     $rsaTab.html = ([
         `<div class='rsa-wrapper' id='rsa-tab-wrapper'>
-            <div style='margin-bottom:5px;border-bottom:1px solid black;'>
-                <span style='font-weight:bold;'>
-                    <a href='https://www.waze.com/forum/viewtopic.php?f=1851&t=315748' target='_blank' style='text-decoration:none;'>Road Shield Assistant</a>
-                </span> - v${GM_info.script.version}
+        <div style='margin-bottom:5px;border-bottom:1px solid black;'>
+            <span style='font-weight:bold;'>
+                <a href='https://www.waze.com/forum/viewtopic.php?f=1851&t=315748' target='_blank' style='text-decoration:none;'>Road Shield Assistant</a>
+            </span> - v${GM_info.script.version}
+        </div>
+        <div class='rsa-option-container'>
+            <input type=checkbox class='rsa-checkbox' id='rsa-enableScript' />
+            <label class='rsa-label' for='rsa-enableScript'><span id='rsa-text-enableScript'></span></label>
+        </div>
+        <div class='rsa-option-container'>
+            <input type=checkbox class='rsa-checkbox' id='rsa-ShowRamps' />
+            <label class='rsa-label' for='rsa-ShowRamps'><span id='rsa-text-ShowRamps'></span></label>
+        </div>
+        <div class='rsa-option-container'>
+            <input type=checkbox class='rsa-checkbox' id='rsa-mHPlus' />
+            <label class='rsa-label' for='rsa-mHPlus'><span id='rsa-text-mHPlus'></span></label>
+        </div>
+
+        <span id='rsa-text-IconHead' class='rsa-header'></span>
+        <div style='border-top:2px solid black;'>
+            <div class='rsa-option-container'>
+                <input type=checkbox class='rsa-checkbox' id='rsa-ShowSegShields' />
+                <label class='rsa-label' for='rsa-ShowSegShields'><span id='rsa-text-ShowSegShields'></span></label>
+            </div>
+            <div class='rsa-option-container no-display'>
+                <input type=checkbox class='rsa-checkbox' id='rsa-NodeShieldMissing' />
+                <label class='rsa-label' for='rsa-NodeShieldMissing'><span id='rsa-text-NodeShieldMissing'></span></label>
             </div>
             <div class='rsa-option-container'>
-                <input type=checkbox class='rsa-checkbox' id='rsa-enableScript' />
-                <label class='rsa-label' for='rsa-enableScript'><span id='rsa-text-enableScript'></span></label>
+                <input type=checkbox class='rsa-checkbox' id='rsa-ShowNodeShields' />
+                <label class='rsa-label' for='rsa-ShowNodeShields'><span id='rsa-text-ShowNodeShields'></span></label>
+            </div>
+            <div class='rsa-option-container sub'>
+                <input type=checkbox class='rsa-checkbox' id='rsa-ShowExitShields' />
+                <label class='rsa-label' for='rsa-ShowExitShields'><span id='rsa-text-ShowExitShields'></span></label>
+            </div>
+            <div class='rsa-option-container sub'>
+                <input type=checkbox class='rsa-checkbox' id='rsa-ShowTurnTTS' />
+                <label class='rsa-label' for='rsa-ShowTurnTTS'><span id='rsa-text-ShowTurnTTS'></span></label>
+            </div>
+            <div class='rsa-option-container sub'>
+                <input type=checkbox class='rsa-checkbox' id='rsa-ShowTowards' />
+                <label class='rsa-label' for='rsa-ShowTowards'><span id='rsa-text-ShowTowards'></span></label>
+            </div>
+            <div class='rsa-option-container sub'>
+                <input type=checkbox class='rsa-checkbox' id='rsa-ShowVisualInst' />
+                <label class='rsa-label' for='rsa-ShowVisualInst'><span id='rsa-text-ShowVisualInst'></span></label>
+            </div>
+            <div class='rsa-option-container sub' style='display:none;'>
+                <input type=checkbox class='rsa-checkbox' id='rsa-AlertTurnTTS' />
+                <label class='rsa-label' for='rsa-AlertTurnTTS'><span id='rsa-text-AlertTurnTTS'></span></label>
+            </div>
+        </div>
+
+        <span id='rsa-text-HighlightHead' class='rsa-header'></span>
+        <div style='border-top:2px solid black;'>
+            <div class='rsa-option-container' style='display:none;'>
+                <input type=checkbox class='rsa-checkbox' id='rsa-HighNodeShields' />
+                <label class='rsa-label' for='rsa-HighNodeShields'><span id='rsa-text-HighNodeShields'></span></label>
             </div>
             <div class='rsa-option-container'>
-                <input type=checkbox class='rsa-checkbox' id='rsa-ShowRamps' />
-                <label class='rsa-label' for='rsa-ShowRamps'><span id='rsa-text-ShowRamps'></span></label>
+                <input type=checkbox class='rsa-checkbox' id='rsa-HighSegShields' />
+                <label class='rsa-label' for='rsa-HighSegShields'><span id='rsa-text-HighSegShields'></span></label>
             </div>
             <div class='rsa-option-container'>
-                <input type=checkbox class='rsa-checkbox' id='rsa-mHPlus' />
-                <label class='rsa-label' for='rsa-mHPlus'><span id='rsa-text-mHPlus'></span></label>
+                <input type=checkbox class='rsa-checkbox' id='rsa-SegHasDir' />
+                <label class='rsa-label' for='rsa-SegHasDir'><span id='rsa-text-SegHasDir'></span></label>
             </div>
+            <div class='rsa-option-container'>
+                <input type=checkbox class='rsa-checkbox' id='rsa-SegInvDir' />
+                <label class='rsa-label' for='rsa-SegInvDir'><span id='rsa-text-SegInvDir'></span></label>
+            </div>
+            <div class='rsa-option-container' id='rsa-container-titleCase'>
+                <input type=checkbox class='rsa-checkbox' id='rsa-titleCase' />
+                <label class='rsa-label' for='rsa-titleCase'><span id='rsa-text-titleCase'></span></label>
+            </div>
+            <div class='rsa-option-container sub' id='rsa-container-checkTWD'>
+                <input type=checkbox class='rsa-checkbox' id='rsa-checkTWD' />
+                <label class='rsa-label' for='rsa-checkTWD'><span id='rsa-text-checkTWD'></span></label>
+            </div>
+            <div class='rsa-option-container sub' id='rsa-container-checkTTS'>
+                <input type=checkbox class='rsa-checkbox' id='rsa-checkTTS' />
+                <label class='rsa-label' for='rsa-checkTTS'><span id='rsa-text-checkTTS'></span></label>
+            </div>
+            <div class='rsa-option-container sub' id='rsa-container-checkVI'>
+                <input type=checkbox class='rsa-checkbox' id='rsa-checkVI' />
+                <label class='rsa-label' for='rsa-checkVI'><span id='rsa-text-checkVI'></span></label>
+            </div>
+            <div class='rsa-option-container'>
+                <input type=checkbox class='rsa-checkbox' id='rsa-SegShieldMissing' />
+                <label class='rsa-label' for='rsa-SegShieldMissing'><span id='rsa-text-SegShieldMissing'></span></label>
+            </div>
+            <div class='rsa-option-container'>
+                <input type=checkbox class='rsa-checkbox' id='rsa-SegShieldError' />
+                <label class='rsa-label' for='rsa-SegShieldError'><span id='rsa-text-SegShieldError'></span></label>
+            </div>
+        </div>
+        <span id='rsa-text-HighlightColors' class='rsa-header'></span>
+        <div style='border-top:2px solid black;'>
+            <div class='rsa-option-container'>
+                <input type=color class='rsa-color-input' id='rsa-HighSegClr' />
+                <label class='rsa-label' for='rsa-HighSegClr'><span id='rsa-text-HighSegShieldsClr'></span></label>
+            </div>
+            <div class='rsa-option-container'>
+                <input type=color class='rsa-color-input' id='rsa-SegHasDirClr' />
+                <label class='rsa-label' for='rsa-SegHasDirClr'><span id='rsa-text-SegHasDirClr'></span></label>
+            </div>
+            <div class='rsa-option-container'>
+                <input type=color class='rsa-color-input' id='rsa-SegInvDirClr' />
+                <label class='rsa-label' for='rsa-SegInvDirClr'><span id='rsa-text-SegInvDirClr'></span></label>
+            </div>
+            <div class='rsa-option-container'>
+                <input type=color class='rsa-color-input' id='rsa-MissSegClr' />
+                <label class='rsa-label' for='rsa-MissSegClr'><span id='rsa-text-SegShieldMissingClr'></span></label>
+            </div>
+            <div class='rsa-option-container'>
+                <input type=color class='rsa-color-input' id='rsa-ErrSegClr' />
+                <label class='rsa-label' for='rsa-ErrSegClr'><span id='rsa-text-SegShieldErrorClr'></span></label>
+            </div>
+            <div class='rsa-option-container'>
+                <input type=color class='rsa-color-input' id='rsa-HighNodeClr' />
+                <label class='rsa-label' for='rsa-HighNodeClr'><span id='rsa-text-HighNodeShieldsClr'></span></label>
+            </div>
+            <div class='rsa-option-container no-display'>
+                <input type=color class='rsa-color-input' id='rsa-MissNodeClr' />
+                <label class='rsa-label' for='rsa-MissNodeClr'><span id='rsa-text-NodeShieldMissingClr'></span></label>
+            </div>
+            <div class='rsa-option-container' id='rsa-container-TitleCaseClr'>
+                <input type=color class='rsa-color-input' id='rsa-TitleCaseClr' />
+                <label class='rsa-label' for='rsa-TitleCaseClr'><span id='rsa-text-TitleCaseClr'></span></label>
+            </div>
+            <div class='rsa-option-container' id='rsa-container-TitleCaseSftClr'>
+                <input type=color class='rsa-color-input' id='rsa-TitleCaseSftClr' />
+                <label class='rsa-label' for='rsa-TitleCaseSftClr'><span id='rsa-text-TitleCaseSftClr'></span></label>
+            </div>
+        </div>
+        <span id='rsa-text-Experimental' class='rsa-header'></span>
+        <div style='border-top:2px solid black;'>
+            <div class='rsa-option-container'>
+                <input type=checkbox class='rsa-checkbox' id='rsa-AlternativeShields' />
+                <label class='rsa-label' for='rsa-AlternativeShields'><span id='rsa-text-AlternativeShields'></span></label>
+            </div>
+            <div class='rsa-option-container sub'>
+                <input type=radio class='rsa-checkbox' value='AlternativePrimaryCity' name='AlternativeShields' id='rsa-AlternativePrimaryCity' checked/>
+                <label class='rsa-label' for='rsa-AlternativePrimaryCity'><span id='rsa-text-AlternativePrimaryCity'></span></label>
+            </div>
+            <div class='rsa-option-container sub'>
+                <input type=radio class='rsa-checkbox' value='AlternativeNoCity' name='AlternativeShields' id='rsa-AlternativeNoCity' />
+                <label class='rsa-label' for='rsa-AlternativeNoCity'><span id='rsa-text-AlternativeNoCity'></span></label>
+            </div>
+        </div>
 
-            <span id='rsa-text-IconHead' class='rsa-header'></span>
-            <div style='border-top:2px solid black;'>
-                <div class='rsa-option-container'>
-                    <input type=checkbox class='rsa-checkbox' id='rsa-ShowSegShields' />
-                    <label class='rsa-label' for='rsa-ShowSegShields'><span id='rsa-text-ShowSegShields'></span></label>
-                </div>
-                <div class='rsa-option-container no-display'>
-                    <input type=checkbox class='rsa-checkbox' id='rsa-NodeShieldMissing' />
-                    <label class='rsa-label' for='rsa-NodeShieldMissing'><span id='rsa-text-NodeShieldMissing'></span></label>
-                </div>
-                <div class='rsa-option-container'>
-                    <input type=checkbox class='rsa-checkbox' id='rsa-ShowNodeShields' />
-                    <label class='rsa-label' for='rsa-ShowNodeShields'><span id='rsa-text-ShowNodeShields'></span></label>
-                </div>
-                <div class='rsa-option-container sub'>
-                    <input type=checkbox class='rsa-checkbox' id='rsa-ShowExitShields' />
-                    <label class='rsa-label' for='rsa-ShowExitShields'><span id='rsa-text-ShowExitShields'></span></label>
-                </div>
-                <div class='rsa-option-container sub'>
-                    <input type=checkbox class='rsa-checkbox' id='rsa-ShowTurnTTS' />
-                    <label class='rsa-label' for='rsa-ShowTurnTTS'><span id='rsa-text-ShowTurnTTS'></span></label>
-                </div>
-                <div class='rsa-option-container sub'>
-                    <input type=checkbox class='rsa-checkbox' id='rsa-ShowTowards' />
-                    <label class='rsa-label' for='rsa-ShowTowards'><span id='rsa-text-ShowTowards'></span></label>
-                </div>
-                <div class='rsa-option-container sub'>
-                    <input type=checkbox class='rsa-checkbox' id='rsa-ShowVisualInst' />
-                    <label class='rsa-label' for='rsa-ShowVisualInst'><span id='rsa-text-ShowVisualInst'></span></label>
-                </div>
-                <div class='rsa-option-container sub' style='display:none;'>
-                    <input type=checkbox class='rsa-checkbox' id='rsa-AlertTurnTTS' />
-                    <label class='rsa-label' for='rsa-AlertTurnTTS'><span id='rsa-text-AlertTurnTTS'></span></label>
-                </div>
+        <div style='border-top:2px solid black;'>
+            <div class='rsa-option-container'>
+                <input type=button id='rsa-resetSettings' />
             </div>
-
-            <span id='rsa-text-HighlightHead' class='rsa-header'></span>
-            <div style='border-top:2px solid black;'>
-                <div class='rsa-option-container' style='display:none;'>
-                    <input type=checkbox class='rsa-checkbox' id='rsa-HighNodeShields' />
-                    <label class='rsa-label' for='rsa-HighNodeShields'><span id='rsa-text-HighNodeShields'></span></label>
-                </div>
-                <div class='rsa-option-container'>
-                    <input type=checkbox class='rsa-checkbox' id='rsa-HighSegShields' />
-                    <label class='rsa-label' for='rsa-HighSegShields'><span id='rsa-text-HighSegShields'></span></label>
-                </div>
-                <div class='rsa-option-container'>
-                    <input type=checkbox class='rsa-checkbox' id='rsa-SegHasDir' />
-                    <label class='rsa-label' for='rsa-SegHasDir'><span id='rsa-text-SegHasDir'></span></label>
-                </div>
-                <div class='rsa-option-container'>
-                    <input type=checkbox class='rsa-checkbox' id='rsa-SegInvDir' />
-                    <label class='rsa-label' for='rsa-SegInvDir'><span id='rsa-text-SegInvDir'></span></label>
-                </div>
-                <div class='rsa-option-container' id='rsa-container-titleCase'>
-                    <input type=checkbox class='rsa-checkbox' id='rsa-titleCase' />
-                    <label class='rsa-label' for='rsa-titleCase'><span id='rsa-text-titleCase'></span></label>
-                </div>
-                <div class='rsa-option-container sub' id='rsa-container-checkTWD'>
-                    <input type=checkbox class='rsa-checkbox' id='rsa-checkTWD' />
-                    <label class='rsa-label' for='rsa-checkTWD'><span id='rsa-text-checkTWD'></span></label>
-                </div>
-                <div class='rsa-option-container sub' id='rsa-container-checkTTS'>
-                    <input type=checkbox class='rsa-checkbox' id='rsa-checkTTS' />
-                    <label class='rsa-label' for='rsa-checkTTS'><span id='rsa-text-checkTTS'></span></label>
-                </div>
-                <div class='rsa-option-container sub' id='rsa-container-checkVI'>
-                    <input type=checkbox class='rsa-checkbox' id='rsa-checkVI' />
-                    <label class='rsa-label' for='rsa-checkVI'><span id='rsa-text-checkVI'></span></label>
-                </div>
-                <div class='rsa-option-container'>
-                    <input type=checkbox class='rsa-checkbox' id='rsa-SegShieldMissing' />
-                    <label class='rsa-label' for='rsa-SegShieldMissing'><span id='rsa-text-SegShieldMissing'></span></label>
-                </div>
-                <div class='rsa-option-container'>
-                    <input type=checkbox class='rsa-checkbox' id='rsa-SegShieldError' />
-                    <label class='rsa-label' for='rsa-SegShieldError'><span id='rsa-text-SegShieldError'></span></label>
-                </div>
-            </div>
-            <span id='rsa-text-HighlightColors' class='rsa-header'></span>
-            <div style='border-top:2px solid black;'>
-                <div class='rsa-option-container'>
-                    <input type=color class='rsa-color-input' id='rsa-HighSegClr' />
-                    <label class='rsa-label' for='rsa-HighSegClr'><span id='rsa-text-HighSegShieldsClr'></span></label>
-                </div>
-                <div class='rsa-option-container'>
-                    <input type=color class='rsa-color-input' id='rsa-SegHasDirClr' />
-                    <label class='rsa-label' for='rsa-SegHasDirClr'><span id='rsa-text-SegHasDirClr'></span></label>
-                </div>
-                <div class='rsa-option-container'>
-                    <input type=color class='rsa-color-input' id='rsa-SegInvDirClr' />
-                    <label class='rsa-label' for='rsa-SegInvDirClr'><span id='rsa-text-SegInvDirClr'></span></label>
-                </div>
-                <div class='rsa-option-container'>
-                    <input type=color class='rsa-color-input' id='rsa-MissSegClr' />
-                    <label class='rsa-label' for='rsa-MissSegClr'><span id='rsa-text-SegShieldMissingClr'></span></label>
-                </div>
-                <div class='rsa-option-container'>
-                    <input type=color class='rsa-color-input' id='rsa-ErrSegClr' />
-                    <label class='rsa-label' for='rsa-ErrSegClr'><span id='rsa-text-SegShieldErrorClr'></span></label>
-                </div>
-                <div class='rsa-option-container'>
-                    <input type=color class='rsa-color-input' id='rsa-HighNodeClr' />
-                    <label class='rsa-label' for='rsa-HighNodeClr'><span id='rsa-text-HighNodeShieldsClr'></span></label>
-                </div>
-                <div class='rsa-option-container no-display'>
-                    <input type=color class='rsa-color-input' id='rsa-MissNodeClr' />
-                    <label class='rsa-label' for='rsa-MissNodeClr'><span id='rsa-text-NodeShieldMissingClr'></span></label>
-                </div>
-                <div class='rsa-option-container' id='rsa-container-TitleCaseClr'>
-                    <input type=color class='rsa-color-input' id='rsa-TitleCaseClr' />
-                    <label class='rsa-label' for='rsa-TitleCaseClr'><span id='rsa-text-TitleCaseClr'></span></label>
-                </div>
-                <div class='rsa-option-container' id='rsa-container-TitleCaseSftClr'>
-                    <input type=color class='rsa-color-input' id='rsa-TitleCaseSftClr' />
-                    <label class='rsa-label' for='rsa-TitleCaseSftClr'><span id='rsa-text-TitleCaseSftClr'></span></label>
-                </div>
-            </div>
-            <span id='rsa-text-Experimental' class='rsa-header'></span>
-            <div style='border-top:2px solid black;'>
-                <div class='rsa-option-container'>
-                    <input type=checkbox class='rsa-checkbox' id='rsa-AlternativeShields' />
-                    <label class='rsa-label' for='rsa-AlternativeShields'><span id='rsa-text-AlternativeShields'></span></label>
-                </div>
-                <div class='rsa-option-container sub'>
-                    <input type=radio class='rsa-checkbox' value='AlternativePrimaryCity' name='AlternativeShields' id='rsa-AlternativePrimaryCity' checked/>
-                    <label class='rsa-label' for='rsa-AlternativePrimaryCity'><span id='rsa-text-AlternativePrimaryCity'></span></label>
-                </div>
-                <div class='rsa-option-container sub'>
-                    <input type=radio class='rsa-checkbox' value='AlternativeNoCity' name='AlternativeShields' id='rsa-AlternativeNoCity' />
-                    <label class='rsa-label' for='rsa-AlternativeNoCity'><span id='rsa-text-AlternativeNoCity'></span></label>
-                </div>
-            </div>
-
-            <div style='border-top:2px solid black;'>
-                <div class='rsa-option-container'>
-                    <input type=button id='rsa-resetSettings' />
-                </div>
-            </div>
-        </div>`
+        </div>
+    </div>`
     ].join(' '));
-    
+
     const $rsaFixWrapper = $('<div id="rsa-autoWrapper" class="toolbar-button ItemInactive" style="display:none;margin-right:5px;">');
     const $rsaFixInner = $('<div class="group-title toolbar-top-level-item-title rsa" style="margin:5px 0 0 15px;font-size:12px;">RSA Fix</div>');
 
@@ -1054,39 +1094,55 @@ function initRSA() {
     console.log('RSA: loaded');
 }
 
+
+function processAlternativeSettings() {
+    if(rsaSettings.AlternativeShields) {
+        $('#rsa-AlternativePrimaryCity').prop('disabled', false);
+        $('#rsa-AlternativeNoCity').prop('disabled', false);
+        let primaryCityButton = $('#rsa-AlternativePrimaryCity')[0];
+        let noCityButton = $('#rsa-AlternativeNoCity')[0]
+        if(primaryCityButton.checked) {
+            alternativeType = primaryCityButton.value;
+        }
+        if(noCityButton.checked) {
+            alternativeType = noCityButton.value;
+        }
+    }
+    toggleAlternativeShields();
+}
+
+
+function getId(ele) {
+    return document.getElementById(ele);
+}
+
+function setChecked(ele, status) {
+    $(`#${ele}`).prop('checked', status);
+}
+
+function setValue(ele, value) {
+    const inputElem = $(`#${ele}`);
+    inputElem.attr('value', value);
+    // inputElem.css('border', `1px solid ${value}`);
+}
+
 function toggleAlternativeShields() {
     if(!rsaSettings.AlternativeShields) {
         $('#rsa-AlternativePrimaryCity').prop('disabled', true);
         $('#rsa-AlternativeNoCity').prop('disabled', true);
     }
 }
+
 async function setupOptions() {
     await loadSettings();
 
     // Create OL layer for display
-    rsaMapLayer = new OpenLayers.Layer.Vector('rsaMapLayer', { uniqueName: 'rsaMapLayer' });
-    W.map.addLayer(rsaMapLayer);
-    rsaMapLayer.setVisibility(true);
 
-    rsaIconLayer = new OpenLayers.Layer.Vector('rsaIconLayer', { uniqueName: 'rsaIconLayer' });
-    W.map.addLayer(rsaIconLayer);
-    rsaIconLayer.setVisibility(true);
+    sdk.Map.addLayer({layerName: rsaMapLayer});
+    sdk.Map.setLayerVisibility({layerName: 'rsaMapLayer', visibility: true});
 
-    function processAlternativeSettings() {
-        if(rsaSettings.AlternativeShields) {
-            $('#rsa-AlternativePrimaryCity').prop('disabled', false);
-            $('#rsa-AlternativeNoCity').prop('disabled', false);
-            let primaryCityButton = $('#rsa-AlternativePrimaryCity')[0];
-            let noCityButton = $('#rsa-AlternativeNoCity')[0]
-            if(primaryCityButton.checked) {
-                alternativeType = primaryCityButton.value;
-            }
-            if(noCityButton.checked) {
-                alternativeType = noCityButton.value;
-            }
-        }
-        toggleAlternativeShields();
-    }
+    sdk.Map.addLayer({layerName: rsaIconLayer});
+    sdk.Map.setLayerVisibility({layerName: rsaIconLayer, visibility: true});
     // Set user options
     function setEleStatus() {
         setChecked('rsa-enableScript', rsaSettings.enableScript);
@@ -1125,7 +1181,7 @@ async function setupOptions() {
             processAlternativeSettings();
         })
 
-        if (rsaSettings.titleCase === true && W.model.getTopCountry().attributes.id === 235) {
+        if (rsaSettings.titleCase && sdk.DataModel.Countries.getTopCountry()?.id === 235) {
             $('#rsa-container-checkTWD').css('display', 'block');
             $('#rsa-container-checkTTS').css('display', 'block');
             $('#rsa-container-checkVI').css('display', 'block');
@@ -1135,15 +1191,6 @@ async function setupOptions() {
             $('#rsa-container-checkVI').css('display', 'none');
         }
 
-        function setChecked(ele, status) {
-            $(`#${ele}`).prop('checked', status);
-        }
-
-        function setValue(ele, value) {
-            const inputElem = $(`#${ele}`);
-            inputElem.attr('value', value);
-            // inputElem.css('border', `1px solid ${value}`);
-        }
         toggleAlternativeShields();
     }
 
@@ -1196,7 +1243,8 @@ async function setupOptions() {
         tryScan();
     });
     $('#rsa-titleCase').trigger("click", function () {
-        if (getId('rsa-titleCase').checked) {
+        let titleCase = getId('rsa-titleCase');
+        if (titleCase && titleCase.checked) {
             $('#rsa-container-checkTWD').css('display', 'block');
             $('#rsa-container-checkTTS').css('display', 'block');
             $('#rsa-container-checkVI').css('display', 'block');
@@ -1243,7 +1291,8 @@ async function setupOptions() {
             titleCase: false,
             checkTWD: false,
             checkTTS: false,
-            checkVI: false
+            checkVI: false,
+            addShield: false
 
         }
 
@@ -1252,10 +1301,11 @@ async function setupOptions() {
         setEleStatus();
     });
     // Add translated UI text
-    LANG = I18n.currentLocale().toLowerCase();
+    let locale = sdk.Settings.getLocale();
+    let LANG = locale.localeName.toLowerCase();
     if (!Strings[LANG]) LANG = 'en';
     for (let i=0; i < Object.keys(Strings[LANG]).length; i++) {
-        let key = Object.keys(Strings[LANG])[i]
+        let key = Object.keys(Strings[LANG])[i];
         $(`#rsa-text-${key}`).text(Strings[LANG][key]);
     }
     $('#rsa-resetSettings').attr('value', Strings[LANG]['resetSettings']);
@@ -1263,8 +1313,9 @@ async function setupOptions() {
     checkOptions();
 }
 
+
 async function loadSettings() {
-    const localSettings = $.parseJSON(localStorage.getItem('RSA_Settings'));
+    const localSettings = JSON.parse(localStorage.getItem('RSA_Settings'));
     const serverSettings = await WazeWrap.Remote.RetrieveSettings('RSA_Settings');
     if (!serverSettings) {
         console.error('RSA: Error communicating with WW settings server');
@@ -1303,7 +1354,7 @@ async function loadSettings() {
         checkTWD: false,
         checkTTS: false,
         checkVI: false,
-        addShield: ''
+        addShield: false
     };
 
     rsaSettings = $.extend({}, defaultSettings, localSettings);
@@ -1440,10 +1491,6 @@ async function saveSettings() {
     }
 }
 
-function getId(ele) {
-    return document.getElementById(ele);
-}
-
 function checkOptions() {
     const countries = W.model.countries.getObjectArray();
 
@@ -1540,7 +1587,7 @@ function autoFixButton() {
                 let turnGuid = turnDat.getTurnGuidance();
                 // let newGuid = turnGuid;
                 console.log(turn);
-                for (s in turnGuid.roadShields) {
+                for (let s in turnGuid.roadShields) {
                     turnGuid.roadShields[s].direction = fixName(turnGuid.roadShields[s].direction);
                 }
                 if (rsaSettings.checkTWD && turnGuid.towards) turnGuid.towards = fixName(turnGuid.towards);
@@ -1567,8 +1614,6 @@ function addShieldClick() {
     } else {
         WazeWrap.Alerts.error(GM_info.script.name, 'You must have only 1 segment selected to use the shield editing menu');
     }
-
-    
 }
 
 function tryScan() {
@@ -1697,7 +1742,6 @@ function processNode(node, seg1, seg2) {
             }
         }
     }
-    
 }
 
 // Function written by kpouer to accommodate French conventions of shields being based on alt names
@@ -1755,7 +1799,7 @@ function isStreetCandidate(street, state, country) {
                     info.isCandidate = true;
                     info.iconID = abbrvs[abbr];
                 }
-            } 
+            }
         }
     }
     return info;
@@ -1957,7 +2001,7 @@ function displayNodeIcons(node, turnDat) {
                     xpoint = lblStart.x;
                     ypoint = lblStart.y - LabelDistance().icon;
                     break;
-                case 3: 
+                case 3:
                     xpoint = lblStart.x + LabelDistance().icon;
                     ypoint = lblStart.y - LabelDistance().icon;
                     break;
@@ -2016,7 +2060,7 @@ function displaySegShields(segment, shieldID, shieldText, shieldDir) {
             graphicYOffset: -20,
             graphicZIndex: 650
         };
-        // Direction label styel
+        // Direction label style
         const style2 = {
             label: shieldDir !== null ? shieldDir : '',
             fontColor: 'green',
@@ -2031,7 +2075,7 @@ function displaySegShields(segment, shieldID, shieldText, shieldDir) {
                 centerparam.x = ((oldparam.x + param.x) / 2);
                 centerparam.y = ((oldparam.y + param.y) / 2);
                 if ( Math.abs(centerparam.x - param.x) > labelDis.space || Math.abs(centerparam.y - param.y) > labelDis.space || AtLeastOne === false) {
-                    LabelPoint = new OpenLayers.Geometry.Point(centerparam.x, centerparam.y);
+                    let LabelPoint = new OpenLayers.Geometry.Point(centerparam.x, centerparam.y);
                     const pointFeature = new OpenLayers.Feature.Vector(LabelPoint, null, style);
                     // Create point for direction label below shield icon
                     const labelPoint2 = new OpenLayers.Geometry.Point(centerparam.x, centerparam.y - labelDis.label);
@@ -2075,9 +2119,10 @@ function createHighlight(obj, color, overSized = false) {
             fillColor: color,
             fillOpacity: 0.75
         }
-        const newFeat =  new OpenLayers.Geometry.LineString(geo.components, {});
-        const newVector = new OpenLayers.Feature.Vector(newFeat, null, style);
-        rsaMapLayer.addFeatures([newVector]);
+        // const newFeat =  new OpenLayers.Geometry.LineString(geo.components, {});
+        // const newVector = new OpenLayers.Feature.Vector(newFeat, null, style);
+        // rsaMapLayer.addFeatures([newVector]);
+        sdk.Map.addFeatureToLayer({feature: geo.components, layerName: ""});
     }
 }
 
@@ -2145,4 +2190,4 @@ function LabelDistance() {
     return label_distance;
 }
 
-rsaBootstrap();
+
