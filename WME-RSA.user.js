@@ -16,7 +16,6 @@
 
 /* global WazeWrap, W, $ */
 
-
 window.SDK_INITIALIZED.then(rsaBootstrap);
 
 const GF_LINK = 'https://greasyfork.org/en/scripts/425050-wme-road-shield-assisstant';
@@ -1088,7 +1087,8 @@ function initRSA(tries = 0) {
     const $rsaFixWrapper = $('<div id="rsa-autoWrapper" class="toolbar-button ItemInactive" style="display:none;margin-right:5px;">');
     const $rsaFixInner = $('<div class="group-title toolbar-top-level-item-title rsa" style="margin:5px 0 0 15px;font-size:12px;">RSA Fix</div>');
 
-    WazeWrap.Interface.Tab('RSA', $rsaTab.html, setupOptions, 'RSA');
+    // WazeWrap.Interface.Tab('RSA', $rsaTab.html, setupOptions, 'RSA');
+    sdk.Sidebar.registerScriptTab().then(r => {r.tabLabel.innerHTML = 'RSA'; r.tabPane.innerHTML = $rsaTab.html; setupOptions().then(r => );});
     $(`<style type="text/css">${rsaCss}</style>`).appendTo('head');
     // $($rsaFixInner).appendTo($rsaFixWrapper);
     // $($rsaFixWrapper).appendTo($('#primary-toolbar > div'));
@@ -1625,15 +1625,16 @@ function tryScan() {
     BadNames = [];
 
     function scanNode(node) {
-        let conSegs = node.attributes.segIDs;
-
-        for (let i=0; i < conSegs.length; i++) {
-            let seg1 = W.model.segments.getObjectById(conSegs[i]);
-            for (let j=0; j < conSegs.length; j++) {
-                let seg2 = W.model.segments.getObjectById(conSegs[j]);
-                processNode(node, seg1, seg2);
-            }
-        }
+        // let conSegs = node.connectedSegmentIds;
+        //
+        // for (let i=0; i < conSegs.length; i++) {
+        //     let seg1 = sdk.DataModel.Segments.getById({segmentId: conSegs[i]});
+        //     for (let j=0; j < conSegs.length; j++) {
+        //         let seg2 = sdk.DataModel.Segments.getById({segmentId: conSegs[j]});
+        //         processNode(node, seg1, seg2);
+        //     }
+        // }
+        processNode(node);
     }
 
     function scanSeg(seg, showInfo = false) {
@@ -1654,7 +1655,7 @@ function tryScan() {
     }
     // Scan all nodes on screen
     if (rsaSettings.HighNodeShields || rsaSettings.ShowNodeShields || rsaSettings.titleCase) {
-        _.each(W.model.nodes.getObjectArray(), n => {
+        _.each(sdk.DataModel.Nodes.getAll(), n => {
             scanNode(n);
         });
     }
@@ -1666,13 +1667,13 @@ function processSeg(seg) {
     // let streetID = segAtt.primaryStreetID;
     let streetID = seg.primaryStreetId;
     // let oldStreet = W.model.streets.getObjectById(streetID).attributes;
-    // let oldCityID = W.model.cities.getObjectById(oldStreet.cityID).attributes;
     let street = sdk.DataModel.Streets.getById({streetId: streetID});
+    // Currently City Doesn't have State ID Property.  Waiting on Feature Request
+    let stateID = W.model.cities.getObjectById(street.cityId).attributes.stateID;
     let cityID = sdk.DataModel.Cities.getById({cityId: street.cityId});
 
-
     if(rsaSettings.AlternativeShields) {
-        if(segAtt.streetIDs.length > 0) {
+        if(seg.alternateStreetIds.length > 0) {
             for(let i = 0 ; i < seg.alternateStreetIds.length; ++i) {
                 // let oldAltStreet = W.model.streets.getObjectById(segAtt.streetIDs[i]).attributes;
                 let altStreet = sdk.DataModel.Streets.getById({streetId: seg.alternateStreetIds[i]});
@@ -1695,15 +1696,15 @@ function processSeg(seg) {
     }
     let hasShield = street.signType !== null;
     // let oldStateName = W.model.states.getObjectById(cityID.stateID).attributes.name;
-    let stateName = sdk.DataModel.States.getById({stateId: cityID.stateId}).name;
+    let stateName = sdk.DataModel.States.getById({stateId: stateID}).name;
     let countryID = cityID.countryId;
-    let candidate = isSegmentCandidate(segAtt, stateName, countryID);
+    let candidate = isSegmentCandidate(seg, stateName, countryID);
 
-    // Exlude ramps
-    if (!rsaSettings.ShowRamps && segAtt.roadType === 4) return;
+    // Exclude ramps
+    if (!rsaSettings.ShowRamps && seg.roadType === 4) return;
 
     // Only show mH and above
-    if (rsaSettings.mHPlus && segAtt.roadType !== 3 && segAtt.roadType !== 4 && segAtt.roadType !== 6 && segAtt.roadType !== 7) return;
+    if (rsaSettings.mHPlus && seg.roadType !== 3 && seg.roadType !== 4 && seg.roadType !== 6 && seg.roadType !== 7) return;
 
     // Display shield on map
     if(hasShield === true) {
@@ -1711,7 +1712,7 @@ function processSeg(seg) {
 
         // If candidate and has shield
         if (rsaSettings.HighSegShields && candidate.isCandidate) {
-            if (isValidShield(segAtt)) {
+            if (isValidShield(seg)) {
                 createHighlight(seg, rsaSettings.HighSegClr);
             } else {
                 createHighlight(seg, rsaSettings.ErrSegClr);
@@ -1738,20 +1739,25 @@ function processSeg(seg) {
     }
 }
 
-function processNode(node, seg1, seg2) {
-    let turn = W.model.getTurnGraph().getTurnThroughNode(node,seg1,seg2);
-    let turnData = turn.getTurnData();
-    let hasGuidance = turnData.hasTurnGuidance();
+function processNode(node) {
+    let turns = sdk.DataModel.Turns.getTurnsThroughNode({nodeId: node.id});
+    for(let idx = 0 ; idx < turns.length ; ++idx) {
+        let turn = turns[idx];
+        // let oldTurn = W.model.getTurnGraph().getTurnThroughNode(node,turn.fromSegmentId,turn.toSegmentId);
+        let turnData = sdk.DataModel.Turns.getById({turnId: turns[idx].id});
+        if(!turnData) continue;
+        let hasGuidance = turnData.hasTurnGuidance();
 
-    if (hasGuidance) {
-        if (rsaSettings.ShowNodeShields && W.map.getZoom() > 14) displayNodeIcons(node, turnData);
+        if (hasGuidance) {
+            if (rsaSettings.ShowNodeShields && sdk.Map.getZoomLevel() > 14) displayNodeIcons(node, turnData);
 
-        if (rsaSettings.titleCase) {
-            let badName = matchTitleCaseThroughNode(turn);
-            if (badName.isBad === true) {
-                let color = badName.softIssue ? rsaSettings.TitleCaseSftClr: rsaSettings.TitleCaseClr;
-                createHighlight(node, color, true);
-                // autoFixButton();
+            if (rsaSettings.titleCase) {
+                let badName = matchTitleCaseThroughNode(turn);
+                if (badName.isBad === true) {
+                    let color = badName.softIssue ? rsaSettings.TitleCaseSftClr : rsaSettings.TitleCaseClr;
+                    createHighlight(node, color, true);
+                    // autoFixButton();
+                }
             }
         }
     }
@@ -1902,7 +1908,7 @@ function matchTitleCaseThroughNode(turn) {
 }
 
 function displayNodeIcons(node, turnDat) {
-    const geo = node.getOLGeometry().clone();
+    const geo = node.geometry.clone();
     const trnGuid = turnDat.getTurnGuidance();
     const GUIDANCE = {
         shields: {
@@ -1975,16 +1981,31 @@ function displayNodeIcons(node, turnDat) {
     // Array of points for line connecting node to icons
     let points = [];
     // Point coords
-    let pointNode = new OpenLayers.Geometry.Point(startPoint.x, startPoint.y);
+    // let pointNode = new OpenLayers.Geometry.Point(startPoint.x, startPoint.y);
+    let pointNode = {
+        id: "node_"+startPoint.x + " " + startPoint.y,
+        geometry: {
+            coordinates: [startPoint.x, startPoint.y],
+            type: "Point"
+        }
+    };
     points.push(pointNode);
     // Label coords
-    var pointLabel = new OpenLayers.Geometry.Point(lblStart.x, lblStart.y);
+    // var pointLabel = new OpenLayers.Geometry.Point(lblStart.x, lblStart.y);
+    var pointLabel = {
+        id: "node_"+startPoint.x + " " + startPoint.y,
+        geometry: {
+           coordinates: [startPoint.x, startPoint.y],
+           type: "Point"
+        }
+    };
     points.push(pointLabel);
 
 
     // Point on node
-    let pointFeature = new OpenLayers.Feature.Vector(pointNode, null, styleNode);
-    sdk.Map.addFeatureToLayer({feature: [pointFeature], layerName: rsaMapLayer.layerName});
+    // let pointFeature = new OpenLayers.Feature.Vector(pointNode, null, styleNode);
+    // sdk.Map.addFeatureToLayer({feature: [pointFeature], layerName: rsaMapLayer.layerName});
+    sdk.Map.addFeaturesToLayer({features: points, layerName: rsaMapLayer.layerName});
     // Line between node and label
     var newline = new OpenLayers.Geometry.LineString(points);
     var lineFeature = new OpenLayers.Feature.Vector(newline, null, styleNode);
@@ -2064,7 +2085,7 @@ function displaySegShields(segment, shieldID, shieldText, shieldDir) {
     oldparam.x = null;
     oldparam.y = null;
     let AtLeastOne = false;
-    $.each(segment.getOLGeometry().getVertices(), function(idx, param) {
+    $.each(segment.geometry.coordinates, function(idx, param) {
         // Build a new segment with same geometry
         SegmentPoints.push(new OpenLayers.Geometry.Point(param.x, param.y));
 
@@ -2117,7 +2138,8 @@ function displaySegShields(segment, shieldID, shieldText, shieldDir) {
 }
 
 function createHighlight(obj, color, overSized = false) {
-    const geo = obj.getOLGeometry().clone();
+    // const geo = obj.getOLGeometry().clone();
+    const geo = obj.geometry.clone();
     let isNode = obj.type === 'node';
 
     if (isNode) {
@@ -2135,7 +2157,8 @@ function createHighlight(obj, color, overSized = false) {
 
         // Point on node
         var pointFeature = new OpenLayers.Feature.Vector(pointNode, null, styleNode);
-        rsaIconLayer.addFeatures([pointFeature]);
+        // rsaIconLayer.addFeatures([pointFeature]);
+        sdk.Map.addFeatureToLayer({feature: [pointFeature], layerName: rsaIconLayer.layerName});
     } else {
         // console.log('seg highlight')
         const style = {
@@ -2161,7 +2184,7 @@ function LabelDistance() {
     // Return object with two variables - label is the distance used to place the direction below the icon,
     // space is the space between geo points needed to render another icon
     let label_distance = {};
-    switch (W.map.getOLMap().getZoom()) {
+    switch (sdk.Map.getZoom()) {
         case zm10:
             label_distance.label = 2;
             label_distance.space = 20;
