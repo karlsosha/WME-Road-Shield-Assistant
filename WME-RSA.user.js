@@ -16,7 +16,18 @@
 
 /* global WazeWrap, W, $ */
 
-window.SDK_INITIALIZED.then(rsaBootstrap);
+let sdk;
+
+window.SDK_INITIALIZED.then(() => {
+        sdk = getWmeSdk(
+            {
+                scriptId: 'wme-road-shield-assistant',
+                scriptName: 'WME Road Shield-Assistant'
+            }
+        );
+        rsaBootstrap();
+    }
+);
 
 const GF_LINK = 'https://greasyfork.org/en/scripts/425050-wme-road-shield-assisstant';
 const FORUM_LINK = 'https://www.waze.com/forum/viewtopic.php?f=1851&t=315748';
@@ -873,31 +884,26 @@ let rsaSettings = {
 }
 let UpdateObj;
 let SetTurn;
-let rsaMapLayer  = {layerName: "rsaMapLayer"};
-let rsaIconLayer = {layerName: "rsaIconLayer"};
+let rsaMapLayer  = "rsaMapLayer";
+let rsaIconLayer = "rsaIconLayer";
 let LANG;
 let alternativeType;
-let sdk;
 
-function rsaBootstrap(tries = 0) {
-    sdk = window.getWmeSdk(
-        {
-            scriptId: 'wme-road-shield-assistant',
-            scriptName: 'WME Road Shield-Assistant'
-        }
-    );
-    if (sdk.State.getUserInfo() && $ && WazeWrap.Ready) {
-        initRSA();
-    } else if (tries < 500) {
-        setTimeout(() => {
-            rsaBootstrap(tries + 1);
-        }, 200);
-    } else {
-        console.error('RSA: Failed to load');
+function rsaBootstrap() {
+    if (!document.getElementById('edit-panel') || !sdk.DataModel.Countries.getTopCountry() || !WazeWrap.Ready) {
+        setTimeout(rsaBootstrap, 200);
     }
+
+    if(sdk.State.isReady()) {
+        initRSA();
+    }
+    else {
+        sdk.Events.once({eventName: "wme-ready"}).then(initRSA);
+    }
+    console.debug(`SDK v. ${sdk.getSDKVersion()} on ${sdk.getWMEVersion()} initialized`)
 }
 
-function initRSA(tries = 0) {
+function initRSA() {
     let locale = sdk.Settings.getLocale();
     LANG = locale.localeName.toLowerCase();
 
@@ -1088,7 +1094,7 @@ function initRSA(tries = 0) {
     const $rsaFixInner = $('<div class="group-title toolbar-top-level-item-title rsa" style="margin:5px 0 0 15px;font-size:12px;">RSA Fix</div>');
 
     // WazeWrap.Interface.Tab('RSA', $rsaTab.html, setupOptions, 'RSA');
-    sdk.Sidebar.registerScriptTab().then(r => {r.tabLabel.innerHTML = 'RSA'; r.tabPane.innerHTML = $rsaTab.html; setupOptions().then(r => );});
+    sdk.Sidebar.registerScriptTab().then(r => {r.tabLabel.innerHTML = 'RSA'; r.tabPane.innerHTML = $rsaTab.html; setupOptions();});
     $(`<style type="text/css">${rsaCss}</style>`).appendTo('head');
     // $($rsaFixInner).appendTo($rsaFixWrapper);
     // $($rsaFixWrapper).appendTo($('#primary-toolbar > div'));
@@ -1669,8 +1675,9 @@ function processSeg(seg) {
     // let oldStreet = W.model.streets.getObjectById(streetID).attributes;
     let street = sdk.DataModel.Streets.getById({streetId: streetID});
     // Currently City Doesn't have State ID Property.  Waiting on Feature Request
-    let stateID = W.model.cities.getObjectById(street.cityId).attributes.stateID;
+    // let stateID = W.model.cities.getObjectById(street.cityId).attributes.stateID;
     let cityID = sdk.DataModel.Cities.getById({cityId: street.cityId});
+    let stateID = cityID.stateId;
 
     if(rsaSettings.AlternativeShields) {
         if(seg.alternateStreetIds.length > 0) {
