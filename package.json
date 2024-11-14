@@ -2,9 +2,12 @@
   "name": "wme-road-shield-assistant",
   "devDependencies": {
     "jquery": "^3.7.1",
-    "ol": "^10.2.1",
     "greasemonkey": "^1.0.3",
-    "wme-sdk": "https://web-assets.waze.com/wme_sdk_docs/production/latest/wme-sdk-typings.tgz"
+    "@types/tampermonkey": "^5.0.3",
+    "wme-sdk": "https://web-assets.waze.com/wme_sdk_docs/beta/latest/wme-sdk-typings.tgz"
+  },
+  "dependencies": {
+    "wme-sdk": "https://web-assets.waze.com/wme_sdk_docs/beta/latest/wme-sdk-typings.tgz"
   },
   "version": "1.0.0",
   "description": "",
