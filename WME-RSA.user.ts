@@ -857,7 +857,7 @@ function rsaInit() {
         // France
         73
     ];
-    let BadNames = [];
+    let BadNames: Street[] = [];
     let rsaSettings = {
         lastSaveAction: 0,
         enableScript: true,
@@ -1893,7 +1893,7 @@ function rsaInit() {
         return false;
     }
 
-    function matchTitleCase(street) {
+    function matchTitleCase(street: Street) {
         const dir = street.direction;
         let isBad = false;
         if (dir !== '' && dir !== null) {
@@ -1901,7 +1901,7 @@ function rsaInit() {
             if (dir.match(/\b(north|south|east|west)\b/i) != null) isBad = true;
             if (dir.match(/([ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘʀꜱᴛᴜᴠᴡʏᴢ][a-z]|[a-z][ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘʀꜱᴛᴜᴠᴡʏᴢ])/) != null) isBad = true;
 
-            if (isBad === true) {
+            if (isBad) {
                 if (BadNames.length === 0) {
                     BadNames.push(street);
                 } else {
