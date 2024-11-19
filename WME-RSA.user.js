@@ -1,3 +1,4 @@
+"use strict";
 // ==UserScript==
 // @name         WME Road Shield Assistant
 // @namespace    https://greasyfork.org/en/users/286957-skidooguy
@@ -13,141 +14,131 @@
 // @grant        none
 // @contributionURL https://github.com/WazeDev/Thank-The-Authors
 // ==/UserScript==
-
 /* global W */
 /* global WazeWrap */
 /* global _ */
 /* global require */
-
 // import {City, Segment, State, Street, WmeSDK} from "wme-sdk";
 // import * as WazeWrap from "../WazeWrap.js";
 // import * as OpenLayers from "ol";
-
 window.SDK_INITIALIZED.then(rsaInit);
-
 function rsaInit() {
-    if(!window.getWmeSdk) {
+    if (!window.getWmeSdk) {
         throw new Error("SDK is not installed");
     }
-    if(!WazeWrap.Ready) {
+    if (!WazeWrap.Ready) {
         setTimeout(() => { rsaInit(); }, 100);
         return;
     }
-    const sdk: WmeSDK = window.getWmeSdk(
-                {
-                    scriptId: 'wme-road-shield-assistant',
-                    scriptName: 'WME Road Shield-Assistant'
-                }
-            )
-
+    const sdk = window.getWmeSdk({
+        scriptId: 'wme-road-shield-assistant',
+        scriptName: 'WME Road Shield-Assistant'
+    });
     console.log(`SDK v ${sdk.getSDKVersion()} on ${sdk.getWMEVersion()} initialized`);
-
     const GF_LINK = 'https://greasyfork.org/en/scripts/425050-wme-road-shield-assisstant';
     const FORUM_LINK = 'https://www.waze.com/forum/viewtopic.php?f=1851&t=315748';
     const RSA_UPDATE_NOTES = `<b>NEW:</b><br>
 - Converted to WME SDK<br><br>`;
-
     const [zm0, zm1, zm2, zm3, zm4, zm5, zm6, zm7, zm8, zm9, zm10] = [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22];
-
     const RoadAbbr = {
         //Canada
         40: {
             "Alberta": {
-                'Hwy 1$': 5000, 						            // 5000: National-Trans-Canada Highway
-                'Hwy 1A': 5011,  						            // 5011: Alberta - Provincial Hwy
-                'Hwy 2': 5011,							            // 5011: Alberta - Provincial Hwy
-                'Hwy 3$': 5015,						            // 5015: Alberta - Crowsnext Hwy
-                'Hwy 3A': 5011,						            // 5011: Alberta - Provincial Hwy
-                'Hwy 16$': 5000,						            // 5000: National-Trans-Canada Highway
-                'Hwy 16A': 5011,						            // 5011: Alberta - Provincial Hwy
-                'Hwy ([4-9]|1[0-5])\b': 5011, 					    // 5011: Alberta - Provincial Hwy
-                'Hwy (1[7-9]|[2-9]\d|1\d{2}|20\d|21[0-6])\b': 5011,// 5011: Alberta - Provincial Hwy
-                'Hwy (21[7-9]|2[2-9]\d|[3-9]\d{2})\b': 5011		// 5011: Alberta - Provincial Hwy
+                'Hwy 1$': 5000, // 5000: National-Trans-Canada Highway
+                'Hwy 1A': 5011, // 5011: Alberta - Provincial Hwy
+                'Hwy 2': 5011, // 5011: Alberta - Provincial Hwy
+                'Hwy 3$': 5015, // 5015: Alberta - Crowsnext Hwy
+                'Hwy 3A': 5011, // 5011: Alberta - Provincial Hwy
+                'Hwy 16$': 5000, // 5000: National-Trans-Canada Highway
+                'Hwy 16A': 5011, // 5011: Alberta - Provincial Hwy
+                'Hwy ([4-9]|1[0-5])\b': 5011, // 5011: Alberta - Provincial Hwy
+                'Hwy (1[7-9]|[2-9]\d|1\d{2}|20\d|21[0-6])\b': 5011, // 5011: Alberta - Provincial Hwy
+                'Hwy (21[7-9]|2[2-9]\d|[3-9]\d{2})\b': 5011 // 5011: Alberta - Provincial Hwy
             },
             "British Columbia": {
-                'Hwy 1': 5000, 							            // 5000: National-Trans-Canada Highway
-                'Hwy 2': 5001,  						            // 5001: BC - Provincial Hwy
-                'Hwy 3': 5002,  						            // 5002: BC - Crowsnest Hwy
-                'Hwy 16': 5000,							            // 5000: National-Trans-Canada Highway
-                'Hwy 113': 5004,						            // 5004: BC - Nisga'a Hwy
-                'Hwy ([4-9]|[1-9]\d|10\d|11[0-2])\b': 5001,		// 5001: BC - Provincial Hwy
-                'Hwy (11[4-9]|1[2-9]\d|[2-9]\d{2})\b': 5001		// 5001: BC - Provincial Hwy
+                'Hwy 1': 5000, // 5000: National-Trans-Canada Highway
+                'Hwy 2': 5001, // 5001: BC - Provincial Hwy
+                'Hwy 3': 5002, // 5002: BC - Crowsnest Hwy
+                'Hwy 16': 5000, // 5000: National-Trans-Canada Highway
+                'Hwy 113': 5004, // 5004: BC - Nisga'a Hwy
+                'Hwy ([4-9]|[1-9]\d|10\d|11[0-2])\b': 5001, // 5001: BC - Provincial Hwy
+                'Hwy (11[4-9]|1[2-9]\d|[2-9]\d{2})\b': 5001 // 5001: BC - Provincial Hwy
             },
             "Saskatchewan": {
-                'Hwy 1': 5000, 							            // 5000: National - Trans-Canada Hwy
-                'Hwy 16': 5000,						            // 5000: National - Trans-Canada Hwy
-                'Hwy ([2-9]|1[0-5])\b': 5030,					    // 5030: Saskatchewan - Provincial Hwy
-                'Hwy (1[7-9]|[2-9]\d|[1-3]\d{2})\b': 5030,			// 5030: Saskatchewan - Provincial Hwy
-                'Hwy (90\d|9[1-9]\d)\b': 5031,					    // 5031: Saskatchewan - Northern Secondary Hwy
-                'Hwy (60\d|6[1-9]\d|7\d{2})\b': 5032			    // 5032: Saskatchewan - Municipal Road
+                'Hwy 1': 5000, // 5000: National - Trans-Canada Hwy
+                'Hwy 16': 5000, // 5000: National - Trans-Canada Hwy
+                'Hwy ([2-9]|1[0-5])\b': 5030, // 5030: Saskatchewan - Provincial Hwy
+                'Hwy (1[7-9]|[2-9]\d|[1-3]\d{2})\b': 5030, // 5030: Saskatchewan - Provincial Hwy
+                'Hwy (90\d|9[1-9]\d)\b': 5031, // 5031: Saskatchewan - Northern Secondary Hwy
+                'Hwy (60\d|6[1-9]\d|7\d{2})\b': 5032 // 5032: Saskatchewan - Municipal Road
             },
             "Manitoba": {
-                'Hwy 1': 5000, 							            // 5000: National - Trans-Canada Hwy
-                'Hwy 16': 5000,							            // 5000: National - Trans-Canada Hwy
-                'Hwy ([2-9]|1[0-5])\b': 5038,					    // 5038: Manitoba - Provincial Trunk Highway
-                'Hwy (1[7-9]|[2-9]\d|1\d{2})\b': 5038,				// 5038: Manitoba - Provincial Trunk Highway
-                'Hwy (20\d|2[1-9]\d|[3-9]\d{2})\b': 5039			// 5039: Manitoba - Provincial Rd
+                'Hwy 1': 5000, // 5000: National - Trans-Canada Hwy
+                'Hwy 16': 5000, // 5000: National - Trans-Canada Hwy
+                'Hwy ([2-9]|1[0-5])\b': 5038, // 5038: Manitoba - Provincial Trunk Highway
+                'Hwy (1[7-9]|[2-9]\d|1\d{2})\b': 5038, // 5038: Manitoba - Provincial Trunk Highway
+                'Hwy (20\d|2[1-9]\d|[3-9]\d{2})\b': 5039 // 5039: Manitoba - Provincial Rd
             },
             "Ontario": {
-                'QEW': 5058, 							            // 5058: Ontario QEW
-                'Hwy 17': 5000,						            // 5000: National - Trans-Canada Hwy
-                'Hwy 407 ETR': 5060,						        // 5060: Ontario ETR
-                'Hwy 412': 5059,						            // 5059: Ontario Toll Hwy
-                'Hwy 418': 5059,						            // 5059: Ontario Toll Hwy
-                'Hwy ([1-9]|1[0-6])\b': 5057,					    // 5057: Ontario King's Hwy 1-16
-                'Hwy (1[89]|[2-9]\d|[1-3]\d{2}|40[0-6])\b': 5057,	// 5057: Ontario King's Hwy 18-406
-                'Hwy (40[89]|41[01])\b': 5057,					    // 5057: Ontario King's Hwy 408-411
-                'Hwy (41[3-7])\b': 5057,					        // 5057: Ontario King's Hwy 413-417
-                'Hwy (419|4[2-9]\d)\b': 5057,					    // 5057: Ontario King's Hwy 419-499
-                'Hwy (50\d|5[1-9]\d|6\d{2})\b': 5061,				// 5061: Ontario Secondary Hwy 500-699
-                'Hwy (80\d|8[1-9]\d)\b': 5057					    // 5057: Ontario Tertiary Hwy
+                'QEW': 5058, // 5058: Ontario QEW
+                'Hwy 17': 5000, // 5000: National - Trans-Canada Hwy
+                'Hwy 407 ETR': 5060, // 5060: Ontario ETR
+                'Hwy 412': 5059, // 5059: Ontario Toll Hwy
+                'Hwy 418': 5059, // 5059: Ontario Toll Hwy
+                'Hwy ([1-9]|1[0-6])\b': 5057, // 5057: Ontario King's Hwy 1-16
+                'Hwy (1[89]|[2-9]\d|[1-3]\d{2}|40[0-6])\b': 5057, // 5057: Ontario King's Hwy 18-406
+                'Hwy (40[89]|41[01])\b': 5057, // 5057: Ontario King's Hwy 408-411
+                'Hwy (41[3-7])\b': 5057, // 5057: Ontario King's Hwy 413-417
+                'Hwy (419|4[2-9]\d)\b': 5057, // 5057: Ontario King's Hwy 419-499
+                'Hwy (50\d|5[1-9]\d|6\d{2})\b': 5061, // 5061: Ontario Secondary Hwy 500-699
+                'Hwy (80\d|8[1-9]\d)\b': 5057 // 5057: Ontario Tertiary Hwy
             },
             "Quebec": {
-                'Rte Transcanadienne': 5093,					    // 5093: Quebec: Route Transcanadienne
-                'Aut ([1-9]|[1-9]\d{1,2})\b': 5090,				// 5090: Quebec Autoroute 1-999
-                'Rte (10\d|1[1-9]\d|[23]\d{2})\b': 5091,			// 5091: Quebec Route 100-399
-                'R (10\d|1[1-9]\d|[2-9]\d{2}|1[0-4]\d{2}|15[0-5]\d)\b': 5092	// 5092: Quebec Route 100-1559
+                'Rte Transcanadienne': 5093, // 5093: Quebec: Route Transcanadienne
+                'Aut ([1-9]|[1-9]\d{1,2})\b': 5090, // 5090: Quebec Autoroute 1-999
+                'Rte (10\d|1[1-9]\d|[23]\d{2})\b': 5091, // 5091: Quebec Route 100-399
+                'R (10\d|1[1-9]\d|[2-9]\d{2}|1[0-4]\d{2}|15[0-5]\d)\b': 5092 // 5092: Quebec Route 100-1559
             },
             "New Brunswick": {
-                'Rte 2': 5000, 							            // 5000: Trans-Canada Hwy
-                'Rte 16': 5000,							            // 5000: Trans-Canada Hwy
-                'Rte 1': 5112,							            // 5112: NB Arterial Highway 1
-                'Rte ([3-9]|1[0-5])\b': 5112,					    // 5112: NB Arterial Highway 3-15
-                'Rte (1[7-9]|[2-9]\d)\b': 5112,				    // 5112: NB Arterial Highway 17-99
-                'Rte (10\d|1[1-9]\d)\b': 511,					    // 5113: NB Collector Highway 100-199
-                'Rte (20\d|2[1-9]\d|[3-9]\d{2})\b': 5114			// 5114: NB Local Highway 200-999
+                'Rte 2': 5000, // 5000: Trans-Canada Hwy
+                'Rte 16': 5000, // 5000: Trans-Canada Hwy
+                'Rte 1': 5112, // 5112: NB Arterial Highway 1
+                'Rte ([3-9]|1[0-5])\b': 5112, // 5112: NB Arterial Highway 3-15
+                'Rte (1[7-9]|[2-9]\d)\b': 5112, // 5112: NB Arterial Highway 17-99
+                'Rte (10\d|1[1-9]\d)\b': 511, // 5113: NB Collector Highway 100-199
+                'Rte (20\d|2[1-9]\d|[3-9]\d{2})\b': 5114 // 5114: NB Local Highway 200-999
             },
             "Nova Scotia": {
-                'Hwy ([1-9]|[1-9]\d)\b': 5116, 					    // 5116: NS Trunk Hwy 1-99
-                'Hwy (10[0-4])\b': 5115,					        // 5115: NS Arterial Hwy 100-104
-                'Hwy (10[5-6])\b': 5000,					        // 5000: National Trans Canada Highway 105-106
-                'Hwy (10[7-9]|1[1-9]\d)\b': 5115,				    // 5115: NS Aterial Hwy 107-199
-                'Hwy (20\d|2[1-9]\d|3\d{2})\b': 5117				// 5117: NS Collector Hwy 200-399
+                'Hwy ([1-9]|[1-9]\d)\b': 5116, // 5116: NS Trunk Hwy 1-99
+                'Hwy (10[0-4])\b': 5115, // 5115: NS Arterial Hwy 100-104
+                'Hwy (10[5-6])\b': 5000, // 5000: National Trans Canada Highway 105-106
+                'Hwy (10[7-9]|1[1-9]\d)\b': 5115, // 5115: NS Aterial Hwy 107-199
+                'Hwy (20\d|2[1-9]\d|3\d{2})\b': 5117 // 5117: NS Collector Hwy 200-399
             },
             "Newfoundland & Labrador": {
-                'Hwy 1': 5000, 							            // 5000: National - Trans-Canada Hwy 1
-                'Hwy ([2-9]|[1-9]\d|[1-5]\d{2})\b': 5129			// NLR: Newfoundland Labrador Route 2-599
+                'Hwy 1': 5000, // 5000: National - Trans-Canada Hwy 1
+                'Hwy ([2-9]|[1-9]\d|[1-5]\d{2})\b': 5129 // NLR: Newfoundland Labrador Route 2-599
             },
             "Prince Edward Island": {
-                'Rte 1$': 5000,							            // 5000: National Trans-Canada Hwy
-                'Rte ([2-9]|[1-9]\d{1,2})\b': 5144				    // 5144: PEI - Provincial Highway
+                'Rte 1$': 5000, // 5000: National Trans-Canada Hwy
+                'Rte ([2-9]|[1-9]\d{1,2})\b': 5144 // 5144: PEI - Provincial Highway
             },
             "Yukon": {
-                'Hwy 1': 5145, 							            // 5145: Yukon - Territorial Hwy - Orange
-                'Hwy 2': 5146, 							            // 5146: Yukon - Territorial Hwy - Amber
-                'Hwy 3': 5147, 							            // 5147: Yukon - Territorial Hwy - Maroon
-                'Hwy 4': 5148, 							            // 5148: Yukon - Territorial Hwy - Brown
-                'Hwy 5': 5149, 							            // 5149: Yukon - Territorial Hwy - Blue
-                'Hwy 6': 5150, 							            // 5150: Yukon - Territorial Hwy - Teal
-                'Hwy 7': 5147, 							            // 5147: Yukon - Territorial Hwy - Maroon
-                'Hwy 8': 5148, 							            // 5148: Yukon - Territorial Hwy - Brown
-                'Hwy 9': 5151, 							            // 5151: Yukon - Territorial Hwy - Black
-                'Hwy 10': 5151, 						            // 5151: Yukon - Territorial Hwy - Black
-                'Hwy 11': 5149, 						            // 5149: Yukon - Territorial Hwy - Blue
-                'Hwy 37': 5147 							            // 5147: Yukon - Territorial Hwy - Maroon
+                'Hwy 1': 5145, // 5145: Yukon - Territorial Hwy - Orange
+                'Hwy 2': 5146, // 5146: Yukon - Territorial Hwy - Amber
+                'Hwy 3': 5147, // 5147: Yukon - Territorial Hwy - Maroon
+                'Hwy 4': 5148, // 5148: Yukon - Territorial Hwy - Brown
+                'Hwy 5': 5149, // 5149: Yukon - Territorial Hwy - Blue
+                'Hwy 6': 5150, // 5150: Yukon - Territorial Hwy - Teal
+                'Hwy 7': 5147, // 5147: Yukon - Territorial Hwy - Maroon
+                'Hwy 8': 5148, // 5148: Yukon - Territorial Hwy - Brown
+                'Hwy 9': 5151, // 5151: Yukon - Territorial Hwy - Black
+                'Hwy 10': 5151, // 5151: Yukon - Territorial Hwy - Black
+                'Hwy 11': 5149, // 5149: Yukon - Territorial Hwy - Blue
+                'Hwy 37': 5147 // 5147: Yukon - Territorial Hwy - Maroon
             },
             "Northwest Territories": {
-                'Hwy ([1-9]|10)\b': 5152					        // 5152: NWT - Territorial Hwy 1-10
+                'Hwy ([1-9]|10)\b': 5152 // 5152: NWT - Territorial Hwy 1-10
             }
         },
         // France
@@ -170,9 +161,7 @@ function rsaInit() {
         },
         // Mexico
         // 145: {
-
         // },
-
         // Ukraine
         232: {
             '': {
@@ -600,7 +589,6 @@ function rsaInit() {
                 'Ruta': 1111
             }
         },
-
         // Réunion
         262: {
             '': {
@@ -644,8 +632,6 @@ function rsaInit() {
             }
         }
     };
-
-
     const Strings = {
         'en': {
             'enableScript': 'Script enabled',
@@ -892,16 +878,14 @@ function rsaInit() {
         checkTTS: false,
         checkVI: false,
         addShield: false
-    }
+    };
     let UpdateObj;
     let SetTurn;
-    let rsaMapLayer = {layerName: "RSA Map Layer"};
-    let rsaIconLayer = {layerName: "RSA Icon Layer"};
-    let LANG: string;
+    let rsaMapLayer = { layerName: "RSA Map Layer" };
+    let rsaIconLayer = { layerName: "RSA Icon Layer" };
+    let LANG;
     let alternativeType;
-
-    console.debug(`SDK v. ${sdk.getSDKVersion()} on ${sdk.getWMEVersion()} initialized`)
-
+    console.debug(`SDK v. ${sdk.getSDKVersion()} on ${sdk.getWMEVersion()} initialized`);
     // function rsaBootstrap() {
     //     // if (!document.getElementById('edit-panel') || !sdk.DataModel.Countries.getTopCountry() || !WazeWrap.Ready) {
     //     //     setTimeout(rsaBootstrap, 200);
@@ -912,16 +896,12 @@ function rsaInit() {
     //         sdk.Events.once({eventName: "wme-ready"}).then(initRSA);
     //     }
     // }
-
     function initRSA() {
         let locale = sdk.Settings.getLocale();
         LANG = locale.localeCode.toLowerCase();
-
         console.log("RSA: Initializing...");
-
         // let UpdateObj = sdk.DataModel. require('Waze/Action/UpdateObject');
         // let SetTurn = require('Waze/Model/Graph/Actions/SetTurn');
-
         const rsaCss = [
             '.rsa-wrapper {position:relative;width:100%;font-size:12px;font-family:"Rubik", "Boing-light", sans-serif;user-select:none;}',
             '.rsa-section-wrapper {display:block;width:100%;padding:4px;}',
@@ -936,7 +916,6 @@ function rsaInit() {
             'label.rsa-label {display:inline-block;position:relative;max-width:80%;vertical-align:top;font-weight:normal;padding-left:5px;word-wrap:break-word;}',
             '.group-title.toolbar-top-level-item-title.rsa:hover {cursor:pointer;}'
         ].join(' ');
-
         const $rsaTab = $('<div>');
         $rsaTab.html = ([
             `<div class='rsa-wrapper' id='rsa-tab-wrapper'>
@@ -1099,10 +1078,8 @@ function rsaInit() {
         </div>
     </div>`
         ].join(' '));
-
         const $rsaFixWrapper = $('<div id="rsa-autoWrapper" class="toolbar-button ItemInactive" style="display:none;margin-right:5px;">');
         const $rsaFixInner = $('<div class="group-title toolbar-top-level-item-title rsa" style="margin:5px 0 0 15px;font-size:12px;">RSA Fix</div>');
-
         // WazeWrap.Interface.Tab('RSA', $rsaTab.html, setupOptions, 'RSA');
         sdk.Sidebar.registerScriptTab().then(r => {
             r.tabLabel.innerHTML = 'RSA';
@@ -1115,8 +1092,6 @@ function rsaInit() {
         WazeWrap.Interface.ShowScriptUpdate(GM_info.script.name, GM_info.script.version, RSA_UPDATE_NOTES, GF_LINK, FORUM_LINK);
         console.log('RSA: loaded');
     }
-
-
     function processAlternativeSettings() {
         if (rsaSettings.AlternativeShields) {
             let alt_primary = $('#rsa-AlternativePrimaryCity');
@@ -1124,7 +1099,7 @@ function rsaInit() {
             let alt_nocity = $('#rsa-AlternativeNoCity');
             alt_nocity.prop('disabled', false);
             let primaryCityButton = alt_primary[0];
-            let noCityButton = alt_primary[0]
+            let noCityButton = alt_primary[0];
             if (primaryCityButton.check) {
                 alternativeType = primaryCityButton.value;
             }
@@ -1134,42 +1109,32 @@ function rsaInit() {
         }
         toggleAlternativeShields();
     }
-
-
     function getId(ele) {
         return document.getElementById(ele);
     }
-
     function setChecked(ele, status) {
         $(`#${ele}`).prop('checked', status);
     }
-
     function setValue(ele, value) {
         const inputElem = $(`#${ele}`);
         inputElem.attr('value', value);
         // inputElem.css('border', `1px solid ${value}`);
     }
-
     function toggleAlternativeShields() {
         if (!rsaSettings.AlternativeShields) {
             $('#rsa-AlternativePrimaryCity').prop('disabled', true);
             $('#rsa-AlternativeNoCity').prop('disabled', true);
         }
     }
-
     async function setupOptions() {
         await loadSettings();
-
         // Create OL layer for display
-
         sdk.Map.addLayer(rsaMapLayer);
-        sdk.LayerSwitcher.addLayerCheckbox({name: rsaMapLayer.layerName})
-        sdk.Map.setLayerVisibility({layerName: rsaMapLayer.layerName, visibility: true});
-
+        sdk.LayerSwitcher.addLayerCheckbox({ name: rsaMapLayer.layerName });
+        sdk.Map.setLayerVisibility({ layerName: rsaMapLayer.layerName, visibility: true });
         sdk.Map.addLayer(rsaIconLayer);
-        sdk.LayerSwitcher.addLayerCheckbox({name: rsaIconLayer.layerName});
-        sdk.Map.setLayerVisibility({layerName: rsaIconLayer.layerName, visibility: true});
-
+        sdk.LayerSwitcher.addLayerCheckbox({ name: rsaIconLayer.layerName });
+        sdk.Map.setLayerVisibility({ layerName: rsaIconLayer.layerName, visibility: true });
         // Set user options
         function setEleStatus() {
             setChecked('rsa-enableScript', rsaSettings.enableScript);
@@ -1203,30 +1168,27 @@ function rsaInit() {
             setValue('rsa-SegInvDirClr', rsaSettings.SegInvDirClr);
             setValue('rsa-TitleCaseClr', rsaSettings.TitleCaseClr);
             setValue('rsa-TitleCaseSftClr', rsaSettings.TitleCaseSftClr);
-
             $('#rsa-AlternativeShields').on('change', function (e) {
                 processAlternativeSettings();
-            })
-
+            });
             if (rsaSettings.titleCase && sdk.DataModel.Countries.getTopCountry()?.id === 235) {
                 $('#rsa-container-checkTWD').css('display', 'block');
                 $('#rsa-container-checkTTS').css('display', 'block');
                 $('#rsa-container-checkVI').css('display', 'block');
-            } else {
+            }
+            else {
                 $('#rsa-container-checkTWD').css('display', 'none');
                 $('#rsa-container-checkTTS').css('display', 'none');
                 $('#rsa-container-checkVI').css('display', 'none');
             }
-
             toggleAlternativeShields();
         }
-
         // Register event listeners
         // WazeWrap.Events.register('selectionchanged', null, removeAutoFixButton);
         sdk.Events.on({
             eventName: "wme-selection-changed",
             eventHandler: removeAutoFixButton
-        })
+        });
         // WazeWrap.Events.register('selectionchanged', null, tryScan);
         sdk.Events.on({
             eventName: "wme-map-move-end",
@@ -1235,32 +1197,22 @@ function rsaInit() {
                 tryScan();
                 checkOptions();
             }
-        })
+        });
         // WazeWrap.Events.register('moveend', null, removeAutoFixButton);
         // WazeWrap.Events.register('moveend', null, tryScan);
         // WazeWrap.Events.register('moveend', null, checkOptions);
         // WazeWrap.Events.register('afteraction', null, tryScan);
-
-        new WazeWrap.Interface.Shortcut('addShield',
-                                        'Activates the Add Shield Button',
-                                        'wmersa',
-                                        'Road Shield Assistant',
-                                        rsaSettings.addShield,
-                                        addShieldClick, null).add();
-
+        new WazeWrap.Interface.Shortcut('addShield', 'Activates the Add Shield Button', 'wmersa', 'Road Shield Assistant', rsaSettings.addShield, addShieldClick, null).add();
         setEleStatus();
-
         $('input[type=radio][name=AlternativeShields]').on('change', function () {
             processAlternativeSettings();
             saveSettings();
             removeHighlights();
             tryScan();
-        })
-
+        });
         $('.rsa-checkbox').on("change", function () {
-            let settingName = $(this)[0].id.substring(4) as keyof typeof rsaSettings;
+            let settingName = $(this)[0].id.substring(4);
             rsaSettings[settingName] = this.checked;
-
             // Check to ensure highlight nodes and show node shields don't overlap each other
             // if (settingName = 'ShowNodeShields') {
             //     if (this.checked) {
@@ -1273,7 +1225,8 @@ function rsaInit() {
             //         rsaSettings.ShowNodeShields = false;
             //     }
             // }
-            if (settingName === 'AlternativeShields') processAlternativeSettings();
+            if (settingName === 'AlternativeShields')
+                processAlternativeSettings();
             saveSettings();
             removeHighlights();
             tryScan();
@@ -1292,7 +1245,8 @@ function rsaInit() {
                 $('#rsa-container-checkTWD').css('display', 'block');
                 $('#rsa-container-checkTTS').css('display', 'block');
                 $('#rsa-container-checkVI').css('display', 'block');
-            } else {
+            }
+            else {
                 $('#rsa-container-checkTWD').css('display', 'none');
                 $('#rsa-container-checkTTS').css('display', 'none');
                 $('#rsa-container-checkVI').css('display', 'none');
@@ -1337,32 +1291,28 @@ function rsaInit() {
                 checkTTS: false,
                 checkVI: false,
                 addShield: false
-            }
-
+            };
             rsaSettings = defaultSettings;
             saveSettings();
             setEleStatus();
         });
         // Add translated UI text
-        let lang: string = LANG as keyof typeof Strings;
-        if (!Strings[lang]) lang = 'en';
+        let lang = LANG;
+        if (!Strings[lang])
+            lang = 'en';
         for (let i = 0; i < Object.keys(Strings[lang]).length; i++) {
             let key = Object.keys(Strings[lang])[i];
             $(`#rsa-text-${key}`).text(Strings[lang][key]);
         }
         $('#rsa-resetSettings').attr('value', Strings[lang].resetSettings);
-
         checkOptions();
     }
-
-
     async function loadSettings() {
         const localSettings = JSON.parse(localStorage.getItem('RSA_Settings'));
         const serverSettings = await WazeWrap.Remote.RetrieveSettings('RSA_Settings');
         if (!serverSettings) {
             console.error('RSA: Error communicating with WW settings server');
         }
-
         const defaultSettings = {
             lastSaveAction: 0,
             enableScript: true,
@@ -1398,60 +1348,23 @@ function rsaInit() {
             checkVI: false,
             addShield: false
         };
-
         rsaSettings = $.extend({}, defaultSettings, localSettings);
         if (serverSettings && serverSettings.lastSaveAction > rsaSettings.lastSaveAction) {
             $.extend(rsaSettings, serverSettings);
             // console.log('RSA: server settings used');
-        } else {
+        }
+        else {
             // console.log('RSA: local settings used');
         }
-
         // If there is no value set in any of the stored settings then use the default
         Object.keys(defaultSettings).forEach((funcProp) => {
             if (!rsaSettings.hasOwnProperty(funcProp)) {
                 rsaSettings[funcProp] = defaultSettings[funcProp];
             }
         });
-
     }
-
     async function saveSettings() {
-        const {
-            enableScript,
-            HighSegShields,
-            ShowSegShields,
-            SegShieldMissing,
-            SegShieldError,
-            HighNodeShields,
-            ShowNodeShields,
-            ShowExitShields,
-            SegHasDir,
-            SegInvDir,
-            ShowTurnTTS,
-            AlertTurnTTS,
-            ShowTowards,
-            ShowVisualInst,
-            NodeShieldMissing,
-            HighSegClr,
-            MissSegClr,
-            ErrSegClr,
-            HighNodeClr,
-            MissNodeClr,
-            SegHasDirClr,
-            SegInvDirClr,
-            TitleCaseClr,
-            TitleCaseSftClr,
-            ShowRamps,
-            AlternativeShields,
-            mHPlus,
-            titleCase,
-            checkTWD,
-            checkTTS,
-            checkVI,
-            addShield
-        } = rsaSettings;
-
+        const { enableScript, HighSegShields, ShowSegShields, SegShieldMissing, SegShieldError, HighNodeShields, ShowNodeShields, ShowExitShields, SegHasDir, SegInvDir, ShowTurnTTS, AlertTurnTTS, ShowTowards, ShowVisualInst, NodeShieldMissing, HighSegClr, MissSegClr, ErrSegClr, HighNodeClr, MissNodeClr, SegHasDirClr, SegInvDirClr, TitleCaseClr, TitleCaseSftClr, ShowRamps, AlternativeShields, mHPlus, titleCase, checkTWD, checkTTS, checkVI, addShield } = rsaSettings;
         const localSettings = {
             lastSaveAction: Date.now(),
             enableScript,
@@ -1487,10 +1400,9 @@ function rsaInit() {
             checkVI,
             addShield
         };
-
         // Grab keyboard shortcuts and store them for saving
         for (const name in W.accelerators.Actions) {
-            const {shortcut, group} = W.accelerators.Actions[name];
+            const { shortcut, group } = W.accelerators.Actions[name];
             if (group === 'wmersa') {
                 let TempKeys = '';
                 if (shortcut) {
@@ -1509,127 +1421,117 @@ function rsaInit() {
                     if (shortcut.keyCode) {
                         TempKeys += shortcut.keyCode;
                     }
-                } else {
+                }
+                else {
                     TempKeys = '-1';
                 }
                 localSettings[name] = TempKeys;
             }
         }
-
         // Required for the instant update of changes to the keyboard shortcuts on the UI
         rsaSettings = localSettings;
-
         if (localStorage) {
             localStorage.setItem('RSA_Settings', JSON.stringify(localSettings));
         }
         const serverSave = await WazeWrap.Remote.SaveSettings('RSA_Settings', localSettings);
-
         if (serverSave === null) {
             console.warn('RSA: User PIN not set in WazeWrap tab');
-        } else {
+        }
+        else {
             if (serverSave === false) {
                 console.error('RSA: Unable to save settings to server');
             }
         }
     }
-
     function checkOptions() {
         const countries = sdk.DataModel.Countries.getAll();
         // const countries = W.model.countries.getObjectArray();
-
         if (countries.length < 1) {
             setTimeout(function () {
                 checkOptions();
             }, 500);
             return;
-        } else {
+        }
+        else {
             let allowFeat = false;
-
             for (let i = 0; i < countries.length; i++) {
-                if (RoadAbbr[countries[i].id]) allowFeat = true;
+                if (RoadAbbr[countries[i].id])
+                    allowFeat = true;
             }
-
-            const lang = LANG as keyof typeof Strings;
+            const lang = LANG;
             if (!allowFeat) {
                 $(`#rsa-text-SegShieldMissing`).prop('checked', false);
                 $(`#rsa-text-SegShieldError`).prop('checked', false);
                 $(`#rsa-text-NodeShieldMissing`).prop('checked', false);
-
-
                 $(`#rsa-text-SegShieldMissing`).text(Strings[lang].SegShieldMissing + ' ' + Strings[lang].disabledFeat);
                 $(`#rsa-text-SegShieldError`).text(Strings[lang].SegShieldError + ' ' + Strings[lang].disabledFeat);
                 $(`#rsa-text-NodeShieldMissing`).text(Strings[lang].NodeShieldMissing + ' ' + Strings[lang].disabledFeat);
-
                 $(`#rsa-SegShieldMissing`).prop('disabled', true);
                 $(`#rsa-SegShieldError`).prop('disabled', true);
                 $(`#rsa-NodeShieldMissing`).prop('disabled', true);
-
                 rsaSettings.SegShieldMissing = false;
                 rsaSettings.SegShieldError = false;
                 rsaSettings.NodeShieldMissing = false;
                 saveSettings();
-            } else {
+            }
+            else {
                 $(`#rsa-text-SegShieldMissing`).prop('checked', rsaSettings.SegShieldMissing);
                 $(`#rsa-text-SegShieldError`).prop('checked', rsaSettings.SegShieldError);
                 $(`#rsa-text-NodeShieldMissing`).prop('checked', rsaSettings.NodeShieldMissing);
-
                 $(`#rsa-text-SegShieldMissing`).text(Strings[lang].SegShieldMissing);
                 $(`#rsa-text-SegShieldError`).text(Strings[lang].SegShieldError);
                 $(`#rsa-text-NodeShieldMissing`).text(Strings[lang].NodeShieldMissing);
-
                 $(`#rsa-SegShieldMissing`).prop('disabled', false);
                 $(`#rsa-SegShieldError`).prop('disabled', false);
                 $(`#rsa-NodeShieldMissing`).prop('disabled', false);
             }
         }
-
         if (sdk.DataModel.Countries.getTopCountry().id !== 235) {
             $('#rsa-container-titleCase').css('display', 'none');
             $('#rsa-container-TitleCaseClr').css('display', 'none');
             $('#rsa-container-TitleCaseSftClr').css('display', 'none');
-        } else {
+        }
+        else {
             $('#rsa-container-titleCase').css('display', 'block');
             $('#rsa-container-TitleCaseClr').css('display', 'block');
             $('#rsa-container-TitleCaseSftClr').css('display', 'block');
         }
     }
-
     function autoFixButton() {
         $('#rsa-autoWrapper').css('display', 'inline-block');
         $('#rsa-autoWrapper > div').off();
-
         // console.log(BadNames);
         // Create function to fix case types when button clicked
         $('#rsa-autoWrapper > div').on("click", function () {
             // const turnGraph = W.model.getTurnGraph();
             const turnGraph = sdk.DataModel.Turns.getAll();
-
             for (let i = 0; i < BadNames.length; i++) {
                 // Check if street or turn
                 if (BadNames[i].type) {
                     let strt = BadNames[i];
                     let dir = strt.direction;
-
-                    if (dir.match(/\b(north)\b/i) != null) dir = 'Nᴏʀᴛʜ';
-                    if (dir.match(/\b(south)\b/i) != null) dir = 'Sᴏᴜᴛʜ';
-                    if (dir.match(/\b(east)\b/i) != null) dir = 'Eᴀꜱᴛ';
-                    if (dir.match(/\b(west)\b/i) != null) dir = 'Wᴇꜱᴛ';
-
-                    W.model.actionManager.add(new UpdateObj(strt, {'direction': dir}));
-                } else {
-                    function fixName(name: string) {
+                    if (dir.match(/\b(north)\b/i) != null)
+                        dir = 'Nᴏʀᴛʜ';
+                    if (dir.match(/\b(south)\b/i) != null)
+                        dir = 'Sᴏᴜᴛʜ';
+                    if (dir.match(/\b(east)\b/i) != null)
+                        dir = 'Eᴀꜱᴛ';
+                    if (dir.match(/\b(west)\b/i) != null)
+                        dir = 'Wᴇꜱᴛ';
+                    W.model.actionManager.add(new UpdateObj(strt, { 'direction': dir }));
+                }
+                else {
+                    function fixName(name) {
                         let temp = name;
                         temp = temp.replace(/\b(north)\b/ig, 'Nᴏʀᴛʜ');
                         temp = temp.replace(/\b(south)\b/ig, 'Sᴏᴜᴛʜ');
                         temp = temp.replace(/\b(east)\b/ig, 'Eᴀꜱᴛ');
                         temp = temp.replace(/\b(west)\b/ig, 'Wᴇꜱᴛ');
-
                         temp = temp.replace(/\b(TO)\b/ig, 'ᴛᴏ');
                         temp = temp.replace(/\b(VIA)\b/ig, 'ᴠɪᴀ');
                         temp = temp.replace(/\b(JCT)\b/ig, 'ᴊᴄᴛ');
                         return temp;
                     }
-
                     let turn = BadNames[i];
                     let turnDat = turn.getTurnData();
                     let turnGuid = turnDat.getTurnGuidance();
@@ -1638,10 +1540,12 @@ function rsaInit() {
                     for (let s in turnGuid.roadShields) {
                         turnGuid.roadShields[s].direction = fixName(turnGuid.roadShields[s].direction);
                     }
-                    if (rsaSettings.checkTWD && turnGuid.towards) turnGuid.towards = fixName(turnGuid.towards);
-                    if (rsaSettings.checkTTS && turnGuid.tts) turnGuid.tts = fixName(turnGuid.tts);
-                    if (rsaSettings.checkVI && turnGuid.visualInstruction) turnGuid.visualInstruction = fixName(turnGuid.visualInstruction);
-
+                    if (rsaSettings.checkTWD && turnGuid.towards)
+                        turnGuid.towards = fixName(turnGuid.towards);
+                    if (rsaSettings.checkTTS && turnGuid.tts)
+                        turnGuid.tts = fixName(turnGuid.tts);
+                    if (rsaSettings.checkVI && turnGuid.visualInstruction)
+                        turnGuid.visualInstruction = fixName(turnGuid.visualInstruction);
                     console.log(turnGuid);
                     turnDat = turnDat.withTurnGuidance(turnGuid);
                     W.model.actionManager.add(new SetTurn(turnGraph, turn.withTurnData(turnDat)));
@@ -1649,27 +1553,24 @@ function rsaInit() {
             }
         });
     }
-
     function removeAutoFixButton() {
         $('#rsa-autoWrapper > div').off();
         $('#rsa-autoWrapper').css('display', 'none');
     }
-
     function addShieldClick() {
         const selFea = W.selectionManager.getSelectedFeatures();
         if (selFea && selFea.length === 1 && selFea[0].WW.getType() === 'segment') {
             $('.add-new-road-shield').trigger("click");
-        } else {
+        }
+        else {
             WazeWrap.Alerts.error(GM_info.script.name, 'You must have only 1 segment selected to use the shield editing menu');
         }
     }
-
     function tryScan() {
-        if (!rsaSettings.enableScript) return;
-
+        if (!rsaSettings.enableScript)
+            return;
         // Reset the array of objects that need names fixed
         BadNames = [];
-
         function scanNode(node) {
             // let conSegs = node.connectedSegmentIds;
             //
@@ -1682,11 +1583,9 @@ function rsaInit() {
             // }
             processNode(node);
         }
-
-        function scanSeg(seg: Segment, showInfo = false) {
+        function scanSeg(seg, showInfo = false) {
             processSeg(seg);
         }
-
         removeHighlights();
         // let selFea = W.selectionManager.getSelectedFeatures();
         // Scan all segments on screen
@@ -1695,9 +1594,8 @@ function rsaInit() {
             //     scanSeg(s);
             // }
             _.each(sdk.DataModel.Segments.getAll(), s => {
-                    scanSeg(s);
-                }
-            );
+                scanSeg(s);
+            });
         }
         // Scan all nodes on screen
         // if (rsaSettings.HighNodeShields || rsaSettings.ShowNodeShields || rsaSettings.titleCase) {
@@ -1706,36 +1604,39 @@ function rsaInit() {
         //     });
         // }
     }
-
-    function processSeg(seg: Segment) {
-        if (seg === null) return;
+    function processSeg(seg) {
+        if (seg === null)
+            return;
         // let segAtt = seg.attributes;
         // let streetID = segAtt.primaryStreetID;
-        let streetID: number| null = seg.primaryStreetId;
-        if (streetID === null) return;
+        let streetID = seg.primaryStreetId;
+        if (streetID === null)
+            return;
         // let oldStreet = W.model.streets.getObjectById(streetID).attributes;
-        let street: Street|null = sdk.DataModel.Streets.getById({streetId: streetID});
-        if(street === null) return;
+        let street = sdk.DataModel.Streets.getById({ streetId: streetID });
+        if (street === null)
+            return;
         // Currently City Doesn't have State ID Property.  Waiting on Feature Request
         // let stateID = W.model.cities.getObjectById(street.cityId).attributes.stateID;
-        let city: City | null = sdk.DataModel.Cities.getById({cityId: street.cityId});
-        if(city === null) return;
+        let city = sdk.DataModel.Cities.getById({ cityId: street.cityId });
+        if (city === null)
+            return;
         let stateID = city.stateId;
-
         if (rsaSettings.AlternativeShields) {
             if (seg.alternateStreetIds.length > 0) {
                 for (let i = 0; i < seg.alternateStreetIds.length; ++i) {
                     // let oldAltStreet = W.model.streets.getObjectById(segAtt.streetIDs[i]).attributes;
-                    let altStreet: Street|null = sdk.DataModel.Streets.getById({streetId: seg.alternateStreetIds[i]});
-                    if(altStreet !== null) {
+                    let altStreet = sdk.DataModel.Streets.getById({ streetId: seg.alternateStreetIds[i] });
+                    if (altStreet !== null) {
                         if (alternativeType === 'AlternativePrimaryCity') {
                             if (street.cityId === altStreet.cityId) {
                                 street = altStreet;
                                 break;
                             }
-                        } else if (alternativeType === 'AlternativeNoCity') {
+                        }
+                        else if (alternativeType === 'AlternativeNoCity') {
                             // let altCity = W.model.cities.getObjectById(altStreet.cityID).attributes;
-                            let altCity: City | null = sdk.DataModel.Cities.getById({cityId: altStreet.cityId});
+                            let altCity = sdk.DataModel.Cities.getById({ cityId: altStreet.cityId });
                             if (altCity && altCity.name === '') {
                                 street = altStreet;
                                 break;
@@ -1747,40 +1648,41 @@ function rsaInit() {
         }
         let hasShield = street.signType !== null;
         // let oldStateName = W.model.states.getObjectById(cityID.stateID).attributes.name;
-        let state: State | null = sdk.DataModel.States.getById({stateId: stateID});
-        let stateName: string| null = state === null ? null : state.name;
+        let state = sdk.DataModel.States.getById({ stateId: stateID });
+        let stateName = state === null ? null : state.name;
         let countryID = city.countryId;
         let candidate = isSegmentCandidate(seg, stateName, countryID);
-
         // Exclude ramps
-        if (!rsaSettings.ShowRamps && seg.roadType === 4) return;
-
+        if (!rsaSettings.ShowRamps && seg.roadType === 4)
+            return;
         // Only show mH and above
-        if (rsaSettings.mHPlus && seg.roadType !== 3 && seg.roadType !== 4 && seg.roadType !== 6 && seg.roadType !== 7) return;
-
+        if (rsaSettings.mHPlus && seg.roadType !== 3 && seg.roadType !== 4 && seg.roadType !== 6 && seg.roadType !== 7)
+            return;
         // Display shield on map
         if (hasShield) {
-            if (rsaSettings.ShowSegShields) displaySegShields(seg, street.signType, street.signText, street.direction);
-
+            if (rsaSettings.ShowSegShields)
+                displaySegShields(seg, street.signType, street.signText, street.direction);
             // If candidate and has shield
             if (rsaSettings.HighSegShields && candidate.isCandidate) {
                 if (isValidShield(seg)) {
                     createHighlight(seg, rsaSettings.HighSegClr);
-                } else {
+                }
+                else {
                     createHighlight(seg, rsaSettings.ErrSegClr);
                 }
             }
-
             // If not candidate and has shield
-            if (rsaSettings.SegShieldError && !candidate.isCandidate) createHighlight(seg, rsaSettings.ErrSegClr);
-            if (rsaSettings.SegHasDir && street.direction) createHighlight(seg, rsaSettings.SegHasDirClr);
-
+            if (rsaSettings.SegShieldError && !candidate.isCandidate)
+                createHighlight(seg, rsaSettings.ErrSegClr);
+            if (rsaSettings.SegHasDir && street.direction)
+                createHighlight(seg, rsaSettings.SegHasDirClr);
             // Highlight seg shields with direction
-            if (rsaSettings.SegInvDir && !street.direction) createHighlight(seg, rsaSettings.SegInvDirClr);
+            if (rsaSettings.SegInvDir && !street.direction)
+                createHighlight(seg, rsaSettings.SegInvDirClr);
         }
         // If candidate and missing shield
-        if (rsaSettings.SegShieldMissing && candidate.isCandidate && !hasShield) createHighlight(seg, rsaSettings.MissSegClr);
-
+        if (rsaSettings.SegShieldMissing && candidate.isCandidate && !hasShield)
+            createHighlight(seg, rsaSettings.MissSegClr);
         // Streets without capitalized letters
         if (rsaSettings.titleCase) {
             const badName = matchTitleCase(street);
@@ -1790,19 +1692,18 @@ function rsaInit() {
             }
         }
     }
-
     function processNode(node) {
-        let turns = sdk.DataModel.Turns.getTurnsThroughNode({nodeId: node.id});
+        let turns = sdk.DataModel.Turns.getTurnsThroughNode({ nodeId: node.id });
         for (let idx = 0; idx < turns.length; ++idx) {
             let turn = turns[idx];
             // let oldTurn = W.model.getTurnGraph().getTurnThroughNode(node,turn.fromSegmentId,turn.toSegmentId);
-            let turnData = sdk.DataModel.Turns.getById({turnId: turns[idx].id});
-            if (!turnData) continue;
+            let turnData = sdk.DataModel.Turns.getById({ turnId: turns[idx].id });
+            if (!turnData)
+                continue;
             let hasGuidance = turnData.hasTurnGuidance();
-
             if (hasGuidance) {
-                if (rsaSettings.ShowNodeShields && sdk.Map.getZoomLevel() > 14) displayNodeIcons(node, turnData);
-
+                if (rsaSettings.ShowNodeShields && sdk.Map.getZoomLevel() > 14)
+                    displayNodeIcons(node, turnData);
                 if (rsaSettings.titleCase) {
                     let badName = matchTitleCaseThroughNode(turn);
                     if (badName.isBad) {
@@ -1814,19 +1715,17 @@ function rsaInit() {
             }
         }
     }
-
-// Function written by kpouer to accommodate French conventions of shields being based on alt names
+    // Function written by kpouer to accommodate French conventions of shields being based on alt names
     function isSegmentCandidate(seg, state, country) {
         // let street = W.model.streets.getObjectById(segAtt.primaryStreetID);
-        let street = sdk.DataModel.Streets.getById({streetId: seg.primaryStreetId});
+        let street = sdk.DataModel.Streets.getById({ streetId: seg.primaryStreetId });
         let candidate = isStreetCandidate(street, state, country);
         if (candidate.isCandidate) {
             return candidate;
         }
-
         if (CheckAltName.includes(country)) {
             for (let i = 0; i < seg.alternateStreetIds.length; i++) {
-                street = sdk.DataModel.Streets.getById({streetId: seg.alternateStreetIds[i]});
+                street = sdk.DataModel.Streets.getById({ streetId: seg.alternateStreetIds[i] });
                 candidate = isStreetCandidate(street, state, country);
                 if (candidate.isCandidate) {
                     return candidate;
@@ -1835,37 +1734,32 @@ function rsaInit() {
         }
         return candidate;
     }
-
     function isStreetCandidate(street, state, country) {
         const info = {
             isCandidate: false,
             iconID: null
-        }
-
+        };
         if (!RoadAbbr[country]) {
             return info;
         }
-
         //Check to see if the country has states configured in RSA by looking for a key with nothing in it
         const noStates = '' in RoadAbbr[country];
         const name = street.name;
         const abbrvs = noStates ? RoadAbbr[country][''] : RoadAbbr[country][state];
-
         for (let i = 0; i < Object.keys(abbrvs).length; i++) {
             if (name) {
                 if (noStates) {
                     const abrKey = Object.keys(abbrvs)[i];
                     const abbr = new RegExp(abrKey, 'g');
                     const isMatch = name.match(abbr);
-
                     if (isMatch && name === isMatch[0]) {
                         info.isCandidate = true;
                         info.iconID = abbrvs[abrKey];
                     }
-                } else {
+                }
+                else {
                     const abbr = Object.keys(abbrvs)[i];
                     const isMatch = name.includes(abbr);
-
                     if (isMatch) {
                         // console.log(abbrvs[abbr]);
                         info.isCandidate = true;
@@ -1876,47 +1770,48 @@ function rsaInit() {
         }
         return info;
     }
-
     function isValidShield(seg) {
         // let primaryStreet = W.model.streets.getObjectById(segAtt.primaryStreetID);
-        let primaryStreet = sdk.DataModel.Streets.getById({streetId: seg.primaryStreetId});
+        let primaryStreet = sdk.DataModel.Streets.getById({ streetId: seg.primaryStreetId });
         if (primaryStreet.name === primaryStreet.signText) {
             return true;
         }
         for (var i = 0; i < seg.alternateStreetIds.length; i++) {
             // let street = W.model.streets.getObjectById(segAtt.streetIDs[i]);
-            let street = sdk.DataModel.Streets.getById({streetId: seg.alternateStreetIds[i]});
+            let street = sdk.DataModel.Streets.getById({ streetId: seg.alternateStreetIds[i] });
             if (street.name === primaryStreet.signText) {
                 return true;
             }
         }
         return false;
     }
-
     function matchTitleCase(street) {
         const dir = street.direction;
         let isBad = false;
         if (dir !== '' && dir !== null) {
             // console.log(dir);
-            if (dir.match(/\b(north|south|east|west)\b/i) != null) isBad = true;
-            if (dir.match(/([ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘʀꜱᴛᴜᴠᴡʏᴢ][a-z]|[a-z][ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘʀꜱᴛᴜᴠᴡʏᴢ])/) != null) isBad = true;
-
+            if (dir.match(/\b(north|south|east|west)\b/i) != null)
+                isBad = true;
+            if (dir.match(/([ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘʀꜱᴛᴜᴠᴡʏᴢ][a-z]|[a-z][ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘʀꜱᴛᴜᴠᴡʏᴢ])/) != null)
+                isBad = true;
             if (isBad === true) {
                 if (BadNames.length === 0) {
                     BadNames.push(street);
-                } else {
+                }
+                else {
                     let isDuplicate = false;
                     for (let i = 0; i < BadNames.length; i++) {
                         // if (BadNames[i].type) console.log(BadNames[i].id === street.id);
-                        if (BadNames[i].type && BadNames[i].id === street.id) isDuplicate = true;
+                        if (BadNames[i].type && BadNames[i].id === street.id)
+                            isDuplicate = true;
                     }
-                    if (!isDuplicate) BadNames.push(street);
+                    if (!isDuplicate)
+                        BadNames.push(street);
                 }
             }
         }
         return isBad;
     }
-
     function matchTitleCaseThroughNode(turn) {
         const turnData = turn.getTurnData();
         const turnGuid = turnData.getTurnGuidance();
@@ -1928,55 +1823,59 @@ function rsaInit() {
             isBad: false,
             softIssue: false
         };
-
         function checkText(txt, isSoft = false) {
             if (txt !== '' && txt !== null) {
                 if (txt.match(/\b(north|south|east|west)\b/i) != null) {
                     info.isBad = true;
-                    if (isSoft) info.softIssue = true;
+                    if (isSoft)
+                        info.softIssue = true;
                 }
                 if (txt.match(/\b(TO|VIA|JCT)\b/i) != null) {
                     info.isBad = true;
-                    if (isSoft) info.softIssue = true;
+                    if (isSoft)
+                        info.softIssue = true;
                 }
                 if (txt.match(/([ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘʀꜱᴛᴜᴠᴡʏᴢ][a-z]|[a-z][ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘʀꜱᴛᴜᴠᴡʏᴢ])/) != null) {
                     info.isBad = true;
-                    if (isSoft) info.softIssue = true;
+                    if (isSoft)
+                        info.softIssue = true;
                 }
             }
         }
-
         function checkTTStext(txt, isSoft = false) {
             if (txt !== '' && txt !== null) {
                 if (txt.match(/(Nᴏʀᴛʜ|Sᴏᴜᴛʜ|Eᴀꜱᴛ|Wᴇꜱᴛ)/) != null) {
                     info.isBad = true;
-                    if (isSoft) info.softIssue = true;
+                    if (isSoft)
+                        info.softIssue = true;
                 }
                 if (txt.match(/(ᴛᴏ|ᴠɪᴀ|ᴊᴄᴛ)/) != null) {
                     info.isBad = true;
-                    if (isSoft) info.softIssue = true;
+                    if (isSoft)
+                        info.softIssue = true;
                 }
                 if (txt.match(/([ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘʀꜱᴛᴜᴠᴡʏᴢ][a-z]|[a-z][ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘʀꜱᴛᴜᴠᴡʏᴢ])/) != null) {
                     info.isBad = true;
-                    if (isSoft) info.softIssue = true;
+                    if (isSoft)
+                        info.softIssue = true;
                 }
             }
         }
-
         if (shields) {
             _.each(shields, (s) => {
                 checkText(s.direction);
             });
         }
-        if (twd && twd !== "" && rsaSettings.checkTWD) checkText(twd, true);
-        if (tts && tts !== "" && rsaSettings.checkTTS) checkTTStext(tts, true);
-        if (VI && VI !== "" && rsaSettings.checkVI) checkText(VI, true);
-
-        if (info.isBad) BadNames.push(turn);
-
+        if (twd && twd !== "" && rsaSettings.checkTWD)
+            checkText(twd, true);
+        if (tts && tts !== "" && rsaSettings.checkTTS)
+            checkTTStext(tts, true);
+        if (VI && VI !== "" && rsaSettings.checkVI)
+            checkText(VI, true);
+        if (info.isBad)
+            BadNames.push(turn);
         return info;
     }
-
     function displayNodeIcons(node, turnDat) {
         const geo = node.geometry.clone();
         const trnGuid = turnDat.getTurnGuidance();
@@ -2023,7 +1922,6 @@ function rsaInit() {
             }
         };
         let count = 0;
-
         GUIDANCE.shields.exists = trnGuid.getRoadShields() !== null;
         if (rsaSettings.ShowExitShields) {
             GUIDANCE.exitsign.exists = (trnGuid.getExitSigns() !== null && trnGuid.getExitSigns().length > 0);
@@ -2037,7 +1935,6 @@ function rsaInit() {
         if (rsaSettings.ShowVisualInst) {
             GUIDANCE.visualIn.exists = (trnGuid.getVisualInstruction() !== null && trnGuid.getVisualInstruction().length > 0);
         }
-
         const styleNode = {
             strokeColor: rsaSettings.HighNodeClr,
             strokeOpacity: 0.75,
@@ -2046,16 +1943,14 @@ function rsaInit() {
             fillOpacity: 0.75,
             pointRadius: 3
         };
-
         let startPoint = {
             x: geo.getVertices()[0].x,
             y: geo.getVertices()[0].y
-        }
+        };
         let lblStart = {
             x: startPoint.x + LabelDistance().label,
             y: startPoint.y + LabelDistance().label
-        }
-
+        };
         // Array of points for line connecting node to icons
         let points = [];
         // Point coords
@@ -2082,27 +1977,23 @@ function rsaInit() {
             properties: styleNode,
         };
         points.push(pointLabel);
-
-
         // Point on node
         // let pointFeature = new OpenLayers.Feature.Vector(pointNode, null, styleNode);
-
         // sdk.Map.addFeatureToLayer({feature: [pointFeature], layerName: rsaMapLayer.layerName});
-        sdk.Map.addFeaturesToLayer({features: points, layerName: rsaMapLayer.layerName});
+        sdk.Map.addFeaturesToLayer({ features: points, layerName: rsaMapLayer.layerName });
         // Line between node and label
         // var newline = new OpenLayers.Geometry.LineString(points);
         // var lineFeature = new OpenLayers.Feature.Vector(newline, null, styleNode);
         let newLine = {
-            id: "line_"+points[0].x+" "+points[0].y,
+            id: "line_" + points[0].x + " " + points[0].y,
             geometry: {
                 type: "LineString",
                 coordinates: [points],
             },
             type: "Feature",
             properties: styleNode,
-        }
-        sdk.Map.addFeatureToLayer({feature: newLine, layerName: rsaIconLayer.layerName});
-
+        };
+        sdk.Map.addFeatureToLayer({ feature: newLine, layerName: rsaIconLayer.layerName });
         _.each(GUIDANCE, (q) => {
             if (q.exists) {
                 // console.log(q);
@@ -2115,7 +2006,6 @@ function rsaInit() {
                 };
                 let xpoint;
                 let ypoint;
-
                 switch (count) {
                     case 0:
                         xpoint = lblStart.x;
@@ -2140,37 +2030,35 @@ function rsaInit() {
                     default:
                         break;
                 }
-
                 // Label coords
                 // let pointLabel = new OpenLayers.Geometry.Point(xpoint, ypoint);
-                let pointLabel =
-                    // Label
-                    let
+                let pointLabel = 
+                // Label
+                let;
                 labelFeat = new OpenLayers.Feature.Vector(pointLabel, null, styleLabel);
-                sdk.Map.addFeatureToLayer({feature: [labelFeat], layerName: rsaIconLayer.layerName});
-
+                sdk.Map.addFeatureToLayer({ feature: [labelFeat], layerName: rsaIconLayer.layerName });
                 count++;
             }
         });
     }
-
     function displaySegShields(segment, shieldID, shieldText, shieldDir) {
-        if (sdk.Map.getZoomLevel() < 14) return;
-
+        if (sdk.Map.getZoomLevel() < 14)
+            return;
         const iconURL = `https://renderer-am.waze.com/renderer/v1/signs/${shieldID}?text=${shieldText}`;
         let SegmentPoints = [];
         let oldparam = {};
         let labelDis = LabelDistance();
         let width = 37;
         let height = 37;
-
         if (shieldText.length > 4 && shieldText.length < 7) {
             width = 50;
             height = 40;
-        } else if (shieldText.length > 6 && shieldText.length < 9) {
+        }
+        else if (shieldText.length > 6 && shieldText.length < 9) {
             width = 80;
             height = 45;
-        } else if (shieldText.length > 8 && shieldText.length < 13) {
+        }
+        else if (shieldText.length > 8 && shieldText.length < 13) {
             width = 100;
             height = 50;
         }
@@ -2180,7 +2068,6 @@ function rsaInit() {
         $.each(segment.geometry.coordinates, function (idx, param) {
             // Build a new segment with same geometry
             SegmentPoints.push(new OpenLayers.Geometry.Point(param.x, param.y));
-
             // Shield icon style
             const style = {
                 externalGraphic: iconURL,
@@ -2197,7 +2084,6 @@ function rsaInit() {
                 labelOutlineWidth: 1,
                 fontSize: 12
             };
-
             if (oldparam.x !== null && oldparam.y !== null) {
                 if (Math.abs(oldparam.x - param.x) > labelDis.space || Math.abs(oldparam.y - param.y) > labelDis.space || AtLeastOne === false) {
                     let centerparam = {};
@@ -2218,7 +2104,7 @@ function rsaInit() {
                                 },
                                 type: "Feature",
                             }, layerName: rsaIconLayer.layerName
-                        })
+                        });
                         // rsaIconLayer.addFeatures([pointFeature, imageFeature2]);
                         AtLeastOne = true;
                     }
@@ -2228,12 +2114,10 @@ function rsaInit() {
             oldparam.y = param.y;
         });
     }
-
     function createHighlight(obj, color, overSized = false) {
         // const geo = obj.getOLGeometry().clone();
         const geo = structuredClone(obj.geometry);
         let isNode = obj.type === 'node';
-
         if (isNode) {
             const styleNode = {
                 strokeColor: color,
@@ -2242,26 +2126,25 @@ function rsaInit() {
                 fillColor: color,
                 fillOpacity: 0.75,
                 pointRadius: overSized ? 7 : 3
-            }
-
+            };
             // Point coords
             // let pointNode = new OpenLayers.Geometry.Point(geo.x, geo.y);
             let pointNode = {
                 type: "Point",
                 coordinates: [geo.x, geo.y]
-            }
+            };
             let pointFeature = {
                 geometry: pointNode,
                 type: "Feature",
                 properties: styleNode,
                 id: "point_" + geo.x + "_" + geo.y,
-            }
-
+            };
             // Point on node
             // var pointFeature = new OpenLayers.Feature.Vector(pointNode, null, styleNode);
             // rsaIconLayer.addFeatures([pointFeature]);
-            sdk.Map.addFeatureToLayer({feature: pointFeature, layerName: rsaIconLayer.layerName});
-        } else {
+            sdk.Map.addFeatureToLayer({ feature: pointFeature, layerName: rsaIconLayer.layerName });
+        }
+        else {
             // console.log('seg highlight')
             const style = {
                 strokeColor: color,
@@ -2269,7 +2152,7 @@ function rsaInit() {
                 strokeWidth: overSized ? 7 : 4,
                 fillColor: color,
                 fillOpacity: 0.75
-            }
+            };
             // const newFeat =  new OpenLayers.Geometry.LineString(geo.components, {});
             // const newVector = new OpenLayers.Feature.Vector(newFeat, null, style);
             // rsaMapLayer.addFeatures([newVector]);
@@ -2281,16 +2164,14 @@ function rsaInit() {
                 type: "Feature",
                 properties: style,
                 id: "line_" + geo.coordinates[0].x + "_" + geo.coordinates[0].y,
-            }
-            sdk.Map.addFeatureToLayer({feature: newLineFeature, layerName: rsaMapLayer.layerName});
+            };
+            sdk.Map.addFeatureToLayer({ feature: newLineFeature, layerName: rsaMapLayer.layerName });
         }
     }
-
     function removeHighlights() {
         sdk.Map.removeAllFeaturesFromLayer(rsaMapLayer);
         sdk.Map.removeAllFeaturesFromLayer(rsaIconLayer);
     }
-
     function LabelDistance() {
         // Return object with two variables - label is the distance used to place the direction below the icon,
         // space is the space between geo points needed to render another icon
@@ -2349,6 +2230,5 @@ function rsaInit() {
         }
         return label_distance;
     }
-
     initRSA();
 }
