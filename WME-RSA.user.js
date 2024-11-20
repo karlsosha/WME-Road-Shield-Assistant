@@ -1,3 +1,4 @@
+"use strict";
 // ==UserScript==
 // @name         WME Road Shield Assistant
 // @namespace    https://greasyfork.org/en/users/286957-skidooguy
@@ -13,6 +14,11 @@
 // @grant        none
 // @contributionURL https://github.com/WazeDev/Thank-The-Authors
 // ==/UserScript==
+/* global W */
+/* global WazeWrap */
+/* global _ */
+/* global require */
+// import {City, Segment, State, Street, Node, WmeSDK} from "wme-sdk";
 // import * as WazeWrap from "../WazeWrap.js";
 // import * as OpenLayers from "ol";
 window.SDK_INITIALIZED.then(rsaInit);
@@ -2270,4 +2276,3 @@ function rsaInit() {
     }
     initRSA();
 }
-export {};

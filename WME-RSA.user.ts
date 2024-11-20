@@ -19,7 +19,7 @@
 /* global _ */
 /* global require */
 
-import {City, Segment, State, Street, Node, WmeSDK} from "wme-sdk";
+// import {City, Segment, State, Street, Node, WmeSDK} from "wme-sdk";
 // import * as WazeWrap from "../WazeWrap.js";
 // import * as OpenLayers from "ol";
 
