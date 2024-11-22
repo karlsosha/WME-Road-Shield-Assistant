@@ -20,7 +20,6 @@
 /* global require */
 // import {City, Segment, State, Street, Node, WmeSDK} from "wme-sdk";
 // import * as WazeWrap from "../WazeWrap.js";
-// import * as OpenLayers from "ol";
 window.SDK_INITIALIZED.then(rsaInit);
 function rsaInit() {
     if (!window.getWmeSdk) {
@@ -876,13 +875,15 @@ function rsaInit() {
         titleCase: false,
         checkTWD: false,
         checkTTS: false,
-        checkVI: false,
-        addShield: false
+        checkVI: false
     };
     let UpdateObj;
     let SetTurn;
-    let rsaMapLayer = { layerName: "RSA Map Layer" };
-    let rsaIconLayer = { layerName: "RSA Icon Layer" };
+    function isNewLine() {
+        return false;
+    }
+    let rsaMapLayer = { layerName: "RSA Map Layer", zIndexing: true };
+    let rsaIconLayer = { layerName: "RSA Icon Layer", zIndexing: true };
     let LANG;
     let alternativeType;
     console.debug(`SDK v. ${sdk.getSDKVersion()} on ${sdk.getWMEVersion()} initialized`);
@@ -1126,14 +1127,38 @@ function rsaInit() {
             $('#rsa-AlternativeNoCity').prop('disabled', true);
         }
     }
+    function applyPointLabel(properties) {
+        console.log(properties);
+        return true;
+    }
+    function getPointLabelStyle() {
+        return;
+    }
+    function currentHighNodeClr() { return rsaSettings.HighNodeClr; }
     async function setupOptions() {
         await loadSettings();
         // Create OL layer for display
-        sdk.Map.addLayer(rsaMapLayer);
-        sdk.LayerSwitcher.addLayerCheckbox({ name: rsaMapLayer.layerName });
+        const layerMapArgs = {
+            layerName: rsaMapLayer.layerName,
+            styleRules: [
+                {
+                    predicate: applyPointLabel,
+                    style: {
+                        strokeColor: currentHighNodeClr(),
+                        strokeOpacity: 0.75,
+                        strokeWidth: 4,
+                        fillColor: currentHighNodeClr(),
+                        fillOpacity: 0.75,
+                        pointRadius: 3
+                    }
+                }
+            ]
+        };
+        sdk.Map.addLayer(layerMapArgs);
+        sdk.LayerSwitcher.addLayerCheckbox({ name: 'RSA Map Layer' });
         // sdk.Map.setLayerVisibility({layerName: rsaMapLayer.layerName, visibility: true});
         sdk.Map.addLayer(rsaIconLayer);
-        sdk.LayerSwitcher.addLayerCheckbox({ name: rsaIconLayer.layerName });
+        sdk.LayerSwitcher.addLayerCheckbox({ name: 'RSA Icon Layer' });
         // sdk.Map.setLayerVisibility({layerName: rsaIconLayer.layerName, visibility: true});
         sdk.Events.on({
             eventName: "wme-layer-checkbox-toggled",
@@ -1208,7 +1233,18 @@ function rsaInit() {
         // WazeWrap.Events.register('moveend', null, tryScan);
         // WazeWrap.Events.register('moveend', null, checkOptions);
         // WazeWrap.Events.register('afteraction', null, tryScan);
-        new WazeWrap.Interface.Shortcut('addShield', 'Activates the Add Shield Button', 'wmersa', 'Road Shield Assistant', rsaSettings.addShield, addShieldClick, null).add();
+        sdk.Shortcuts.createShortcut({
+            callback: addShieldClick,
+            description: 'Activates the Add Shield Button',
+            shortcutId: 'addShield',
+            shortcutKeys: 'A+83'
+        });
+        // new WazeWrap.Interface.Shortcut('addShield',
+        //                                 'Activates the Add Shield Button',
+        //                                 'wmersa',
+        //                                 'Road Shield Assistant',
+        //                                 rsaSettings.addShield,
+        //                                 addShieldClick, null).add();
         setEleStatus();
         $('input[type=radio][name=AlternativeShields]').on('change', function () {
             processAlternativeSettings();
@@ -1296,21 +1332,19 @@ function rsaInit() {
                 checkTWD: false,
                 checkTTS: false,
                 checkVI: false,
-                addShield: false
             };
             rsaSettings = defaultSettings;
             saveSettings();
             setEleStatus();
         });
         // Add translated UI text
-        let lang = LANG;
-        if (!Strings[lang])
-            lang = 'en';
-        for (let i = 0; i < Object.keys(Strings[lang]).length; i++) {
-            let key = Object.keys(Strings[lang])[i];
-            $(`#rsa-text-${key}`).text(Strings[lang][key]);
+        if (!Strings[LANG])
+            LANG = 'en';
+        for (let i = 0; i < Object.keys(Strings[LANG]).length; i++) {
+            let key = Object.keys(Strings[LANG])[i];
+            $(`#rsa-text-${key}`).text(Strings[LANG][key]);
         }
-        $('#rsa-resetSettings').attr('value', Strings[lang].resetSettings);
+        $('#rsa-resetSettings').attr('value', Strings[LANG].resetSettings);
         checkOptions();
     }
     async function loadSettings() {
@@ -1352,7 +1386,6 @@ function rsaInit() {
             checkTWD: false,
             checkTTS: false,
             checkVI: false,
-            addShield: false
         };
         rsaSettings = $.extend({}, defaultSettings, localSettings);
         if (serverSettings && serverSettings.lastSaveAction > rsaSettings.lastSaveAction) {
@@ -1370,7 +1403,7 @@ function rsaInit() {
         });
     }
     async function saveSettings() {
-        const { enableScript, HighSegShields, ShowSegShields, SegShieldMissing, SegShieldError, HighNodeShields, ShowNodeShields, ShowExitShields, SegHasDir, SegInvDir, ShowTurnTTS, AlertTurnTTS, ShowTowards, ShowVisualInst, NodeShieldMissing, HighSegClr, MissSegClr, ErrSegClr, HighNodeClr, MissNodeClr, SegHasDirClr, SegInvDirClr, TitleCaseClr, TitleCaseSftClr, ShowRamps, AlternativeShields, mHPlus, titleCase, checkTWD, checkTTS, checkVI, addShield } = rsaSettings;
+        const { enableScript, HighSegShields, ShowSegShields, SegShieldMissing, SegShieldError, HighNodeShields, ShowNodeShields, ShowExitShields, SegHasDir, SegInvDir, ShowTurnTTS, AlertTurnTTS, ShowTowards, ShowVisualInst, NodeShieldMissing, HighSegClr, MissSegClr, ErrSegClr, HighNodeClr, MissNodeClr, SegHasDirClr, SegInvDirClr, TitleCaseClr, TitleCaseSftClr, ShowRamps, AlternativeShields, mHPlus, titleCase, checkTWD, checkTTS, checkVI } = rsaSettings;
         const localSettings = {
             lastSaveAction: Date.now(),
             enableScript,
@@ -1403,37 +1436,35 @@ function rsaInit() {
             titleCase,
             checkTWD,
             checkTTS,
-            checkVI,
-            addShield
+            checkVI
         };
         // Grab keyboard shortcuts and store them for saving
-        for (const name in W.accelerators.Actions) {
-            const { shortcut, group } = W.accelerators.Actions[name];
-            if (group === 'wmersa') {
-                let TempKeys = '';
-                if (shortcut) {
-                    if (shortcut.altKey === true) {
-                        TempKeys += 'A';
-                    }
-                    if (shortcut.shiftKey === true) {
-                        TempKeys += 'S';
-                    }
-                    if (shortcut.ctrlKey === true) {
-                        TempKeys += 'C';
-                    }
-                    if (TempKeys !== '') {
-                        TempKeys += '+';
-                    }
-                    if (shortcut.keyCode) {
-                        TempKeys += shortcut.keyCode;
-                    }
-                }
-                else {
-                    TempKeys = '-1';
-                }
-                localSettings[name] = TempKeys;
-            }
-        }
+        // for (const name in W.accelerators.Actions) {
+        //     const {shortcut, group} = W.accelerators.Actions[name];
+        //     if (group === 'wmersa') {
+        //         let TempKeys = '';
+        //         if (shortcut) {
+        //             if (shortcut.altKey === true) {
+        //                 TempKeys += 'A';
+        //             }
+        //             if (shortcut.shiftKey === true) {
+        //                 TempKeys += 'S';
+        //             }
+        //             if (shortcut.ctrlKey === true) {
+        //                 TempKeys += 'C';
+        //             }
+        //             if (TempKeys !== '') {
+        //                 TempKeys += '+';
+        //             }
+        //             if (shortcut.keyCode) {
+        //                 TempKeys += shortcut.keyCode;
+        //             }
+        //         } else {
+        //             TempKeys = '-1';
+        //         }
+        //         localSettings[name as keyof typeof localSettings] = TempKeys;
+        //     }
+        // }
         // Required for the instant update of changes to the keyboard shortcuts on the UI
         rsaSettings = localSettings;
         if (localStorage) {
@@ -1464,14 +1495,13 @@ function rsaInit() {
                 if (RoadAbbr[countries[i].id])
                     allowFeat = true;
             }
-            const lang = LANG;
             if (!allowFeat) {
                 $(`#rsa-text-SegShieldMissing`).prop('checked', false);
                 $(`#rsa-text-SegShieldError`).prop('checked', false);
                 $(`#rsa-text-NodeShieldMissing`).prop('checked', false);
-                $(`#rsa-text-SegShieldMissing`).text(Strings[lang].SegShieldMissing + ' ' + Strings[lang].disabledFeat);
-                $(`#rsa-text-SegShieldError`).text(Strings[lang].SegShieldError + ' ' + Strings[lang].disabledFeat);
-                $(`#rsa-text-NodeShieldMissing`).text(Strings[lang].NodeShieldMissing + ' ' + Strings[lang].disabledFeat);
+                $(`#rsa-text-SegShieldMissing`).text(Strings[LANG].SegShieldMissing + ' ' + Strings[LANG].disabledFeat);
+                $(`#rsa-text-SegShieldError`).text(Strings[LANG].SegShieldError + ' ' + Strings[LANG].disabledFeat);
+                $(`#rsa-text-NodeShieldMissing`).text(Strings[LANG].NodeShieldMissing + ' ' + Strings[LANG].disabledFeat);
                 $(`#rsa-SegShieldMissing`).prop('disabled', true);
                 $(`#rsa-SegShieldError`).prop('disabled', true);
                 $(`#rsa-NodeShieldMissing`).prop('disabled', true);
@@ -1484,9 +1514,9 @@ function rsaInit() {
                 $(`#rsa-text-SegShieldMissing`).prop('checked', rsaSettings.SegShieldMissing);
                 $(`#rsa-text-SegShieldError`).prop('checked', rsaSettings.SegShieldError);
                 $(`#rsa-text-NodeShieldMissing`).prop('checked', rsaSettings.NodeShieldMissing);
-                $(`#rsa-text-SegShieldMissing`).text(Strings[lang].SegShieldMissing);
-                $(`#rsa-text-SegShieldError`).text(Strings[lang].SegShieldError);
-                $(`#rsa-text-NodeShieldMissing`).text(Strings[lang].NodeShieldMissing);
+                $(`#rsa-text-SegShieldMissing`).text(Strings[LANG].SegShieldMissing);
+                $(`#rsa-text-SegShieldError`).text(Strings[LANG].SegShieldError);
+                $(`#rsa-text-NodeShieldMissing`).text(Strings[LANG].NodeShieldMissing);
                 $(`#rsa-SegShieldMissing`).prop('disabled', false);
                 $(`#rsa-SegShieldError`).prop('disabled', false);
                 $(`#rsa-NodeShieldMissing`).prop('disabled', false);
@@ -1514,7 +1544,7 @@ function rsaInit() {
             const turnGraph = sdk.DataModel.Turns.getAll();
             for (let i = 0; i < BadNames.length; i++) {
                 // Check if street or turn
-                if (BadNames[i].type) {
+                if (BadNames[i]) {
                     let strt = BadNames[i];
                     let dir = strt.direction;
                     if (dir !== null) {
@@ -1567,8 +1597,9 @@ function rsaInit() {
         $('#rsa-autoWrapper').css('display', 'none');
     }
     function addShieldClick() {
-        const selFea = W.selectionManager.getSelectedFeatures();
-        if (selFea && selFea.length === 1 && selFea[0].WW.getType() === 'segment') {
+        // const selFea = W.selectionManager.getSelectedFeatures();
+        const selFea = sdk.Editing.getSelection();
+        if (selFea && selFea.objectType === 'segment') {
             $('.add-new-road-shield').trigger("click");
         }
         else {
@@ -1581,15 +1612,6 @@ function rsaInit() {
         // Reset the array of objects that need names fixed
         BadNames = [];
         function scanNode(node) {
-            // let conSegs = node.connectedSegmentIds;
-            //
-            // for (let i=0; i < conSegs.length; i++) {
-            //     let seg1 = sdk.DataModel.Segments.getById({segmentId: conSegs[i]});
-            //     for (let j=0; j < conSegs.length; j++) {
-            //         let seg2 = sdk.DataModel.Segments.getById({segmentId: conSegs[j]});
-            //         processNode(node, seg1, seg2);
-            //     }
-            // }
             processNode(node);
         }
         function scanSeg(seg, showInfo = false) {
@@ -1977,7 +1999,7 @@ function rsaInit() {
         // Label coords
         // var pointLabel = new OpenLayers.Geometry.Point(lblStart.x, lblStart.y);
         var pointLabel = {
-            id: "node_" + startPoint.x + " " + startPoint.y,
+            id: "pointNode_" + startPoint.x + " " + startPoint.y,
             geometry: {
                 coordinates: [startPoint.x, startPoint.y],
                 type: "Point"
@@ -2143,6 +2165,7 @@ function rsaInit() {
                                     coordinates: [centerparam.x, centerparam.y],
                                 },
                                 type: "Feature",
+                                properties: style2,
                             }, layerName: rsaIconLayer.layerName
                         });
                         // rsaIconLayer.addFeatures([pointFeature, imageFeature2]);
