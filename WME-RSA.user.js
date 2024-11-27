@@ -18,7 +18,8 @@
 /* global WazeWrap */
 /* global _ */
 /* global require */
-// import {City, Segment, State, Street, Node, WmeSDK} from "wme-sdk";
+// import {City, Node, Segment, State, Street, WmeSDK} from "wme-sdk";
+// // @ts-ignore
 // import * as WazeWrap from "../WazeWrap.js";
 window.SDK_INITIALIZED.then(rsaInit);
 function rsaInit() {
@@ -886,6 +887,39 @@ function rsaInit() {
     let rsaIconLayer = { layerName: "RSA Icon Layer", zIndexing: true };
     let LANG;
     let alternativeType;
+    let styleRules = {
+        "pointLabel": {
+            predicate: applyPointLabel,
+            style: {
+                strokeColor: currentHighNodeClr(),
+                strokeOpacity: 0.75,
+                strokeWidth: 4,
+                fillColor: currentHighNodeClr(),
+                fillOpacity: 0.75,
+                pointRadius: 3
+            }
+        },
+        "shieldWithDirection": {
+            predicate: applyShieldWithDirection,
+            style: {}
+        },
+        "shield": {
+            predicate: applyShield,
+            style: {}
+        },
+        "segHighlight": {
+            predicate: applySegHighlight,
+            style: {}
+        },
+        "styleNode": {
+            predicate: applyStyleNode,
+            style: {}
+        },
+        "styleLabel": {
+            predicate: applyStyleLabel,
+            style: {}
+        }
+    };
     console.debug(`SDK v. ${sdk.getSDKVersion()} on ${sdk.getWMEVersion()} initialized`);
     // function rsaBootstrap() {
     //     // if (!document.getElementById('edit-panel') || !sdk.DataModel.Countries.getTopCountry() || !WazeWrap.Ready) {
@@ -1128,36 +1162,37 @@ function rsaInit() {
         }
     }
     function applyPointLabel(properties) {
-        console.log(properties);
-        return true;
+        return properties.name === "pointLabelStyle";
     }
-    function getPointLabelStyle() {
-        return;
+    function applyShieldWithDirection(properties) {
+        return properties.name === "shieldWithDirection";
+    }
+    function applyShield(properties) {
+        return properties.name === "shield";
+    }
+    function applySegHighlight(properties) {
+        return properties.name === "segHighlight";
+    }
+    function applyStyleNode(properties) {
+        return properties.name === "styleNode";
+    }
+    function applyStyleLabel(properties) {
+        return properties.name === "styleLabel";
     }
     function currentHighNodeClr() { return rsaSettings.HighNodeClr; }
     async function setupOptions() {
         await loadSettings();
         // Create OL layer for display
-        const layerMapArgs = {
+        sdk.Map.addLayer({
             layerName: rsaMapLayer.layerName,
-            styleRules: [
-                {
-                    predicate: applyPointLabel,
-                    style: {
-                        strokeColor: currentHighNodeClr(),
-                        strokeOpacity: 0.75,
-                        strokeWidth: 4,
-                        fillColor: currentHighNodeClr(),
-                        fillOpacity: 0.75,
-                        pointRadius: 3
-                    }
-                }
-            ]
-        };
-        sdk.Map.addLayer(layerMapArgs);
+            styleRules: Object.values(styleRules)
+        });
         sdk.LayerSwitcher.addLayerCheckbox({ name: 'RSA Map Layer' });
         // sdk.Map.setLayerVisibility({layerName: rsaMapLayer.layerName, visibility: true});
-        sdk.Map.addLayer(rsaIconLayer);
+        sdk.Map.addLayer({
+            layerName: rsaIconLayer.layerName,
+            styleRules: Object.values(styleRules)
+        });
         sdk.LayerSwitcher.addLayerCheckbox({ name: 'RSA Icon Layer' });
         // sdk.Map.setLayerVisibility({layerName: rsaIconLayer.layerName, visibility: true});
         sdk.Events.on({
@@ -1804,13 +1839,15 @@ function rsaInit() {
     function isValidShield(seg) {
         // let primaryStreet = W.model.streets.getObjectById(segAtt.primaryStreetID);
         let primaryStreet = sdk.DataModel.Streets.getById({ streetId: seg.primaryStreetId });
+        if (primaryStreet === null)
+            return false;
         if (primaryStreet.name === primaryStreet.signText) {
             return true;
         }
         for (var i = 0; i < seg.alternateStreetIds.length; i++) {
             // let street = W.model.streets.getObjectById(segAtt.streetIDs[i]);
             let street = sdk.DataModel.Streets.getById({ streetId: seg.alternateStreetIds[i] });
-            if (street.name === primaryStreet.signText) {
+            if (street !== null && street.name === primaryStreet.signText) {
                 return true;
             }
         }
@@ -1966,14 +2003,14 @@ function rsaInit() {
         if (rsaSettings.ShowVisualInst) {
             GUIDANCE.visualIn.exists = (trnGuid.getVisualInstruction() !== null && trnGuid.getVisualInstruction().length > 0);
         }
-        const styleNode = {
+        Object.assign(styleRules.styleNode.style, {
             strokeColor: rsaSettings.HighNodeClr,
             strokeOpacity: 0.75,
             strokeWidth: 4,
             fillColor: rsaSettings.HighNodeClr,
             fillOpacity: 0.75,
             pointRadius: 3
-        };
+        });
         let startPoint = {
             x: geo.getVertices()[0].x,
             y: geo.getVertices()[0].y
@@ -1993,21 +2030,21 @@ function rsaInit() {
                 type: "Point"
             },
             type: "Feature",
-            properties: styleNode,
+            properties: { name: "styleNode" },
         };
         points.push(pointNode);
         // Label coords
         // var pointLabel = new OpenLayers.Geometry.Point(lblStart.x, lblStart.y);
-        var pointLabel = {
+        var nodeLabel = {
             id: "pointNode_" + startPoint.x + " " + startPoint.y,
             geometry: {
                 coordinates: [startPoint.x, startPoint.y],
                 type: "Point"
             },
             type: "Feature",
-            properties: styleNode,
+            properties: "styleNode",
         };
-        points.push(pointLabel);
+        points.push(nodeLabel);
         // Point on node
         // let pointFeature = new OpenLayers.Feature.Vector(pointNode, null, styleNode);
         // sdk.Map.addFeatureToLayer({feature: [pointFeature], layerName: rsaMapLayer.layerName});
@@ -2028,13 +2065,13 @@ function rsaInit() {
         _.each(GUIDANCE, (q) => {
             if (q.exists) {
                 // console.log(q);
-                const styleLabel = {
+                Object.assign(styleRules.styleLabel.style, {
                     externalGraphic: `https://renderer-am.waze.com/renderer/v1/signs/${q.sign}?text=${q.txt}`,
                     graphicHeight: q.height,
                     graphicWidth: q.width,
                     fontSize: 12,
-                    graphicZIndex: 700
-                };
+                    graphicZIndex: 2432
+                });
                 let xpoint;
                 let ypoint;
                 const labelDistance = LabelDistance();
@@ -2071,7 +2108,7 @@ function rsaInit() {
                         type: "Point",
                         coordinates: [xpoint, ypoint],
                     },
-                    properties: styleLabel,
+                    properties: { name: "styleLabel" },
                     id: "pointLabel_" + xpoint.toString() + "_" + ypoint.toString()
                 };
                 sdk.Map.addFeatureToLayer({ feature: pointLabelFeature, layerName: rsaIconLayer.layerName });
@@ -2119,21 +2156,21 @@ function rsaInit() {
             };
             SegmentPoints.push(newPoint);
             // Shield icon style
-            const style = {
+            Object.assign(styleRules.shield.style, {
                 externalGraphic: iconURL,
                 graphicWidth: width,
                 graphicHeight: height,
                 graphicYOffset: -20,
-                graphicZIndex: 650
-            };
+                graphicZIndex: 2432
+            });
             // Direction label style
-            const style2 = {
+            Object.assign(styleRules.shieldWithDirection.style, {
                 label: shieldDir !== null ? shieldDir : '',
                 fontColor: 'green',
                 labelOutlineColor: 'white',
                 labelOutlineWidth: 1,
                 fontSize: 12
-            };
+            });
             if (oldparam.x !== null && oldparam.y !== null) {
                 if (Math.abs(oldparam.x - param[0]) > labelDis.space || Math.abs(oldparam.y - param[1]) > labelDis.space || AtLeastOne === false) {
                     let centerparam = {
@@ -2151,21 +2188,22 @@ function rsaInit() {
                                 type: "Point",
                                 coordinates: [centerparam.x, centerparam.y],
                             },
-                            properties: style,
-                            id: "point_" + centerparam.x.toString() + "_" + centerparam.y.toString()
+                            properties: { name: "shield" },
+                            id: "shield_" + centerparam.x.toString() + "_" + centerparam.y.toString()
                         };
+                        sdk.Map.addFeatureToLayer({ feature: labelPointFeature, layerName: rsaIconLayer.layerName });
                         // Create point for direction label below shield icon
                         // const labelPoint2 = new OpenLayers.Geometry.Point(centerparam.x, centerparam.y - labelDis.label);
                         // const imageFeature2 = new OpenLayers.Feature.Vector(labelPoint2, null, style2);
                         sdk.Map.addFeatureToLayer({
                             feature: {
-                                id: "pointFeature_" + centerparam.x.toString() + "_" + (centerparam.y - labelDis.label).toString(),
+                                id: "shieldWithDirection_" + centerparam.x.toString() + "_" + (centerparam.y - labelDis.label).toString(),
                                 geometry: {
                                     type: "Point",
                                     coordinates: [centerparam.x, centerparam.y],
                                 },
                                 type: "Feature",
-                                properties: style2,
+                                properties: { name: "shieldWithDirection" },
                             }, layerName: rsaIconLayer.layerName
                         });
                         // rsaIconLayer.addFeatures([pointFeature, imageFeature2]);
@@ -2182,14 +2220,14 @@ function rsaInit() {
         const geo = structuredClone(obj.geometry);
         let isNode = obj.type === 'node';
         if (isNode) {
-            const styleNode = {
+            Object.assign(styleRules.styleNode.style, {
                 strokeColor: color,
                 strokeOpacity: overSized ? 1 : 0.75,
                 strokeWidth: 4,
                 fillColor: color,
                 fillOpacity: 0.75,
                 pointRadius: overSized ? 7 : 3
-            };
+            });
             // Point coords
             // let pointNode = new OpenLayers.Geometry.Point(geo.x, geo.y);
             let pointNode = {
@@ -2199,7 +2237,7 @@ function rsaInit() {
             let pointFeature = {
                 geometry: pointNode,
                 type: "Feature",
-                properties: styleNode,
+                properties: "styleNode",
                 id: "point_" + geo.x + "_" + geo.y,
             };
             // Point on node
@@ -2209,13 +2247,13 @@ function rsaInit() {
         }
         else {
             // console.log('seg highlight')
-            const style = {
+            Object.assign(styleRules.segHighlight.style, {
                 strokeColor: color,
                 strokeOpacity: overSized ? 1 : 0.75,
                 strokeWidth: overSized ? 7 : 4,
                 fillColor: color,
                 fillOpacity: 0.75
-            };
+            });
             // const newFeat =  new OpenLayers.Geometry.LineString(geo.components, {});
             // const newVector = new OpenLayers.Feature.Vector(newFeat, null, style);
             // rsaMapLayer.addFeatures([newVector]);
@@ -2225,7 +2263,7 @@ function rsaInit() {
                     coordinates: geo.coordinates,
                 },
                 type: "Feature",
-                properties: style,
+                properties: { name: "segHighlight" },
                 id: "line_" + geo.coordinates[0][0] + "_" + geo.coordinates[0][0],
             };
             sdk.Map.addFeatureToLayer({ feature: newLineFeature, layerName: rsaMapLayer.layerName });
