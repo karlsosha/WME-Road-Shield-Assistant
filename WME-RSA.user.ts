@@ -19,7 +19,8 @@
 /* global _ */
 /* global require */
 
-// import {City, Node, Segment, State, Street, WmeSDK} from "wme-sdk";
+// import {City, Node, Segment, State, Street, Turn, WmeSDK} from "wme-sdk";
+// import _ from "underscore";
 // // @ts-ignore
 // import * as WazeWrap from "../WazeWrap.js";
 
@@ -890,7 +891,9 @@ function rsaInit() {
         titleCase: false,
         checkTWD: false,
         checkTTS: false,
-        checkVI: false
+        checkVI: false,
+        mapLayerVisible: false,
+        iconLayerVisible: false,
     }
     let UpdateObj;
     let SetTurn;
@@ -898,8 +901,8 @@ function rsaInit() {
     function isNewLine() {
         return false;
     }
-    let rsaMapLayer = {layerName: "RSA Map Layer", zIndexing: true};
-    let rsaIconLayer = {layerName: "RSA Icon Layer", zIndexing: true};
+    let rsaMapLayer = {layerName: "RSA Map Layer", zIndexing: false};
+    let rsaIconLayer = {layerName: "RSA Icon Layer", zIndexing: false};
     let LANG: string;
     let alternativeType: string;
     let styleRules = {
@@ -914,8 +917,8 @@ function rsaInit() {
                 pointRadius: 3
             }
         },
-        "shieldWithDirection": {
-            predicate: applyShieldWithDirection,
+        "directionLabel": {
+            predicate: applyDirectionLabel,
             style: {}
         },
         "shield": {
@@ -1194,27 +1197,27 @@ function rsaInit() {
     }
 
     function applyPointLabel(properties: Object): boolean {
-        return properties.name === "pointLabelStyle";
+        return properties.styleName === "pointLabelStyle";
     }
 
-    function applyShieldWithDirection(properties: Object): boolean {
-        return properties.name === "shieldWithDirection";
+    function applyDirectionLabel(properties: Object): boolean {
+        return properties.styleName === "directionLabel";
     }
 
     function applyShield(properties: Object): boolean {
-        return properties.name === "shield";
+        return properties.styleName === "shield";
     }
 
     function applySegHighlight(properties: Object): boolean {
-        return properties.name === "segHighlight";
+        return properties.styleName === "segHighlight";
     }
 
     function applyStyleNode(properties: Object): boolean {
-        return properties.name === "styleNode";
+        return properties.styleName === "styleNode";
     }
 
     function applyStyleLabel(properties: Object): boolean {
-        return properties.name === "styleLabel";
+        return properties.styleName === "styleLabel";
     }
 
     function currentHighNodeClr() { return rsaSettings.HighNodeClr }
@@ -1227,19 +1230,21 @@ function rsaInit() {
             layerName: rsaMapLayer.layerName,
             styleRules: Object.values(styleRules)
         });
-        sdk.LayerSwitcher.addLayerCheckbox({name: 'RSA Map Layer'})
-        // sdk.Map.setLayerVisibility({layerName: rsaMapLayer.layerName, visibility: true});
+        sdk.LayerSwitcher.addLayerCheckbox({name: rsaMapLayer.layerName});
+        sdk.Map.setLayerVisibility({layerName: rsaMapLayer.layerName, visibility: rsaSettings.mapLayerVisible});
 
         sdk.Map.addLayer({
             layerName: rsaIconLayer.layerName,
             styleRules: Object.values(styleRules)
         });
-        sdk.LayerSwitcher.addLayerCheckbox({name: 'RSA Icon Layer'});
-        // sdk.Map.setLayerVisibility({layerName: rsaIconLayer.layerName, visibility: true});
+        sdk.LayerSwitcher.addLayerCheckbox({name: rsaIconLayer.layerName});
+        sdk.Map.setLayerVisibility({layerName: rsaIconLayer.layerName, visibility: rsaSettings.iconLayerVisible});
         sdk.Events.on({
             eventName: "wme-layer-checkbox-toggled",
             eventHandler: payload => {
                 sdk.Map.setLayerVisibility({layerName: payload.name, visibility: payload.checked});
+                if(payload.name === rsaMapLayer.layerName) { rsaSettings.mapLayerVisible = payload.checked; }
+                else if(payload.name === rsaIconLayer.layerName) { rsaSettings.iconLayerVisible = payload.checked; }
             }
         })
 
@@ -1299,7 +1304,7 @@ function rsaInit() {
         sdk.Events.on({
             eventName: "wme-selection-changed",
             eventHandler: removeAutoFixButton
-        })
+        });
         // WazeWrap.Events.register('selectionchanged', null, tryScan);
         sdk.Events.on({
             eventName: "wme-map-move-end",
@@ -1308,7 +1313,7 @@ function rsaInit() {
                 tryScan();
                 checkOptions();
             }
-        })
+        });
         // WazeWrap.Events.register('moveend', null, removeAutoFixButton);
         // WazeWrap.Events.register('moveend', null, tryScan);
         // WazeWrap.Events.register('moveend', null, checkOptions);
@@ -1415,6 +1420,8 @@ function rsaInit() {
                 checkTWD: false,
                 checkTTS: false,
                 checkVI: false,
+                mapLayerVisible: false,
+                iconLayerVisible: false,
             }
 
             rsaSettings = defaultSettings;
@@ -1473,6 +1480,8 @@ function rsaInit() {
             checkTWD: false,
             checkTTS: false,
             checkVI: false,
+            mapLayerVisible: false,
+            iconLayerVisible: false,
         };
 
         rsaSettings = $.extend({}, defaultSettings, localSettings);
@@ -1524,7 +1533,9 @@ function rsaInit() {
             titleCase,
             checkTWD,
             checkTTS,
-            checkVI
+            checkVI,
+            mapLayerVisible,
+            iconLayerVisible,
         } = rsaSettings;
 
         const localSettings = {
@@ -1559,7 +1570,9 @@ function rsaInit() {
             titleCase,
             checkTWD,
             checkTTS,
-            checkVI
+            checkVI,
+            mapLayerVisible,
+            iconLayerVisible,
         };
 
         // Grab keyboard shortcuts and store them for saving
@@ -1746,7 +1759,7 @@ function rsaInit() {
         // Reset the array of objects that need names fixed
         BadNames = [];
 
-        function scanNode(node) {
+        function scanNode(node: Node | null) {
             processNode(node);
         }
 
@@ -1985,7 +1998,7 @@ function rsaInit() {
         return isBad;
     }
 
-    function matchTitleCaseThroughNode(turn) {
+    function matchTitleCaseThroughNode(turn: Turn) {
         const turnData = turn.getTurnData();
         const turnGuid = turnData.getTurnGuidance();
         const shields = turnGuid.getRoadShields();
@@ -2167,7 +2180,7 @@ function rsaInit() {
                 coordinates: [points],
             },
             type: "Feature",
-            properties: styleNode,
+            properties: {styleName: "styleNode"},
         }
         sdk.Map.addFeatureToLayer({feature: newLine, layerName: rsaIconLayer.layerName});
 
@@ -2179,7 +2192,7 @@ function rsaInit() {
                     graphicHeight: q.height,
                     graphicWidth: q.width,
                     fontSize: 12,
-                    graphicZIndex: 2432
+                    graphicZIndex: 2432,
                 });
                 let xpoint;
                 let ypoint;
@@ -2219,7 +2232,7 @@ function rsaInit() {
                         type: "Point",
                         coordinates: [xpoint, ypoint],
                     },
-                    properties: {name: "styleLabel"},
+                    properties: {styleName: "styleLabel"},
                     id: "pointLabel_"+xpoint.toString() + "_" + ypoint.toString()
                 }
                 sdk.Map.addFeatureToLayer({feature: pointLabelFeature, layerName: rsaIconLayer.layerName});
@@ -2275,15 +2288,20 @@ function rsaInit() {
                 graphicWidth: width,
                 graphicHeight: height,
                 graphicYOffset: -20,
-                graphicZIndex: 2432
+                graphicZIndex: 6000,
+                style: "opacity: 1",
+                fillOpacity: 1,
+                fill: "black",
+                stroke: "black",
             });
             // Direction label style
-            Object.assign(styleRules.shieldWithDirection.style, {
+            Object.assign(styleRules.directionLabel.style, {
                 label: shieldDir !== null ? shieldDir : '',
                 fontColor: 'green',
                 labelOutlineColor: 'white',
                 labelOutlineWidth: 1,
-                fontSize: 12
+                fontSize: 12,
+                display: "grid",
             });
 
             if (oldparam.x !== null && oldparam.y !== null) {
@@ -2297,30 +2315,29 @@ function rsaInit() {
                     if ((centerparam.x && Math.abs(centerparam.x - param[0]) > labelDis.space) || (centerparam.y && Math.abs(centerparam.y - param[1]) > labelDis.space) || AtLeastOne === false) {
                         // let LabelPoint = new OpenLayers.Geometry.Point(centerparam.x, centerparam.y);
                         // const pointFeature = new OpenLayers.Feature.Vector(LabelPoint, null, style);
-                        const labelPointFeature = {
+                        const shieldFeature = {
                             type: "Feature",
                             geometry: {
                                 type: "Point",
                                 coordinates: [centerparam.x, centerparam.y],
                             },
-                            properties: {name: "shield"},
+                            properties: {styleName: "shield"},
                             id: "shield_"+centerparam.x.toString() + "_" + centerparam.y.toString()
                         }
-                        sdk.Map.addFeatureToLayer({feature: labelPointFeature, layerName: rsaIconLayer.layerName});
+                        sdk.Map.addFeatureToLayer({feature: shieldFeature, layerName: rsaIconLayer.layerName});
                         // Create point for direction label below shield icon
                         // const labelPoint2 = new OpenLayers.Geometry.Point(centerparam.x, centerparam.y - labelDis.label);
                         // const imageFeature2 = new OpenLayers.Feature.Vector(labelPoint2, null, style2);
-                        sdk.Map.addFeatureToLayer({
-                            feature: {
-                                id: "shieldWithDirection_"+centerparam.x.toString() + "_" + (centerparam.y - labelDis.label).toString(),
-                                geometry: {
-                                    type: "Point",
-                                    coordinates: [centerparam.x, centerparam.y],
+                        const labelFeature = {
+                                id: "directionLabel_"+centerparam.x.toString() + "_" + (centerparam.y - labelDis.label).toString(),
+                                    geometry: {
+                                        type: "Point",
+                                        coordinates: [centerparam.x, centerparam.y - labelDis.label],
                                 },
                                 type: "Feature",
-                                properties: {name: "shieldWithDirection"},
-                            }, layerName: rsaIconLayer.layerName
-                        });
+                                properties: {styleName: "directionLabel"},
+                            };
+                        sdk.Map.addFeatureToLayer({ feature: labelFeature, layerName: rsaIconLayer.layerName });
                         // rsaIconLayer.addFeatures([pointFeature, imageFeature2]);
                         AtLeastOne = true;
                     }
@@ -2381,7 +2398,7 @@ function rsaInit() {
                     coordinates: geo.coordinates,
                 },
                 type: "Feature",
-                properties: { name: "segHighlight"},
+                properties: { styleName: "segHighlight"},
                 id: "line_" + geo.coordinates[0][0] + "_" + geo.coordinates[0][0],
             }
             sdk.Map.addFeatureToLayer({feature: newLineFeature, layerName: rsaMapLayer.layerName});
