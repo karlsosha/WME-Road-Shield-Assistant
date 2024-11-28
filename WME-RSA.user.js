@@ -1,4 +1,3 @@
-"use strict";
 // ==UserScript==
 // @name         WME Road Shield Assistant
 // @namespace    https://greasyfork.org/en/users/286957-skidooguy
@@ -14,14 +13,6 @@
 // @grant        none
 // @contributionURL https://github.com/WazeDev/Thank-The-Authors
 // ==/UserScript==
-/* global W */
-/* global WazeWrap */
-/* global _ */
-/* global require */
-// import {City, Node, Segment, State, Street, Turn, WmeSDK} from "wme-sdk";
-// import _ from "underscore";
-// // @ts-ignore
-// import * as WazeWrap from "../WazeWrap.js";
 window.SDK_INITIALIZED.then(rsaInit);
 function rsaInit() {
     if (!window.getWmeSdk) {
@@ -40,7 +31,20 @@ function rsaInit() {
     const FORUM_LINK = 'https://www.waze.com/forum/viewtopic.php?f=1851&t=315748';
     const RSA_UPDATE_NOTES = `<b>NEW:</b><br>
 - Converted to WME SDK<br><br>`;
-    const [zm0, zm1, zm2, zm3, zm4, zm5, zm6, zm7, zm8, zm9, zm10] = [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22];
+    let ZoomLevel;
+    (function (ZoomLevel) {
+        ZoomLevel[ZoomLevel["ZM0"] = 12] = "ZM0";
+        ZoomLevel[ZoomLevel["ZM1"] = 13] = "ZM1";
+        ZoomLevel[ZoomLevel["ZM2"] = 14] = "ZM2";
+        ZoomLevel[ZoomLevel["ZM3"] = 15] = "ZM3";
+        ZoomLevel[ZoomLevel["ZM4"] = 16] = "ZM4";
+        ZoomLevel[ZoomLevel["ZM5"] = 17] = "ZM5";
+        ZoomLevel[ZoomLevel["ZM6"] = 18] = "ZM6";
+        ZoomLevel[ZoomLevel["ZM7"] = 19] = "ZM7";
+        ZoomLevel[ZoomLevel["ZM8"] = 20] = "ZM8";
+        ZoomLevel[ZoomLevel["ZM9"] = 21] = "ZM9";
+        ZoomLevel[ZoomLevel["ZM10"] = 22] = "ZM10";
+    })(ZoomLevel || (ZoomLevel = {}));
     const RoadAbbr = {
         //Canada
         40: {
@@ -1202,6 +1206,7 @@ function rsaInit() {
             eventName: "wme-layer-checkbox-toggled",
             eventHandler: payload => {
                 sdk.Map.setLayerVisibility({ layerName: payload.name, visibility: payload.checked });
+                tryScan();
                 if (payload.name === rsaMapLayer.layerName) {
                     rsaSettings.mapLayerVisible = payload.checked;
                 }
@@ -2031,8 +2036,8 @@ function rsaInit() {
             y: geo.getVertices()[0].y
         };
         let lblStart = {
-            x: startPoint.x + LabelDistance().label,
-            y: startPoint.y + LabelDistance().label
+            x: startPoint.x + labelDistance().label,
+            y: startPoint.y + labelDistance().label
         };
         // Array of points for line connecting node to icons
         let points = [];
@@ -2089,7 +2094,7 @@ function rsaInit() {
                 });
                 let xpoint;
                 let ypoint;
-                const labelDistance = LabelDistance();
+                const labelDistance = labelDistance();
                 switch (count) {
                     case 0:
                         xpoint = lblStart.x;
@@ -2140,7 +2145,7 @@ function rsaInit() {
             x: null,
             y: null
         };
-        let labelDis = LabelDistance();
+        let labelDis = labelDistance();
         let width = 37;
         let height = 37;
         if (shieldText.length > 4 && shieldText.length < 7) {
@@ -2170,27 +2175,24 @@ function rsaInit() {
                 id: "point_" + param[0].toString() + " " + param[1].toString()
             };
             SegmentPoints.push(newPoint);
-            // Shield icon style
-            Object.assign(styleRules.shield.style, {
+            let shieldWithLabelStyle = {
                 externalGraphic: iconURL,
                 graphicWidth: width,
                 graphicHeight: height,
                 graphicYOffset: -20,
-                graphicZIndex: 6000,
+                // graphicZIndex: 6000,
                 style: "opacity: 1",
                 fillOpacity: 1,
                 fill: "black",
                 stroke: "black",
-            });
-            // Direction label style
-            Object.assign(styleRules.directionLabel.style, {
                 label: shieldDir !== null ? shieldDir : '',
                 fontColor: 'green',
                 labelOutlineColor: 'white',
                 labelOutlineWidth: 1,
                 fontSize: 12,
                 display: "grid",
-            });
+                labelYOffset: 0
+            };
             if (oldparam.x !== null && oldparam.y !== null) {
                 if (Math.abs(oldparam.x - param[0]) > labelDis.space || Math.abs(oldparam.y - param[1]) > labelDis.space || AtLeastOne === false) {
                     let centerparam = {
@@ -2211,6 +2213,9 @@ function rsaInit() {
                             properties: { styleName: "shield" },
                             id: "shield_" + centerparam.x.toString() + "_" + centerparam.y.toString()
                         };
+                        // Shield icon style
+                        shieldWithLabelStyle.labelYOffset = -1 * labelDis.label;
+                        Object.assign(styleRules.shield.style, shieldWithLabelStyle);
                         sdk.Map.addFeatureToLayer({ feature: shieldFeature, layerName: rsaIconLayer.layerName });
                         // Create point for direction label below shield icon
                         // const labelPoint2 = new OpenLayers.Geometry.Point(centerparam.x, centerparam.y - labelDis.label);
@@ -2219,12 +2224,12 @@ function rsaInit() {
                             id: "directionLabel_" + centerparam.x.toString() + "_" + (centerparam.y - labelDis.label).toString(),
                             geometry: {
                                 type: "Point",
-                                coordinates: [centerparam.x, centerparam.y - labelDis.label],
+                                coordinates: [centerparam.x, centerparam.y],
                             },
                             type: "Feature",
                             properties: { styleName: "directionLabel" },
                         };
-                        sdk.Map.addFeatureToLayer({ feature: labelFeature, layerName: rsaIconLayer.layerName });
+                        // sdk.Map.addFeatureToLayer({ feature: labelFeature, layerName: rsaIconLayer.layerName });
                         // rsaIconLayer.addFeatures([pointFeature, imageFeature2]);
                         AtLeastOne = true;
                     }
@@ -2292,62 +2297,62 @@ function rsaInit() {
         sdk.Map.removeAllFeaturesFromLayer(rsaMapLayer);
         sdk.Map.removeAllFeaturesFromLayer(rsaIconLayer);
     }
-    function LabelDistance() {
+    function labelDistance() {
         // Return object with two variables - label is the distance used to place the direction below the icon,
         // space is the space between geo points needed to render another icon
         let label_distance = {
-            icon: undefined,
-            label: undefined,
-            space: undefined
+            icon: 0,
+            label: 0,
+            space: 0
         };
         switch (sdk.Map.getZoomLevel()) {
-            case zm10:
-                label_distance.label = 2;
+            case ZoomLevel.ZM10:
+                label_distance.label = 18;
                 label_distance.space = 20;
                 label_distance.icon = 1.1;
                 break;
-            case zm9:
-                label_distance.label = 2;
+            case ZoomLevel.ZM9:
+                label_distance.label = 18;
                 label_distance.space = 20;
                 label_distance.icon = 2.2;
                 break;
-            case zm8:
-                label_distance.label = 4;
+            case ZoomLevel.ZM8:
+                label_distance.label = 18;
                 label_distance.space = 20;
                 label_distance.icon = 4.5;
                 break;
-            case zm7:
-                label_distance.label = 7;
+            case ZoomLevel.ZM7:
+                label_distance.label = 18;
                 label_distance.space = 20;
                 label_distance.icon = 8.3;
                 break;
-            case zm6:
-                label_distance.label = 12;
+            case ZoomLevel.ZM6:
+                label_distance.label = 18;
                 label_distance.space = 30;
                 label_distance.icon = 17;
                 break;
-            case zm5:
-                label_distance.label = 30;
+            case ZoomLevel.ZM5:
+                label_distance.label = 18;
                 label_distance.space = 30;
                 label_distance.icon = 34;
                 break;
-            case zm4:
-                label_distance.label = 40;
+            case ZoomLevel.ZM4:
+                label_distance.label = 18;
                 label_distance.space = 40;
                 label_distance.icon = 68;
                 break;
-            case zm3:
-                label_distance.label = 70;
+            case ZoomLevel.ZM3:
+                label_distance.label = 18;
                 label_distance.space = 70;
                 label_distance.icon = 140;
                 break;
-            case zm2:
-                label_distance.label = 150;
+            case ZoomLevel.ZM2:
+                label_distance.label = 18;
                 label_distance.space = 200;
                 label_distance.icon = null;
                 break;
-            case zm1:
-                label_distance.label = 200;
+            case ZoomLevel.ZM1:
+                label_distance.label = 18;
                 label_distance.space = 250;
                 label_distance.icon = null;
                 break;
@@ -2356,3 +2361,4 @@ function rsaInit() {
     }
     initRSA();
 }
+export {};
