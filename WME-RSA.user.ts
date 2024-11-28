@@ -24,8 +24,6 @@
 // // @ts-ignore
 // import * as WazeWrap from "../WazeWrap.js";
 
-import {State} from "wme-sdk";
-
 window.SDK_INITIALIZED.then(rsaInit);
 
 function rsaInit() {
