@@ -1,4 +1,3 @@
-"use strict";
 // ==UserScript==
 // @name         WME Road Shield Assistant
 // @namespace    https://greasyfork.org/en/users/286957-skidooguy
@@ -14,12 +13,9 @@
 // @grant        none
 // @contributionURL https://github.com/WazeDev/Thank-The-Authors
 // ==/UserScript==
-/* global W */
-/* global WazeWrap */
-// import {City, Node, Segment, State, Street, Turn, WmeSDK} from "wme-sdk";
-// import _ from "underscore";
-// // @ts-ignore
-// import * as WazeWrap from "../WazeWrap.js";
+import _ from "underscore";
+// @ts-ignore
+import * as WazeWrap from "../WazeWrap.js";
 window.SDK_INITIALIZED.then(rsaInit);
 function rsaInit() {
     if (!window.getWmeSdk) {
@@ -57,7 +53,7 @@ function rsaInit() {
     const RoadAbbr = {
         //Canada
         40: {
-            Alberta: {
+            "Alberta": {
                 "Hwy 1$": 5000, // 5000: National-Trans-Canada Highway
                 "Hwy 1A": 5011, // 5011: Alberta - Provincial Hwy
                 "Hwy 2": 5011, // 5011: Alberta - Provincial Hwy
@@ -1641,10 +1637,8 @@ function rsaInit() {
         let street = sdk.DataModel.Streets.getById({
             streetId: streetID,
         });
-        if (street === null)
+        if (street === null || street.cityId === null)
             return;
-        // Currently City Doesn't have State ID Property.  Waiting on Feature Request
-        // let stateID = W.model.cities.getObjectById(street.cityId).attributes.stateID;
         let city = sdk.DataModel.Cities.getById({
             cityId: street.cityId,
         });
@@ -1760,21 +1754,21 @@ function rsaInit() {
         }
     }
     // Function written by kpouer to accommodate French conventions of shields being based on alt names
-    function isSegmentCandidate(seg, stateName, country) {
+    function isSegmentCandidate(seg, stateName, countryId) {
         // let street = W.model.streets.getObjectById(segAtt.primaryStreetID);
         let street = seg.primaryStreetId === null
             ? null
             : sdk.DataModel.Streets.getById({ streetId: seg.primaryStreetId });
-        let candidate = isStreetCandidate(street, stateName, country);
+        let candidate = isStreetCandidate(street, stateName, countryId);
         if (candidate.isCandidate) {
             return candidate;
         }
-        if (country !== null && CheckAltName.includes(country)) {
+        if (countryId !== null && CheckAltName.includes(countryId)) {
             for (let i = 0; i < seg.alternateStreetIds.length; i++) {
                 street = sdk.DataModel.Streets.getById({
                     streetId: seg.alternateStreetIds[i],
                 });
-                candidate = isStreetCandidate(street, stateName, country);
+                candidate = isStreetCandidate(street, stateName, countryId);
                 if (candidate.isCandidate) {
                     return candidate;
                 }
@@ -1782,22 +1776,22 @@ function rsaInit() {
         }
         return candidate;
     }
-    function isStreetCandidate(street, state, country) {
+    function isStreetCandidate(street, stateName, countryId) {
         const info = {
             isCandidate: false,
             iconID: null,
         };
-        if (country === null || !RoadAbbr[country]) {
+        if (countryId === null || !RoadAbbr[countryId]) {
             return info;
         }
-        if (state === null)
-            state = "";
+        if (stateName === null)
+            stateName = "";
         //Check to see if the country has states configured in RSA by looking for a key with nothing in it
-        const noStates = "" in RoadAbbr[country];
+        const noStates = "" in RoadAbbr[countryId];
         const name = street === null ? "" : street.name;
         const abbrvs = noStates
-            ? RoadAbbr[country][""]
-            : { ...RoadAbbr[country]["*"], ...RoadAbbr[country][state] };
+            ? RoadAbbr[countryId][""]
+            : { ...RoadAbbr[countryId]["*"], ...RoadAbbr[countryId][stateName] };
         for (let i = 0; i < Object.keys(abbrvs).length; i++) {
             if (name) {
                 const abrKey = Object.keys(abbrvs)[i];
@@ -1814,12 +1808,12 @@ function rsaInit() {
     }
     function isValidShield(seg) {
         // let primaryStreet = W.model.streets.getObjectById(segAtt.primaryStreetID);
-        if (seg === null)
+        if (seg === null || seg.primaryStreetId === null)
             return false;
         let primaryStreet = sdk.DataModel.Streets.getById({
             streetId: seg.primaryStreetId,
         });
-        if (primaryStreet === null)
+        if (primaryStreet === null || primaryStreet.signText === null || primaryStreet.signText === "")
             return false;
         if (primaryStreet.name?.includes(primaryStreet.signText)) {
             return true;
