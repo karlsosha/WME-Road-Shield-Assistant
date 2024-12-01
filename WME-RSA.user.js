@@ -16,8 +16,6 @@
 // ==/UserScript==
 /* global W */
 /* global WazeWrap */
-/* global _ */
-/* global require */
 // import {City, Node, Segment, State, Street, Turn, WmeSDK} from "wme-sdk";
 // import _ from "underscore";
 // // @ts-ignore
@@ -425,12 +423,12 @@ function rsaInit() {
                 "SR-": 2076,
             },
             "New Jersey": {
-                "I-": 5,
-                "US-": 6,
+                "I-[1-9][0-9]{0,2}": 5,
+                "US-[1-9][0-9]{0,2}": 6,
                 "CH-": 2002,
-                "CR-": 2002,
+                "CR-[1-9][0-9]{0,2}": 2002,
                 "SH-": 7,
-                "SR-": 7,
+                "SR-[1-9][0-9]{0,2}": 7,
             },
             "New Mexico": {
                 "I-": 5,
@@ -441,13 +439,13 @@ function rsaInit() {
                 "SR-": 2085,
             },
             "New York": {
-                "I-": 5,
-                "US-": 6,
+                "I-[1-9][0-9]{0,2}": 5,
+                "US-[1-9][0-9]{0,2}": 6,
                 "CH-": 2002,
-                "CR-": 2002,
+                "CR-[1-9][0-9]{0,2}": 2002,
                 "SH-": 2087,
-                "SR-": 2087,
-                "NY-": 2087,
+                "SR-[1-9][0-9]{0,2}": 2087,
+                "NY-[1-9][0-9]{0,2}": 2087,
                 "NY SPUR": 2087,
             },
             "North Carolina": {
@@ -491,12 +489,13 @@ function rsaInit() {
                 "SR-": 2099,
             },
             Pennsylvania: {
-                "I-": 5,
-                "US-": 6,
+                "I-[1-9][0-9]{0,2}": 5,
+                "US-[1-9][0-9]{0,2}": 6,
                 "CH-": 2002,
                 "CR-": 2002,
-                "SH-": 2101,
-                "SR-": 2101,
+                "SH-[1-9][0-9]{0,2}": 2101,
+                "PA-[1-9][0-9]{0,2}": 2101,
+                "SR-[1-9][0-9]{0,2}": 2101,
             },
             "Rhode Island": {
                 "I-": 5,
@@ -1197,6 +1196,11 @@ function rsaInit() {
     function currentHighNodeClr() {
         return rsaSettings.HighNodeClr;
     }
+    function updateMap() {
+        removeAutoFixButton();
+        tryScan();
+        checkOptions();
+    }
     async function setupOptions() {
         await loadSettings();
         // Create OL layer for display
@@ -1292,16 +1296,12 @@ function rsaInit() {
         // WazeWrap.Events.register('selectionchanged', null, tryScan);
         sdk.Events.on({
             eventName: "wme-map-move-end",
-            eventHandler: () => {
-                removeAutoFixButton();
-                tryScan();
-                checkOptions();
-            },
+            eventHandler: updateMap,
         });
-        // WazeWrap.Events.register('moveend', null, removeAutoFixButton);
-        // WazeWrap.Events.register('moveend', null, tryScan);
-        // WazeWrap.Events.register('moveend', null, checkOptions);
-        // WazeWrap.Events.register('afteraction', null, tryScan);
+        sdk.Events.on({
+            eventName: "wme-map-zoom-changed",
+            eventHandler: updateMap,
+        });
         sdk.Shortcuts.createShortcut({
             callback: addShieldClick,
             description: "Activates the Add Shield Button",
@@ -1897,23 +1897,13 @@ function rsaInit() {
             : RoadAbbr[country][state];
         for (let i = 0; i < Object.keys(abbrvs).length; i++) {
             if (name) {
-                if (noStates) {
-                    const abrKey = Object.keys(abbrvs)[i];
-                    const abbr = new RegExp(abrKey, "g");
-                    const isMatch = name.match(abbr);
-                    if (isMatch && name === isMatch[0]) {
-                        info.isCandidate = true;
-                        info.iconID = abbrvs[abrKey];
-                    }
-                }
-                else {
-                    const abbr = Object.keys(abbrvs)[i];
-                    const isMatch = name.includes(abbr);
-                    if (isMatch) {
-                        // console.log(abbrvs[abbr]);
-                        info.isCandidate = true;
-                        info.iconID = abbrvs[abbr];
-                    }
+                const abrKey = Object.keys(abbrvs)[i];
+                const abbr = new RegExp(abrKey, "g");
+                const isMatch = name.match(abbr);
+                if (isMatch && name === isMatch[0]) {
+                    info.isCandidate = true;
+                    info.iconID = abbrvs[abrKey];
+                    break;
                 }
             }
         }
@@ -1928,7 +1918,7 @@ function rsaInit() {
         });
         if (primaryStreet === null)
             return false;
-        if (primaryStreet.name === primaryStreet.signText) {
+        if (primaryStreet.name?.includes(primaryStreet.signText)) {
             return true;
         }
         for (var i = 0; i < seg.alternateStreetIds.length; i++) {
