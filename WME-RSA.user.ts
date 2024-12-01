@@ -437,10 +437,11 @@ function rsaInit() {
         "SR-[1-9][0-9]{0,2}": 2076,
       },
       "New Jersey": {
-        "CH-": 2002,
-        "CR-[1-9][0-9]{0,2}": 2002,
+        "CH-[1-9][0-9]{0,2}": 2002,
+        "CR-[1-9][0-9]{0,2}": 2083,
         "SH-[1-9][0-9]{0,2}": 7,
         "SR-[1-9][0-9]{0,2}": 7,
+        "Garden State (Parkway|Pkwy)": 2079,
       },
       "New Mexico": {
         "CH-[1-9][0-9]{0,2}": 2002,
@@ -620,6 +621,10 @@ function rsaInit() {
       },
     },
   };
+
+  const iconsAllowingNoText = new Set<number>([
+    2079, // Garden State Parkway
+  ]);
 
   const Strings = {
     en: {
@@ -1947,7 +1952,7 @@ function rsaInit() {
 
       // If candidate and has shield
       if (rsaSettings.HighSegShields && candidate.isCandidate) {
-        if (isValidShield(seg)) {
+        if (isValidShield(seg, candidate.iconID)) {
           createHighlight(seg, rsaSettings.HighSegClr);
         } else {
           createHighlight(seg, rsaSettings.ErrSegClr);
@@ -2067,7 +2072,7 @@ function rsaInit() {
         const abbr = new RegExp(abrKey, "g");
         const isMatch = name.match(abbr);
 
-        if (isMatch && name === isMatch[0]) {
+        if (isMatch && name.includes(isMatch[0])) {
           info.isCandidate = true;
           info.iconID = abbrvs[abrKey];
           break;
@@ -2077,7 +2082,30 @@ function rsaInit() {
     return info;
   }
 
-  function isValidShield(seg: Segment | null) {
+  function iconTextValidation(
+    signType: number | null,
+    signText: string | null,
+    iconId: number | null,
+  ): boolean {
+    let result: boolean = true;
+    if (
+      signType === null ||
+      typeof signType === "undefined" ||
+      typeof signText === "undefined"
+    ) {
+      result = false;
+    }
+    if (
+      signType !== null &&
+      !iconsAllowingNoText.has(signType) &&
+      (signText === null || typeof signText === "undefined" || signText === "")
+    ) {
+      result = false;
+    }
+    return result;
+  }
+
+  function isValidShield(seg: Segment | null, iconID: number | null) {
     // let primaryStreet = W.model.streets.getObjectById(segAtt.primaryStreetID);
     if (seg === null || seg.primaryStreetId === null) return false;
     let primaryStreet: Street | null = sdk.DataModel.Streets.getById({
@@ -2086,14 +2114,17 @@ function rsaInit() {
     if (
       primaryStreet === null ||
       primaryStreet.signText === null ||
-      primaryStreet.signText === ""
+      !iconTextValidation(
+        primaryStreet.signType,
+        primaryStreet.signText,
+        iconID,
+      )
     )
       return false;
     if (primaryStreet.name?.includes(primaryStreet.signText)) {
       return true;
     }
     for (var i = 0; i < seg.alternateStreetIds.length; i++) {
-      // let street = W.model.streets.getObjectById(segAtt.streetIDs[i]);
       let street: Street | null = sdk.DataModel.Streets.getById({
         streetId: seg.alternateStreetIds[i],
       });
