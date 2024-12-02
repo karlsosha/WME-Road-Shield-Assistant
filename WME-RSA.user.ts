@@ -259,8 +259,8 @@ function rsaInit() {
     // US
     235: {
       "*": {
-        "I-[1-9][0-9]{0,2}": 5,
-        "US-[1-9][0-9]{0,2}": 6,
+        "^I-[1-9][0-9]{0,2}": 5,
+        "^US-[1-9][0-9]{0,2}": 6,
       },
       Alabama: {
         "CR-[1-9][0-9]{0,2}": 2002,
@@ -303,9 +303,10 @@ function rsaInit() {
         "DC-[1-9][0-9]{0,2}": 7,
       },
       Florida: {
-        "CR-[1-9][0-9]{0,2}": 2002,
-        "SH-[1-9][0-9]{0,2}": 2030,
-        "SR-[1-9][0-9]{0,2}": 2030,
+        "^CR-[1-9][0-9]{0,2}": 2002,
+        "^SH-[1-9][0-9]{0,2}": 2030,
+        "^SR-[1-9][0-9]{0,2}": 2030,
+        "^Florida.* (Turnpike|Tpk|Tpke)": 2033,
       },
       Georgia: {
         "CR-[1-9][0-9]{0,2}": 2002,
@@ -437,11 +438,12 @@ function rsaInit() {
         "SR-[1-9][0-9]{0,2}": 2076,
       },
       "New Jersey": {
-        "CH-[1-9][0-9]{0,2}": 2002,
-        "CR-[1-9][0-9]{0,2}": 2083,
-        "SH-[1-9][0-9]{0,2}": 7,
-        "SR-[1-9][0-9]{0,2}": 7,
-        "Garden State (Parkway|Pkwy)": 2079,
+        "^CH-[1-9][0-9]{0,2}": 2002,
+        "^CR-[1-9][0-9]{0,2}": 2083,
+        "^SH-[1-9][0-9]{0,2}": 7,
+        "^SR-[1-9][0-9]{0,2}": 7,
+        "^NJ-[1-9][0-9]{0,2}": 7,
+        "^Garden State (Parkway|Pkwy)": 2079,
       },
       "New Mexico": {
         "CH-[1-9][0-9]{0,2}": 2002,
@@ -488,11 +490,11 @@ function rsaInit() {
         "SR-[1-9][0-9]{0,2}": 2099,
       },
       Pennsylvania: {
-        "CH-[1-9][0-9]{0,2}": 2002,
-        "CR-[1-9][0-9]{0,2}": 2002,
-        "SH-[1-9][0-9]{0,2}": 2101,
-        "PA-[1-9][0-9]{0,2}": 2101,
-        "SR-[1-9][0-9]{0,2}": 2101,
+        "^CH-[1-9][0-9]{0,2}": 2002,
+        "^CR-[1-9][0-9]{0,2}": 2002,
+        "^SH-[1-9][0-9]{0,2}": 2101,
+        "^PA-[1-9][0-9]{0,2}": 2101,
+        "^SR-[1-9][0-9]{0,2}": 2101,
       },
       "Rhode Island": {
         "CH-[1-9][0-9]{0,2}": 2002,
@@ -624,9 +626,12 @@ function rsaInit() {
 
   const iconsAllowingNoText = new Set<number>([
     2079, // Garden State Parkway
+    2033, // Florida's Turnpike
   ]);
 
-  const Strings = {
+  type SettingName = Record<string, string>;
+  type LocalizedSettings = Record<string, SettingName>;
+  const Strings: LocalizedSettings = {
     en: {
       enableScript: "Script enabled",
       HighSegShields: "Segments with Shields",
@@ -851,10 +856,10 @@ function rsaInit() {
       checkVI: "Inclure le champ d'instruction visuel",
     },
   };
-  const CheckAltName = [
+  const CheckAltName = new Set<number>([
     // France
     73,
-  ];
+  ]);
   let BadNames = [];
   let rsaSettings: RSASettings = {
     lastSaveAction: 0,
@@ -1454,19 +1459,12 @@ function rsaInit() {
       setEleStatus();
     });
     // Add translated UI text
-    if (!Strings[LANG as keyof typeof Strings]) LANG = "en";
-    for (
-      let i = 0;
-      i < Object.keys(Strings[LANG as keyof typeof Strings]).length;
-      i++
-    ) {
-      let key = Object.keys(Strings[LANG as keyof typeof Strings])[i];
-      $(`#rsa-text-${key}`).text(Strings[LANG as keyof typeof Strings][key]);
+    if (!Strings[LANG]) LANG = "en";
+    for (let i = 0; i < Object.keys(Strings[LANG]).length; i++) {
+      let key = Object.keys(Strings[LANG])[i];
+      $(`#rsa-text-${key}`).text(Strings[LANG][key]);
     }
-    $("#rsa-resetSettings").attr(
-      "value",
-      Strings[LANG as keyof typeof Strings].resetSettings,
-    );
+    $("#rsa-resetSettings").attr("value", Strings[LANG].resetSettings);
 
     checkOptions();
   }
@@ -1682,19 +1680,13 @@ function rsaInit() {
         $(`#rsa-text-NodeShieldMissing`).prop("checked", false);
 
         $(`#rsa-text-SegShieldMissing`).text(
-          Strings[LANG as keyof typeof Strings].SegShieldMissing +
-            " " +
-            Strings[LANG as keyof typeof Strings].disabledFeat,
+          Strings[LANG].SegShieldMissing + " " + Strings[LANG].disabledFeat,
         );
         $(`#rsa-text-SegShieldError`).text(
-          Strings[LANG as keyof typeof Strings].SegShieldError +
-            " " +
-            Strings[LANG as keyof typeof Strings].disabledFeat,
+          Strings[LANG].SegShieldError + " " + Strings[LANG].disabledFeat,
         );
         $(`#rsa-text-NodeShieldMissing`).text(
-          Strings[LANG as keyof typeof Strings].NodeShieldMissing +
-            " " +
-            Strings[LANG as keyof typeof Strings].disabledFeat,
+          Strings[LANG].NodeShieldMissing + " " + Strings[LANG].disabledFeat,
         );
 
         $(`#rsa-SegShieldMissing`).prop("disabled", true);
@@ -1719,15 +1711,9 @@ function rsaInit() {
           rsaSettings.NodeShieldMissing,
         );
 
-        $(`#rsa-text-SegShieldMissing`).text(
-          Strings[LANG as keyof typeof Strings].SegShieldMissing,
-        );
-        $(`#rsa-text-SegShieldError`).text(
-          Strings[LANG as keyof typeof Strings].SegShieldError,
-        );
-        $(`#rsa-text-NodeShieldMissing`).text(
-          Strings[LANG as keyof typeof Strings].NodeShieldMissing,
-        );
+        $(`#rsa-text-SegShieldMissing`).text(Strings[LANG].SegShieldMissing);
+        $(`#rsa-text-SegShieldError`).text(Strings[LANG].SegShieldError);
+        $(`#rsa-text-NodeShieldMissing`).text(Strings[LANG].NodeShieldMissing);
 
         $(`#rsa-SegShieldMissing`).prop("disabled", false);
         $(`#rsa-SegShieldError`).prop("disabled", false);
@@ -2030,7 +2016,7 @@ function rsaInit() {
       return candidate;
     }
 
-    if (countryId !== null && CheckAltName.includes(countryId)) {
+    if (countryId !== null && CheckAltName.has(countryId)) {
       for (let i = 0; i < seg.alternateStreetIds.length; i++) {
         street = sdk.DataModel.Streets.getById({
           streetId: seg.alternateStreetIds[i],
@@ -2091,7 +2077,8 @@ function rsaInit() {
     if (
       signType === null ||
       typeof signType === "undefined" ||
-      typeof signText === "undefined"
+      typeof signText === "undefined" ||
+      signType !== iconId
     ) {
       result = false;
     }

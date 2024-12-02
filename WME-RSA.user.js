@@ -191,8 +191,8 @@ function rsaInit() {
         // US
         235: {
             "*": {
-                "I-[1-9][0-9]{0,2}": 5,
-                "US-[1-9][0-9]{0,2}": 6,
+                "^I-[1-9][0-9]{0,2}": 5,
+                "^US-[1-9][0-9]{0,2}": 6,
             },
             Alabama: {
                 "CR-[1-9][0-9]{0,2}": 2002,
@@ -235,9 +235,10 @@ function rsaInit() {
                 "DC-[1-9][0-9]{0,2}": 7,
             },
             Florida: {
-                "CR-[1-9][0-9]{0,2}": 2002,
-                "SH-[1-9][0-9]{0,2}": 2030,
-                "SR-[1-9][0-9]{0,2}": 2030,
+                "^CR-[1-9][0-9]{0,2}": 2002,
+                "^SH-[1-9][0-9]{0,2}": 2030,
+                "^SR-[1-9][0-9]{0,2}": 2030,
+                "^Florida.* (Turnpike|Tpk|Tpke)": 2033,
             },
             Georgia: {
                 "CR-[1-9][0-9]{0,2}": 2002,
@@ -369,11 +370,12 @@ function rsaInit() {
                 "SR-[1-9][0-9]{0,2}": 2076,
             },
             "New Jersey": {
-                "CH-[1-9][0-9]{0,2}": 2002,
-                "CR-[1-9][0-9]{0,2}": 2083,
-                "SH-[1-9][0-9]{0,2}": 7,
-                "SR-[1-9][0-9]{0,2}": 7,
-                "Garden State (Parkway|Pkwy)": 2079,
+                "^CH-[1-9][0-9]{0,2}": 2002,
+                "^CR-[1-9][0-9]{0,2}": 2083,
+                "^SH-[1-9][0-9]{0,2}": 7,
+                "^SR-[1-9][0-9]{0,2}": 7,
+                "^NJ-[1-9][0-9]{0,2}": 7,
+                "^Garden State (Parkway|Pkwy)": 2079,
             },
             "New Mexico": {
                 "CH-[1-9][0-9]{0,2}": 2002,
@@ -420,11 +422,11 @@ function rsaInit() {
                 "SR-[1-9][0-9]{0,2}": 2099,
             },
             Pennsylvania: {
-                "CH-[1-9][0-9]{0,2}": 2002,
-                "CR-[1-9][0-9]{0,2}": 2002,
-                "SH-[1-9][0-9]{0,2}": 2101,
-                "PA-[1-9][0-9]{0,2}": 2101,
-                "SR-[1-9][0-9]{0,2}": 2101,
+                "^CH-[1-9][0-9]{0,2}": 2002,
+                "^CR-[1-9][0-9]{0,2}": 2002,
+                "^SH-[1-9][0-9]{0,2}": 2101,
+                "^PA-[1-9][0-9]{0,2}": 2101,
+                "^SR-[1-9][0-9]{0,2}": 2101,
             },
             "Rhode Island": {
                 "CH-[1-9][0-9]{0,2}": 2002,
@@ -554,6 +556,7 @@ function rsaInit() {
     };
     const iconsAllowingNoText = new Set([
         2079, // Garden State Parkway
+        2033, // Florida's Turnpike
     ]);
     const Strings = {
         en: {
@@ -762,10 +765,10 @@ function rsaInit() {
             checkVI: "Inclure le champ d'instruction visuel",
         },
     };
-    const CheckAltName = [
+    const CheckAltName = new Set([
         // France
         73,
-    ];
+    ]);
     let BadNames = [];
     let rsaSettings = {
         lastSaveAction: 0,
@@ -1484,15 +1487,9 @@ function rsaInit() {
                 $(`#rsa-text-SegShieldMissing`).prop("checked", false);
                 $(`#rsa-text-SegShieldError`).prop("checked", false);
                 $(`#rsa-text-NodeShieldMissing`).prop("checked", false);
-                $(`#rsa-text-SegShieldMissing`).text(Strings[LANG].SegShieldMissing +
-                    " " +
-                    Strings[LANG].disabledFeat);
-                $(`#rsa-text-SegShieldError`).text(Strings[LANG].SegShieldError +
-                    " " +
-                    Strings[LANG].disabledFeat);
-                $(`#rsa-text-NodeShieldMissing`).text(Strings[LANG].NodeShieldMissing +
-                    " " +
-                    Strings[LANG].disabledFeat);
+                $(`#rsa-text-SegShieldMissing`).text(Strings[LANG].SegShieldMissing + " " + Strings[LANG].disabledFeat);
+                $(`#rsa-text-SegShieldError`).text(Strings[LANG].SegShieldError + " " + Strings[LANG].disabledFeat);
+                $(`#rsa-text-NodeShieldMissing`).text(Strings[LANG].NodeShieldMissing + " " + Strings[LANG].disabledFeat);
                 $(`#rsa-SegShieldMissing`).prop("disabled", true);
                 $(`#rsa-SegShieldError`).prop("disabled", true);
                 $(`#rsa-NodeShieldMissing`).prop("disabled", true);
@@ -1772,7 +1769,7 @@ function rsaInit() {
         if (candidate.isCandidate) {
             return candidate;
         }
-        if (countryId !== null && CheckAltName.includes(countryId)) {
+        if (countryId !== null && CheckAltName.has(countryId)) {
             for (let i = 0; i < seg.alternateStreetIds.length; i++) {
                 street = sdk.DataModel.Streets.getById({
                     streetId: seg.alternateStreetIds[i],
@@ -1819,7 +1816,8 @@ function rsaInit() {
         let result = true;
         if (signType === null ||
             typeof signType === "undefined" ||
-            typeof signText === "undefined") {
+            typeof signText === "undefined" ||
+            signType !== iconId) {
             result = false;
         }
         if (signType !== null &&
