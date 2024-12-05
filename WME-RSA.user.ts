@@ -19,6 +19,7 @@
 
 // import {City, Node, Segment, State, Street, Turn, WmeSDK} from "wme-sdk";
 // import _ from "underscore";
+// import $ from "jquery";
 // // @ts-ignore
 // import * as WazeWrap from "../WazeWrap.js";
 
@@ -458,6 +459,29 @@ function rsaInit() {
         "SR-[1-9][0-9]{0,2}": 2087,
         "NY-[1-9][0-9]{0,2}": 2087,
         "NY SPUR": 2087,
+        "Palisades Interstate (Parkway|Pkwy)": 2082,
+        "\\b(?:Saw Mill River(?: Parkway| Pkwy)|SMP)\\b": 2092,
+        "\\b(?:Taconic State(?: Parkway| Pkwy)|TSP)\\b": 2092,
+        "\\b(?:Bear Mountain State(?: Parkway| Pkwy)|BMP)\\b": 2092,
+        "\\b(?:Cross County(?: Parkway| Pkwy)|CCP)\\b": 2092,
+        "\\b(?:Hutchinson River(?: Parkway| Pkwy)|HRP)\\b": 2092,
+        "\\b(?:Korean War Veterans(?: Parkway| Pkwy)|KWVP)\\b": 2092,
+        "\\b(?:Mosholu(?: Parkway| Pkwy)|MP)\\b": 2092,
+        "\\b(?:Pelham(?: Parkway| Pkwy)|PP)\\b": 2092,
+        "\\b(?:Sprain Brook(?: Parkway| Pkwy)|SBP)\\b": 2092,
+        "\\b(?:Belt(?: Parkway| Pkwy))\\b": 2090,
+        "\\b(?:Cross Island(?: Parkway| Pkwy))\\b": 2090,
+        "\\b(?:Grand Central(?: Parkway| Pkwy))\\b": 2090,
+        "\\b(?:Jackie Robinson(?: Parkway| Pkwy))\\b": 2090,
+        "\\b(?:Bronx River(?: Parkway| Pkwy))\\b": 2090,
+        "\\b(?:Hutchison River(?: Parkway| Pkwy))\\b": 2090,
+        "\\b(?:Mosholu(?: Parkway| Pkwy))\\b": 2090,
+        "\\b(?:Harlem River(?: Drive| Dr))\\b": 2090,
+        "\\b(?:Loop(?: Parkway| Dr))\\b": 2091,
+        "\\b(?:Bethpage State(?: Parkway| Pkwy))\\b": 2091,
+        "\\b(?:Meadowbrook State(?: Parkway| Pkwy))\\b": 2091,
+        "\\b(?:Lake Ontario State(?: Parkway| Pkwy))\\b": 2093,
+        "\\b(?:Niagara Scenic(?: Parkway| Pkwy))\\b": 2094,
       },
       "North Carolina": {
         "CH-[1-9][0-9]{0,2}": 2002,
@@ -627,6 +651,9 @@ function rsaInit() {
   const iconsAllowingNoText = new Set<number>([
     2079, // Garden State Parkway
     2033, // Florida's Turnpike
+    2082, // Palisades Pkwy
+    2093, // Ontario State Pkwy
+    2094, // Niagara Scenic Pkwy
   ]);
 
   type SettingName = Record<string, string>;
@@ -1674,50 +1701,53 @@ function rsaInit() {
         if (RoadAbbr[countries[i].id]) allowFeat = true;
       }
 
+      let segShieldMissing: JQuery<HTMLElement> = $("#rsa-SegShieldMissing");
+      let segShieldError: JQuery<HTMLElement> = $("#rsa-SegShieldError");
+      let nodeShieldMissing: JQuery<HTMLElement> = $(`#rsa-NodeShieldMissing`);
+      let textSegShieldMissing: JQuery<HTMLElement> = $(
+        "#rsa-text-SegShieldMissing",
+      );
+      let textSegShieldError: JQuery<HTMLElement> = $(
+        "#rsa-text-SegShieldError",
+      );
+      let textNodeShieldMissing: JQuery<HTMLElement> = $(
+        "#rsa-text-NodeShieldMissing",
+      );
       if (!allowFeat) {
-        $(`#rsa-text-SegShieldMissing`).prop("checked", false);
-        $(`#rsa-text-SegShieldError`).prop("checked", false);
-        $(`#rsa-text-NodeShieldMissing`).prop("checked", false);
+        textSegShieldMissing.prop("checked", false);
+        textSegShieldError.prop("checked", false);
+        textNodeShieldMissing.prop("checked", false);
 
-        $(`#rsa-text-SegShieldMissing`).text(
+        textSegShieldMissing.text(
           Strings[LANG].SegShieldMissing + " " + Strings[LANG].disabledFeat,
         );
-        $(`#rsa-text-SegShieldError`).text(
+        textSegShieldError.text(
           Strings[LANG].SegShieldError + " " + Strings[LANG].disabledFeat,
         );
-        $(`#rsa-text-NodeShieldMissing`).text(
+        textNodeShieldMissing.text(
           Strings[LANG].NodeShieldMissing + " " + Strings[LANG].disabledFeat,
         );
 
-        $(`#rsa-SegShieldMissing`).prop("disabled", true);
-        $(`#rsa-SegShieldError`).prop("disabled", true);
-        $(`#rsa-NodeShieldMissing`).prop("disabled", true);
+        segShieldMissing.prop("disabled", true);
+        segShieldError.prop("disabled", true);
+        nodeShieldMissing.prop("disabled", true);
 
         rsaSettings.SegShieldMissing = false;
         rsaSettings.SegShieldError = false;
         rsaSettings.NodeShieldMissing = false;
         saveSettings();
       } else {
-        $(`#rsa-text-SegShieldMissing`).prop(
-          "checked",
-          rsaSettings.SegShieldMissing,
-        );
-        $(`#rsa-text-SegShieldError`).prop(
-          "checked",
-          rsaSettings.SegShieldError,
-        );
-        $(`#rsa-text-NodeShieldMissing`).prop(
-          "checked",
-          rsaSettings.NodeShieldMissing,
-        );
+        textSegShieldMissing.prop("checked", rsaSettings.SegShieldMissing);
+        textSegShieldError.prop("checked", rsaSettings.SegShieldError);
+        textNodeShieldMissing.prop("checked", rsaSettings.NodeShieldMissing);
 
-        $(`#rsa-text-SegShieldMissing`).text(Strings[LANG].SegShieldMissing);
-        $(`#rsa-text-SegShieldError`).text(Strings[LANG].SegShieldError);
-        $(`#rsa-text-NodeShieldMissing`).text(Strings[LANG].NodeShieldMissing);
+        textSegShieldMissing.text(Strings[LANG].SegShieldMissing);
+        textSegShieldError.text(Strings[LANG].SegShieldError);
+        textNodeShieldMissing.text(Strings[LANG].NodeShieldMissing);
 
-        $(`#rsa-SegShieldMissing`).prop("disabled", false);
-        $(`#rsa-SegShieldError`).prop("disabled", false);
-        $(`#rsa-NodeShieldMissing`).prop("disabled", false);
+        segShieldMissing.prop("disabled", false);
+        segShieldError.prop("disabled", false);
+        nodeShieldMissing.prop("disabled", false);
       }
     }
 
@@ -2343,7 +2373,7 @@ function rsaInit() {
     // var newline = new OpenLayers.Geometry.LineString(points);
     // var lineFeature = new OpenLayers.Feature.Vector(newline, null, styleNode);
     let newLine = {
-      id: "line_" + points[0].x + " " + points[0].y,
+      id: "line_" + points[0].toString(),
       geometry: {
         type: "LineString",
         coordinates: [points],
