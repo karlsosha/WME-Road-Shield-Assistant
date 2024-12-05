@@ -293,7 +293,8 @@ function rsaInit() {
       Connecticut: {
         "CR-[1-9][0-9]{0,2}": 2002,
         "SH-[1-9][0-9]{0,2}": 2027,
-        "SR-[1-9][0-9]{0,2}": 2027,
+        "^SR-[1-9][0-9]{0,2}": 2027,
+        "\\b(?:Wilbur Cross(?: Parkway| Pkwy))\\b": 2027,
       },
       Delaware: {
         "CR-[1-9][0-9]{0,2}": 2002,
@@ -2153,7 +2154,7 @@ function rsaInit() {
       let street: Street | null = sdk.DataModel.Streets.getById({
         streetId: seg.alternateStreetIds[i],
       });
-      if (street !== null && street.name === primaryStreet.signText) {
+      if (street !== null && street.name?.includes(primaryStreet.signText)) {
         return true;
       }
     }
