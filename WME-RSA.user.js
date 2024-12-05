@@ -456,8 +456,8 @@ function rsaInit() {
                 "^CH-[1-9][0-9]{0,2}": 2002,
                 "^CR-[1-9][0-9]{0,2}": 2002,
                 "^SH-[1-9][0-9]{0,2}": 2101,
-                "^PA-[1-9][0-9]{0,2}": 2101,
-                "^SR-[1-9][0-9]{0,2}": 2101,
+                "^PA-[1-9][0-9]{0,2}\\b": 2101,
+                "^SR-[1-9][0-9]{0,2}\\b": 2101,
             },
             "Rhode Island": {
                 "CH-[1-9][0-9]{0,2}": 2002,
@@ -1782,7 +1782,7 @@ function rsaInit() {
             let turnData = sdk.DataModel.Turns.getById({ turnId: turns[idx].id });
             if (!turnData)
                 continue;
-            let hasGuidance = turnData.hasTurnGuidance();
+            let hasGuidance = turnData.lanes?.guidanceMode();
             if (hasGuidance) {
                 if (rsaSettings.ShowNodeShields &&
                     sdk.Map.getZoomLevel() > ZoomLevel.ZM2)

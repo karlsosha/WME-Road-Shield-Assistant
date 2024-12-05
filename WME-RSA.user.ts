@@ -524,8 +524,8 @@ function rsaInit() {
         "^CH-[1-9][0-9]{0,2}": 2002,
         "^CR-[1-9][0-9]{0,2}": 2002,
         "^SH-[1-9][0-9]{0,2}": 2101,
-        "^PA-[1-9][0-9]{0,2}": 2101,
-        "^SR-[1-9][0-9]{0,2}": 2101,
+        "^PA-[1-9][0-9]{0,2}\\b": 2101,
+        "^SR-[1-9][0-9]{0,2}\\b": 2101,
       },
       "Rhode Island": {
         "CH-[1-9][0-9]{0,2}": 2002,
@@ -1779,7 +1779,7 @@ function rsaInit() {
     // Create function to fix case types when button clicked
     $("#rsa-autoWrapper > div").on("click", function () {
       // const turnGraph = W.model.getTurnGraph();
-      const turnGraph = sdk.DataModel.Turns.getAll();
+      const turnGraph: Turn[] = sdk.DataModel.Turns.getAll();
 
       for (let i = 0; i < BadNames.length; i++) {
         // Check if street or turn
@@ -2015,7 +2015,7 @@ function rsaInit() {
       // let oldTurn = W.model.getTurnGraph().getTurnThroughNode(node,turn.fromSegmentId,turn.toSegmentId);
       let turnData = sdk.DataModel.Turns.getById({ turnId: turns[idx].id });
       if (!turnData) continue;
-      let hasGuidance = turnData.hasTurnGuidance();
+      let hasGuidance = turnData.lanes?.guidanceMode();
 
       if (hasGuidance) {
         if (
