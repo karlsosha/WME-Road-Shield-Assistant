@@ -377,6 +377,8 @@ function rsaInit() {
                 "^SR-[1-9][0-9]{0,2}": 7,
                 "^NJ-[1-9][0-9]{0,2}": 7,
                 "^Garden State (Parkway|Pkwy)": 2079,
+                "^Palisades Interstate (Parkway|Pkwy)": 2082,
+                "^Atlantic City (Expressway|Expy|Expwy)": 2000,
             },
             "New Mexico": {
                 "CH-[1-9][0-9]{0,2}": 2002,
@@ -391,14 +393,13 @@ function rsaInit() {
                 "SR-[1-9][0-9]{0,2}": 2087,
                 "NY-[1-9][0-9]{0,2}": 2087,
                 "NY SPUR": 2087,
-                "Palisades Interstate (Parkway|Pkwy)": 2082,
+                "\\bPalisades Interstate (Parkway|Pkwy)\\b": 2082,
                 "\\b(?:Saw Mill River(?: Parkway| Pkwy)|SMP)\\b": 2092,
                 "\\b(?:Taconic State(?: Parkway| Pkwy)|TSP)\\b": 2092,
                 "\\b(?:Bear Mountain State(?: Parkway| Pkwy)|BMP)\\b": 2092,
                 "\\b(?:Cross County(?: Parkway| Pkwy)|CCP)\\b": 2092,
                 "\\b(?:Hutchinson River(?: Parkway| Pkwy)|HRP)\\b": 2092,
                 "\\b(?:Korean War Veterans(?: Parkway| Pkwy)|KWVP)\\b": 2092,
-                "\\b(?:Mosholu(?: Parkway| Pkwy)|MP)\\b": 2092,
                 "\\b(?:Pelham(?: Parkway| Pkwy)|PP)\\b": 2092,
                 "\\b(?:Sprain Brook(?: Parkway| Pkwy)|SBP)\\b": 2092,
                 "\\b(?:Belt(?: Parkway| Pkwy))\\b": 2090,
@@ -408,7 +409,13 @@ function rsaInit() {
                 "\\b(?:Bronx River(?: Parkway| Pkwy))\\b": 2090,
                 "\\b(?:Hutchison River(?: Parkway| Pkwy))\\b": 2090,
                 "\\b(?:Mosholu(?: Parkway| Pkwy))\\b": 2090,
+                "\\b(?:Northern State(?: Parkway| Pkwy))\\b": 2090,
                 "\\b(?:Harlem River(?: Drive| Dr))\\b": 2090,
+                "\\b(?:Robert Moses(?: Causeway| Cswy))\\b": 2090,
+                "\\b(?:Sagtikos State(?: Parkway| Pkwy))\\b": 2090,
+                "\\b(?:Southern State(?: Parkway| Pkwy))\\b": 2090,
+                "\\b(?:Sunken Meadow State(?: Parkway| Pkwy))\\b": 2090,
+                "\\b(?:Wantagh State(?: Parkway| Pkwy))\\b": 2090,
                 "\\b(?:Loop(?: Parkway| Dr))\\b": 2091,
                 "\\b(?:Bethpage State(?: Parkway| Pkwy))\\b": 2091,
                 "\\b(?:Meadowbrook State(?: Parkway| Pkwy))\\b": 2091,
@@ -579,6 +586,7 @@ function rsaInit() {
         },
     };
     const iconsAllowingNoText = new Set([
+        2000, // Atlantic City Expy
         2079, // Garden State Parkway
         2033, // Florida's Turnpike
         2082, // Palisades Pkwy
