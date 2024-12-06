@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WME Road Shield Assistant
 // @namespace    https://greasyfork.org/en/users/286957-skidooguy
-// @version      999999999999
+// @version      2024.12.05.001
 // @description  Adds shield information display to WME
 // @author       SkiDooGuy, jm6087, Karlsosha
 // @match        https://www.waze.com/editor*
@@ -48,7 +48,10 @@ function rsaInit() {
     "https://greasyfork.org/en/scripts/425050-wme-road-shield-assisstant";
   const FORUM_LINK = "https://www.waze.com/forum/viewtopic.php?f=1851&t=315748";
   const RSA_UPDATE_NOTES = `<b>NEW:</b><br>
-- Converted to WME SDK<br><br>`;
+- Converted to WME SDK<br><br>
+<b>KNOWN ISSUES:</b><br>
+    - Shields for Turns currently unavailable through SDK<br>
+    - Some of the highlighting may be incorrect showing issues when there are none<br><br>`;
 
   enum ZoomLevel {
     ZM0 = 12,
