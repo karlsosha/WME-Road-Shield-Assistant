@@ -495,6 +495,7 @@ function rsaInit() {
             Texas: {
                 "SH-[1-9][0-9]{0,2}": 2117,
                 "SR-[1-9][0-9]{0,2}": 2117,
+                "\\bWestpark Tollway\\b": 2199,
             },
             Utah: {
                 "CH-[1-9][0-9]{0,2}": 2002,
@@ -599,6 +600,7 @@ function rsaInit() {
         2082, // Palisades Pkwy
         2093, // Ontario State Pkwy
         2094, // Niagara Scenic Pkwy
+        2199, // Westpark Tollway
     ]);
     const Strings = {
         en: {
@@ -1182,13 +1184,14 @@ function rsaInit() {
                     layerName: payload.name,
                     visibility: payload.checked,
                 });
-                tryScan();
                 if (payload.name === rsaMapLayer.layerName) {
                     rsaSettings.mapLayerVisible = payload.checked;
                 }
                 else if (payload.name === rsaIconLayer.layerName) {
                     rsaSettings.iconLayerVisible = payload.checked;
                 }
+                if (payload.checked)
+                    tryScan();
             },
         });
         // Set user options
