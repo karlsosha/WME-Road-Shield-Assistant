@@ -100,13 +100,16 @@ function rsaInit() {
                 "Hwy 407 ETR": 5060, // 5060: Ontario ETR
                 "Hwy 412": 5059, // 5059: Ontario Toll Hwy
                 "Hwy 418": 5059, // 5059: Ontario Toll Hwy
-                "Hwy ([1-9]|1[0-6])\b": 5057, // 5057: Ontario King's Hwy 1-16
-                "Hwy (1[89]|[2-9]d|[1-3]d{2}|40[0-6])\b": 5057, // 5057: Ontario King's Hwy 18-406
-                "Hwy (40[89]|41[01])\b": 5057, // 5057: Ontario King's Hwy 408-411
-                "Hwy (41[3-7])\b": 5057, // 5057: Ontario King's Hwy 413-417
-                "Hwy (419|4[2-9]d)\b": 5057, // 5057: Ontario King's Hwy 419-499
-                "Hwy (50d|5[1-9]d|6d{2})\b": 5061, // 5061: Ontario Secondary Hwy 500-699
-                "Hwy (80d|8[1-9]d)\b": 5057, // 5057: Ontario Tertiary Hwy
+                "Hwy ([1-9]|1[0-6])\\b": 5057, // 5057: Ontario King's Hwy 1-16
+                "Hwy (1[89]|[2-9]d|[1-3]d{2}|40[0-6])\\b": 5057, // 5057: Ontario King's Hwy 18-406
+                "Hwy (40[89]|41[01])\\b": 5057, // 5057: Ontario King's Hwy 408-411
+                "Hwy (41[3-7])\\b": 5057, // 5057: Ontario King's Hwy 413-417
+                "Hwy (419|4[2-9]d)\\b": 5057, // 5057: Ontario King's Hwy 419-499
+                "Hwy (50d|5[1-9]d|6d{2})\\b": 5061, // 5061: Ontario Secondary Hwy 500-699
+                "Hwy (80d|8[1-9]d)\\b": 5057, // 5057: Ontario Tertiary Hwy
+                "^(Regional|Haldimand) (Road|Rd|Hwy|Highway) [1-9][0-9]{0,2}\\b": new Set([
+                    5065, 5063, 5077,
+                ]), // Ontario Regional
             },
             Quebec: {
                 "Rte Transcanadienne": 5093, // 5093: Quebec: Route Transcanadienne
@@ -1859,7 +1862,8 @@ function rsaInit() {
         if (signType === null ||
             typeof signType === "undefined" ||
             typeof signText === "undefined" ||
-            signType !== iconId) {
+            (iconId instanceof Set && !iconId.has(signType)) ||
+            (!(iconId instanceof Set) && signType !== iconId)) {
             result = false;
         }
         if (signType !== null &&
