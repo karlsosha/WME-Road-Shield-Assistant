@@ -493,9 +493,15 @@ function rsaInit() {
                 "SR-[1-9][0-9]{0,2}": 2115,
             },
             Texas: {
-                "SH-[1-9][0-9]{0,2}": 2117,
-                "SR-[1-9][0-9]{0,2}": 2117,
-                "\\bWestpark Tollway\\b": 2199,
+                "^SH-[1-9][0-9]{0,3}": new Set([2117, 2123]),
+                "^[Ss][Pp][Uu][Rr] [1-9][0-9]{0,3}": 2126,
+                "^SR-[1-9][0-9]{0,3}": 2117,
+                "^FM-[1-9][0-9]{0,3}": 2121,
+                "^Beltway [1-9][0-9]{0,3}\\b": 2119,
+                "^Sam Houston (Tollway|Tlwy|Parkway|Pkwy)\\b": 2198,
+                "^Park (Road|Rd)\\b": 2144,
+                "^Westpark (Tollway|Tlwy)\\b": 2199,
+                "^Fort Bend (Tollway|Tlwy|Parkway|Pkwy)\\b": 2196,
             },
             Utah: {
                 "CH-[1-9][0-9]{0,2}": 2002,
@@ -600,7 +606,9 @@ function rsaInit() {
         2082, // Palisades Pkwy
         2093, // Ontario State Pkwy
         2094, // Niagara Scenic Pkwy
-        2199, // Westpark Tollway
+        2199, // Westpark Tollway,
+        2198, // Sam Houston Parkway,
+        2196, // Fort Bend
     ]);
     const Strings = {
         en: {
