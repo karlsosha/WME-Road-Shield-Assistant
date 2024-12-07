@@ -43,7 +43,7 @@ function rsaInit() {
     console.log(`SDK v ${sdk.getSDKVersion()} on ${sdk.getWMEVersion()} initialized`);
 
     const GF_LINK = "https://greasyfork.org/en/scripts/425050-wme-road-shield-assisstant";
-    const FORUM_LINK = "https://www.waze.com/forum/viewtopic.php?f=1851&t=315748";
+    const FORUM_LINK = "https://www.waze.com/discuss/t/script-road-shield-assistant-rsa/227100";
     const RSA_UPDATE_NOTES = `<b>NEW:</b><br>
 - Converted to WME SDK<br><br>
 <b>KNOWN ISSUES:</b><br>
