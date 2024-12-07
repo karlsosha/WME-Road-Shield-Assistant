@@ -291,11 +291,13 @@ function rsaInit() {
                 "K-[1-9][0-9]{0,2}": 2046,
             },
             Kentucky: {
-                "CH-[1-9][0-9]{0,2}": 2002,
-                "CR-[1-9][0-9]{0,2}": 2002,
-                "SH-[1-9][0-9]{0,2}": 7,
-                "SR-[1-9][0-9]{0,2}": 7,
-                "KY-[1-9][0-9]{0,3}": 7,
+                "^US-[1-9]\\d{0,2}\\s+(?:BUS|Bus|Business)\\b": 2005,
+                "^CH-[1-9][0-9]{0,2}": 2002,
+                "^CR-[1-9][0-9]{0,2}": 2002,
+                "^SH-[1-9][0-9]{0,2}": 7,
+                "^SR-[1-9][0-9]{0,2}": 7,
+                "^KY-[1-9][0-9]{0,3}": 7,
+                "^AA (Highway|Hwy)\\b": 2050,
             },
             Louisiana: {
                 "CH-[1-9][0-9]{0,2}": 2002,
@@ -312,11 +314,11 @@ function rsaInit() {
                 "SR-[1-9][0-9]{0,2}": 2051,
             },
             Maryland: {
-                "CH-[1-9][0-9]{0,2}": 2002,
-                "CR-[1-9][0-9]{0,2}": 2002,
-                "SH-[1-9][0-9]{0,2}": 2053,
-                "SR-[1-9][0-9]{0,2}": 2053,
-                "MD-[1-9][0-9]{0,2}": 2053,
+                "^CH-[1-9][0-9]{0,2}": 2002,
+                "^CR-[1-9][0-9]{0,2}": 2002,
+                "^SH-[1-9][0-9]{0,2}": 2053,
+                "^SR-[1-9][0-9]{0,2}": 2053,
+                "^MD-[1-9][0-9]{0,2}": 2053,
             },
             Massachusetts: {
                 "CH-[1-9][0-9]{0,2}": 2002,
@@ -458,11 +460,14 @@ function rsaInit() {
                 "SR-[1-9][0-9]{0,2}": 2099,
             },
             Pennsylvania: {
+                "^US-[1-9]\\d{0,2}\\s+(?:BUS|Bus|Business)\\b": 2005,
                 "^CH-[1-9][0-9]{0,2}": 2002,
                 "^CR-[1-9][0-9]{0,2}": 2002,
                 "^SH-[1-9][0-9]{0,2}": 2101,
                 "^PA-[1-9][0-9]{0,2}\\b": 2101,
-                "^SR-[1-9][0-9]{0,2}\\b": 2101,
+                "^Hwy\\s[1-9]\\d{0,2}\\b": 2101,
+                "^SR-[1-9]\\d{0,2}\\s+(?:BUS|Bus|Business)\\b": 2104,
+                "^SR-[1-9]\\d{0,2}(?!\\s*(?:BUS|Bus|Business))\\b": 2101,
             },
             "Rhode Island": {
                 "CH-[1-9][0-9]{0,2}": 2002,
@@ -517,10 +522,11 @@ function rsaInit() {
                 "SR-[1-9][0-9]{0,2}": 2131,
             },
             Virginia: {
-                "CH-[1-9][0-9]{0,2}": 2002,
-                "CR-[1-9][0-9]{0,2}": 2002,
-                "SH-[1-9][0-9]{0,2}": 2128,
-                "SR-[1-9][0-9]{0,2}": 2128,
+                "^CH-[1-9]\\d{0,2}\\b": 2002,
+                "^CR-[1-9]\\d{0,2}]\\b": 2002,
+                "^SH-[1-9]\\d{0,2}\\b": 2128,
+                "^SR-[1-9]\\d{0,2}\\b": 2128,
+                "^Blue Ridge Pkwy\\b": 2069
             },
             Washington: {
                 "CH-[1-9][0-9]{0,2}": 2002,
@@ -610,6 +616,8 @@ function rsaInit() {
         2199, // Westpark Tollway,
         2198, // Sam Houston Parkway,
         2196, // Fort Bend
+        2050, // AA Hwy,
+        2069, // Blue Ridge Pkwy
     ]);
     const Strings = {
         en: {
@@ -1841,7 +1849,7 @@ function rsaInit() {
             const noStates = "" in RoadAbbr[countryId];
             const abbrvs = noStates
                 ? RoadAbbr[countryId][""]
-                : { ...RoadAbbr[countryId]["*"], ...RoadAbbr[countryId][stateName] };
+                : { ...RoadAbbr[countryId][stateName], ...RoadAbbr[countryId]["*"] };
             for (let i = 0; i < Object.keys(abbrvs).length; i++) {
                 const abrKey = Object.keys(abbrvs)[i];
                 const abbr = new RegExp(abrKey, "g");
