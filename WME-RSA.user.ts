@@ -17,14 +17,11 @@
 /* global W */
 /* global WazeWrap */
 
-import { City, Node, Segment, State, Street, Turn, WmeSDK } from "wme-sdk";
-import { Point, LineString } from "geojson";
-import _ from "underscore";
-import $ from "jquery";
-// // @ts-ignore
-// import * as WazeWrap from "../WazeWrap.js";
-
-import WazeWrap from "https://greasyfork.org/scripts/24851-wazewrap/code/WazeWrap.js";
+// import { City, Node, Segment, State, Street, Turn, WmeSDK } from "wme-sdk";
+// import { Point, LineString } from "geojson";
+// import _ from "underscore";
+// import $ from "jquery";
+// import WazeWrap from "https://greasyfork.org/scripts/24851-wazewrap/code/WazeWrap.js";
 
 window.SDK_INITIALIZED.then(rsaInit);
 
