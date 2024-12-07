@@ -9,11 +9,13 @@
     "strict": true,
     "skipLibCheck": true,
     "allowJs": true,
+    "outDir": "./",
     "types": [
       "jquery",
       "tampermonkey",
       "wme-sdk"
     ]
   },
-  "exclude": ["node_modules", "releases"]
+  "exclude": ["node_modules", "releases"],
+  "include": ["./WME-RSA.user.ts", "./src/declarations.d.ts"]
 }

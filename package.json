@@ -7,6 +7,7 @@
     "@types/underscore": "^1.13.0",
     "greasemonkey": "^1.0.3",
     "prettier": "3.4.1",
+    "typescript": "^5.7.2",
     "underscore": "^1.13.7",
     "wme-sdk": "https://web-assets.waze.com/wme_sdk_docs/beta/latest/wme-sdk-typings.tgz"
   },

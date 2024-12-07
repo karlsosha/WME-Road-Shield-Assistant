@@ -1,4 +1,3 @@
-"use strict";
 // ==UserScript==
 // @name         WME Road Shield Assistant
 // @namespace    https://greasyfork.org/en/users/286957-skidooguy
@@ -14,13 +13,11 @@
 // @grant        none
 // @contributionURL https://github.com/WazeDev/Thank-The-Authors
 // ==/UserScript==
-/* global W */
-/* global WazeWrap */
-// import {City, Node, Segment, State, Street, Turn, WmeSDK} from "wme-sdk";
-// import _ from "underscore";
-// import $ from "jquery";
+import _ from "underscore";
+import $ from "jquery";
 // // @ts-ignore
 // import * as WazeWrap from "../WazeWrap.js";
+import WazeWrap from "https://greasyfork.org/scripts/24851-wazewrap/code/WazeWrap.js";
 window.SDK_INITIALIZED.then(rsaInit);
 function rsaInit() {
     if (!window.getWmeSdk) {
@@ -110,9 +107,7 @@ function rsaInit() {
                 "Hwy (419|4[2-9]d)\\b": 5057, // 5057: Ontario King's Hwy 419-499
                 "Hwy (50d|5[1-9]d|6d{2})\\b": 5061, // 5061: Ontario Secondary Hwy 500-699
                 "Hwy (80d|8[1-9]d)\\b": 5057, // 5057: Ontario Tertiary Hwy
-                "^Regional (Road|Rd) [1-9][0-9]{0,2}\\b": new Set([
-                    5065, 5063, 5077,
-                ]), // Ontario Regional
+                "^Regional (Road|Rd) [1-9][0-9]{0,2}\\b": new Set([5065, 5063, 5077]), // Ontario Regional
             },
             Quebec: {
                 "Rte Transcanadienne": 5093, // 5093: Quebec: Route Transcanadienne
@@ -444,10 +439,10 @@ function rsaInit() {
                 "ND-[1-9][0-9]{0,2}": 2070,
             },
             Ohio: {
-                "CH-[1-9][0-9]{0,2}": 2002,
-                "CR-[1-9][0-9]{0,2}": 2002,
-                "SH-[1-9][0-9]{0,2}": 2095,
-                "SR-[1-9][0-9]{0,2}": 2095,
+                "^CH-[1-9][0-9]{0,2}": 2002,
+                "^CR-[1-9][0-9]{0,3}": 2181,
+                "^SH-[1-9][0-9]{0,2}": 2095,
+                "^SR-[1-9][0-9]{0,2}": 2095,
             },
             Oklahoma: {
                 "^SH-[1-9][0-9]{0,2}": 2097,
@@ -1241,8 +1236,7 @@ function rsaInit() {
             $("#rsa-AlternativeShields").on("change", function (e) {
                 processAlternativeSettings();
             });
-            if (rsaSettings.titleCase &&
-                sdk.DataModel.Countries.getTopCountry()?.id === 235) {
+            if (rsaSettings.titleCase && sdk.DataModel.Countries.getTopCountry()?.id === 235) {
                 $("#rsa-container-checkTWD").css("display", "block");
                 $("#rsa-container-checkTTS").css("display", "block");
                 $("#rsa-container-checkVI").css("display", "block");
@@ -1428,8 +1422,7 @@ function rsaInit() {
             iconLayerVisible: false,
         };
         rsaSettings = $.extend({}, defaultSettings, localSettings);
-        if (serverSettings &&
-            serverSettings.lastSaveAction > rsaSettings.lastSaveAction) {
+        if (serverSettings && serverSettings.lastSaveAction > rsaSettings.lastSaveAction) {
             $.extend(rsaSettings, serverSettings);
             // console.log('RSA: server settings used');
         }
@@ -1741,11 +1734,8 @@ function rsaInit() {
                 }
             }
         }
-        let hasShield = street.signType !== null;
         // let oldStateName = W.model.states.getObjectById(cityID.stateID).attributes.name;
-        let state = stateID !== null
-            ? sdk.DataModel.States.getById({ stateId: stateID })
-            : null;
+        let state = stateID !== null ? sdk.DataModel.States.getById({ stateId: stateID }) : null;
         let stateName = state === null ? null : state.name;
         let countryID = city.countryId;
         let candidate = isSegmentCandidate(seg, stateName, countryID);
@@ -1753,13 +1743,10 @@ function rsaInit() {
         if (!rsaSettings.ShowRamps && seg.roadType === 4)
             return;
         // Only show mH and above
-        if (rsaSettings.mHPlus &&
-            seg.roadType !== 3 &&
-            seg.roadType !== 4 &&
-            seg.roadType !== 6 &&
-            seg.roadType !== 7)
+        if (rsaSettings.mHPlus && seg.roadType !== 3 && seg.roadType !== 4 && seg.roadType !== 6 && seg.roadType !== 7)
             return;
         // Display shield on map
+        const hasShield = street.signType !== null;
         if (hasShield) {
             if (rsaSettings.ShowSegShields)
                 displaySegShields(seg, street.signType, street.signText, street.direction);
@@ -1805,15 +1792,12 @@ function rsaInit() {
                 continue;
             let hasGuidance = turnData.lanes?.guidanceMode();
             if (hasGuidance) {
-                if (rsaSettings.ShowNodeShields &&
-                    sdk.Map.getZoomLevel() > ZoomLevel.ZM2)
+                if (rsaSettings.ShowNodeShields && sdk.Map.getZoomLevel() > ZoomLevel.ZM2)
                     displayNodeIcons(node, turnData);
                 if (rsaSettings.titleCase) {
                     let badName = matchTitleCaseThroughNode(turn);
                     if (badName.isBad) {
-                        let color = badName.softIssue
-                            ? rsaSettings.TitleCaseSftClr
-                            : rsaSettings.TitleCaseClr;
+                        let color = badName.softIssue ? rsaSettings.TitleCaseSftClr : rsaSettings.TitleCaseClr;
                         createHighlight(node, color, true);
                         // autoFixButton();
                     }
@@ -1824,9 +1808,7 @@ function rsaInit() {
     // Function written by kpouer to accommodate French conventions of shields being based on alt names
     function isSegmentCandidate(seg, stateName, countryId) {
         // let street = W.model.streets.getObjectById(segAtt.primaryStreetID);
-        let street = seg.primaryStreetId === null
-            ? null
-            : sdk.DataModel.Streets.getById({ streetId: seg.primaryStreetId });
+        let street = seg.primaryStreetId === null ? null : sdk.DataModel.Streets.getById({ streetId: seg.primaryStreetId });
         let candidate = isStreetCandidate(street, stateName, countryId);
         if (candidate.isCandidate) {
             return candidate;
@@ -2053,21 +2035,17 @@ function rsaInit() {
         let count = 0;
         GUIDANCE.shields.exists = trnGuid.getRoadShields() !== null;
         if (rsaSettings.ShowExitShields) {
-            GUIDANCE.exitsign.exists =
-                trnGuid.getExitSigns() !== null && trnGuid.getExitSigns().length > 0;
+            GUIDANCE.exitsign.exists = trnGuid.getExitSigns() !== null && trnGuid.getExitSigns().length > 0;
         }
         if (rsaSettings.ShowTurnTTS) {
-            GUIDANCE.tts.exists =
-                trnGuid.getTTS() !== null && trnGuid.getTTS().length > 0;
+            GUIDANCE.tts.exists = trnGuid.getTTS() !== null && trnGuid.getTTS().length > 0;
         }
         if (rsaSettings.ShowTowards) {
-            GUIDANCE.towards.exists =
-                trnGuid.getTowards() !== null && trnGuid.getTowards().length > 0;
+            GUIDANCE.towards.exists = trnGuid.getTowards() !== null && trnGuid.getTowards().length > 0;
         }
         if (rsaSettings.ShowVisualInst) {
             GUIDANCE.visualIn.exists =
-                trnGuid.getVisualInstruction() !== null &&
-                    trnGuid.getVisualInstruction().length > 0;
+                trnGuid.getVisualInstruction() !== null && trnGuid.getVisualInstruction().length > 0;
         }
         Object.assign(styleRules.styleNode.style, {
             strokeColor: rsaSettings.HighNodeClr,
@@ -2203,17 +2181,19 @@ function rsaInit() {
         let labelDis = labelDistance();
         let width = 37;
         let height = 37;
-        if (shieldText.length > 4 && shieldText.length < 7) {
-            width = 50;
-            height = 40;
-        }
-        else if (shieldText.length > 6 && shieldText.length < 9) {
-            width = 80;
-            height = 45;
-        }
-        else if (shieldText.length > 8 && shieldText.length < 13) {
-            width = 100;
-            height = 50;
+        if (shieldText !== null) {
+            if (shieldText.length > 4 && shieldText.length < 7) {
+                width = 50;
+                height = 40;
+            }
+            else if (shieldText.length > 6 && shieldText.length < 9) {
+                width = 80;
+                height = 45;
+            }
+            else if (shieldText.length > 8 && shieldText.length < 13) {
+                width = 100;
+                height = 50;
+            }
         }
         // oldparam.x = null;
         // oldparam.y = null;
@@ -2248,7 +2228,7 @@ function rsaInit() {
                 display: "grid",
                 labelYOffset: 0,
             };
-            if (oldparam.x !== null && oldparam.y !== null) {
+            if (oldparam.x && oldparam.y && oldparam.x !== null && oldparam.y !== null) {
                 if (Math.abs(oldparam.x - param[0]) > labelDis.space ||
                     Math.abs(oldparam.y - param[1]) > labelDis.space ||
                     !AtLeastOne) {
@@ -2258,10 +2238,8 @@ function rsaInit() {
                     };
                     centerparam.x = (oldparam.x + param[0]) / 2;
                     centerparam.y = (oldparam.y + param[1]) / 2;
-                    if ((centerparam.x &&
-                        Math.abs(centerparam.x - param[0]) > labelDis.space) ||
-                        (centerparam.y &&
-                            Math.abs(centerparam.y - param[1]) > labelDis.space) ||
+                    if ((centerparam.x && Math.abs(centerparam.x - param[0]) > labelDis.space) ||
+                        (centerparam.y && Math.abs(centerparam.y - param[1]) > labelDis.space) ||
                         !AtLeastOne) {
                         // let LabelPoint = new OpenLayers.Geometry.Point(centerparam.x, centerparam.y);
                         // const pointFeature = new OpenLayers.Feature.Vector(LabelPoint, null, style);
@@ -2272,10 +2250,7 @@ function rsaInit() {
                                 coordinates: [centerparam.x, centerparam.y],
                             },
                             properties: { styleName: "shield" },
-                            id: "shield_" +
-                                centerparam.x.toString() +
-                                "_" +
-                                centerparam.y.toString(),
+                            id: "shield_" + centerparam.x.toString() + "_" + centerparam.y.toString(),
                         };
                         // Shield icon style
                         shieldWithLabelStyle.labelYOffset = -1 * labelDis.label;
@@ -2312,7 +2287,7 @@ function rsaInit() {
     function createHighlight(obj, color, overSized = false) {
         // const geo = obj.getOLGeometry().clone();
         const geo = structuredClone(obj.geometry);
-        let isNode = obj.type === "node";
+        let isNode = obj instanceof Node;
         if (isNode) {
             Object.assign(styleRules.styleNode.style, {
                 strokeColor: color,
