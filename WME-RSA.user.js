@@ -264,17 +264,17 @@ function rsaInit() {
                 "SR-[1-9][0-9]{0,2}": 2043,
             },
             Illinois: {
-                "CH-[1-9][0-9]{0,2}": 2002,
-                "CR-[1-9][0-9]{0,2}": 2002,
-                "SH-[1-9][0-9]{0,2}": 2044,
-                "SR-[1-9][0-9]{0,2}": 2044,
+                "^CH-[1-9][0-9]{0,2}": 2002,
+                "^CR-[1-9][0-9]{0,3}": 2002,
+                "^SH-[1-9][0-9]{0,2}": 2044,
+                "^SR-[1-9][0-9]{0,2}": 2044,
             },
             Indiana: {
-                "CH-[1-9][0-9]{0,2}": 2002,
-                "CR-[1-9][0-9]{0,2}": 2002,
-                "SH-[1-9][0-9]{0,2}": 2045,
-                "SR-[1-9][0-9]{0,2}": 2045,
-                "IN-[1-9][0-9]{0,2}": 2045,
+                "^CH-[1-9][0-9]{0,2}": 2002,
+                "^CR-[1-9][0-9]{0,2}": 2002,
+                "^SH-[1-9][0-9]{0,2}": 2045,
+                "^SR-[1-9][0-9]{0,2}": 2045,
+                "^IN-[1-9][0-9]{0,2}": 2045,
             },
             Iowa: {
                 "CH-[1-9][0-9]{0,2}": 2002,
@@ -1749,8 +1749,7 @@ function rsaInit() {
         if (rsaSettings.mHPlus && seg.roadType !== 3 && seg.roadType !== 4 && seg.roadType !== 6 && seg.roadType !== 7)
             return;
         // Display shield on map
-        const hasShield = street.signType !== null;
-        if (hasShield) {
+        if (street.signType !== null) {
             if (rsaSettings.ShowSegShields)
                 displaySegShields(seg, street.signType, street.signText, street.direction);
             // If candidate and has shield
@@ -1772,7 +1771,7 @@ function rsaInit() {
                 createHighlight(seg, rsaSettings.SegInvDirClr);
         }
         // If candidate and missing shield
-        if (rsaSettings.SegShieldMissing && candidate.isCandidate && !hasShield)
+        if (rsaSettings.SegShieldMissing && candidate.isCandidate && street.signType === null)
             createHighlight(seg, rsaSettings.MissSegClr);
         // Streets without capitalized letters
         if (rsaSettings.titleCase) {
@@ -1813,10 +1812,7 @@ function rsaInit() {
         // let street = W.model.streets.getObjectById(segAtt.primaryStreetID);
         let street = seg.primaryStreetId === null ? null : sdk.DataModel.Streets.getById({ streetId: seg.primaryStreetId });
         let candidate = isStreetCandidate(street, stateName, countryId);
-        if (candidate.isCandidate) {
-            return candidate;
-        }
-        if (countryId !== null && CheckAltName.has(countryId)) {
+        if (!candidate.isCandidate && countryId !== null && CheckAltName.has(countryId)) {
             for (let i = 0; i < seg.alternateStreetIds.length; i++) {
                 street = sdk.DataModel.Streets.getById({
                     streetId: seg.alternateStreetIds[i],
@@ -1840,13 +1836,13 @@ function rsaInit() {
         if (stateName === null)
             stateName = "";
         //Check to see if the country has states configured in RSA by looking for a key with nothing in it
-        const noStates = "" in RoadAbbr[countryId];
         const name = street === null ? "" : street.name;
-        const abbrvs = noStates
-            ? RoadAbbr[countryId][""]
-            : { ...RoadAbbr[countryId]["*"], ...RoadAbbr[countryId][stateName] };
-        for (let i = 0; i < Object.keys(abbrvs).length; i++) {
-            if (name) {
+        if (name) {
+            const noStates = "" in RoadAbbr[countryId];
+            const abbrvs = noStates
+                ? RoadAbbr[countryId][""]
+                : { ...RoadAbbr[countryId]["*"], ...RoadAbbr[countryId][stateName] };
+            for (let i = 0; i < Object.keys(abbrvs).length; i++) {
                 const abrKey = Object.keys(abbrvs)[i];
                 const abbr = new RegExp(abrKey, "g");
                 const isMatch = name.match(abbr);
