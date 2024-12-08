@@ -196,7 +196,7 @@ function rsaInit() {
         // US
         235: {
             "*": {
-                "^I-[1-9]\\d{0,2}(?!\\s*(?:Bus|BUS|Express|Exp|EXP|Business))\\b": 5,
+                "^I-[1-9]\\d{0,2}(?!\s+(?:W|E|East|West))\\b": 5,
                 "^US-[1-9][0-9]{0,2}\\b": 6,
             },
             Alabama: {
@@ -227,8 +227,8 @@ function rsaInit() {
                 "SR-[1-9][0-9]{0,2}": 2025,
             },
             Connecticut: {
-                "CR-[1-9][0-9]{0,2}": 2002,
-                "SH-[1-9][0-9]{0,2}": 2027,
+                "^CR-[1-9][0-9]{0,2}": 2002,
+                "^SH-[1-9][0-9]{0,2}": 2027,
                 "^SR-[1-9][0-9]{0,2}": 2027,
                 "\\b(?:Wilbur Cross(?: Parkway| Pkwy))\\b": 2027,
             },
@@ -244,7 +244,7 @@ function rsaInit() {
                 "^CR-[1-9][0-9]{0,2}": 2002,
                 "^SH-[1-9][0-9]{0,2}": 2030,
                 "^SR-[1-9][0-9]{0,2}": 2030,
-                "^Florida.* (Turnpike|Tpk|Tpke)": 2033,
+                "^Florida.* (Turnpike|Tpk|Tpke)\\b": 2033,
             },
             Georgia: {
                 "^CR-[1-9][0-9]{0,2}\\b": 2002,
@@ -258,7 +258,7 @@ function rsaInit() {
                 "SR-[1-9][0-9]{0,2}": 2041,
             },
             Idaho: {
-                "I-[1-9]\\d{0,2}(?!\\s*(?:Bus|BUS|Express|Exp|EXP|Business))": 2003,
+                "^I-[1-9]\\d{0,2}\\s{1,}\\b(?:Bus|BUS|Business|BUSINESS)\\b": 2003,
                 "^CH-[1-9]\\d{0,2}\\b": 2002,
                 "^CR-[1-9]\\d{0,2}\\b": 2002,
                 "^SH-[1-9]\\d{0,2}\\b": 2043,
@@ -353,6 +353,7 @@ function rsaInit() {
                 "^MO-[1-9]\\d{0,2}\\b": 2061,
             },
             Montana: {
+                "^I-[1-9]\\d{0,2}\\s{1,}\\b(?:Bus|BUS|Business|BUSINESS)\\b": 2003,
                 "^CH-[1-9]\\d{0,2}\\b": 2002,
                 "^CR-[1-9]\\d{0,2}\\b": 2002,
                 "^SH-[1-9]\\d{0,2}\\b": 2063,
@@ -463,6 +464,7 @@ function rsaInit() {
                 "SR-[1-9][0-9]{0,2}": 2099,
             },
             Pennsylvania: {
+                "^I-[1-9]\\d{0,2}\\s{1,}\\b(?:Bus|BUS|Business|BUSINESS)\\b": 2003,
                 "^US-[1-9]\\d{0,2}\\s+(?:BUS|Bus|Business)\\b": 2005,
                 "^CH-[1-9][0-9]{0,2}": 2002,
                 "^CR-[1-9][0-9]{0,2}": 2002,
