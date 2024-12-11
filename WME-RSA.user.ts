@@ -165,24 +165,25 @@ function rsaInit() {
                 "Hwy (20d|2[1-9]d|[3-9]d{2})\b": 5039, // 5039: Manitoba - Provincial Rd
             },
             Ontario: {
-                QEW: 5058, // 5058: Ontario QEW
-                "Hwy 17": 5000, // 5000: National - Trans-Canada Hwy
-                "Hwy 407 ETR": 5060, // 5060: Ontario ETR
-                "Hwy 412": 5059, // 5059: Ontario Toll Hwy
-                "Hwy 418": 5059, // 5059: Ontario Toll Hwy
-                "Hwy ([1-9]|1[0-6])\\b": 5057, // 5057: Ontario King's Hwy 1-16
-                "Hwy (1[89]|[2-9]d|[1-3]d{2}|40[0-6])\\b": 5057, // 5057: Ontario King's Hwy 18-406
-                "Hwy (40[89]|41[01])\\b": 5057, // 5057: Ontario King's Hwy 408-411
-                "Hwy (41[3-7])\\b": 5057, // 5057: Ontario King's Hwy 413-417
-                "Hwy (419|4[2-9]d)\\b": 5057, // 5057: Ontario King's Hwy 419-499
-                "Hwy (50d|5[1-9]d|6d{2})\\b": 5061, // 5061: Ontario Secondary Hwy 500-699
-                "Hwy (80d|8[1-9]d)\\b": 5057, // 5057: Ontario Tertiary Hwy
-                "^Regional (Road|Rd) [1-9]\\d{0,2}\\b": new Set<number>([5065, 5063, 5077]), // Ontario Regional
+                "^QEW\\b": 5058, // 5058: Ontario QEW
+                // "^Hwy 17\\b": 5000, // 5000: National - Trans-Canada Hwy
+                "^Hwy 407\\b": new Set<number>([5207, 5206]), // 5060: Ontario ETR
+                "^Hwy 412\\b": 5059, // 5059: Ontario Toll Hwy
+                "^Hwy 418\\b": new Set<number>([5059, 5057]), // 5059: Ontario Toll Hwy
+                // "Hwy [1-9]\\d{0,2}\\b": 5057, // 5057: Ontario King's Hwy 1-16
+                // "Hwy (1[89]|[2-9]d|[1-3]d{2}|40[0-6])\\b": 5057, // 5057: Ontario King's Hwy 18-406
+                // "Hwy (40[89]|41[01])\\b": 5057, // 5057: Ontario King's Hwy 408-411
+                // "Hwy (41[3-7])\\b": 5057, // 5057: Ontario King's Hwy 413-417
+                "^CR-[1-9]\\d{0,2}\\b": 5063,
+                "^Hwy\\s+(?:(?:1-16)|(?:17-406)|(?:408-411)|(?:413-417)|(?:419-499)|(?:700-999))\\b": 5057,
+                "^Hwy\\s+[5-6]\\d{2}\\b": 5061, // 5061: Ontario Secondary Hwy 500-699
+                // "Hwy (80d|8[1-9]d)\\b": 5057, // 5057: Ontario Tertiary Hwy
+                "^(Wellington|Winchester|Regional) (Road|Rd) [1-9]\\d{0,2}\\b": new Set<number>([5065, 5063, 5077]), // Ontario Regional
             },
             Quebec: {
                 "Rte Transcanadienne": 5093, // 5093: Quebec: Route Transcanadienne
-                "Aut ([1-9]|[1-9]d{1,2})\b": 5090, // 5090: Quebec Autoroute 1-999
-                "Rte (10d|1[1-9]d|[23]d{2})\b": 5091, // 5091: Quebec Route 100-399
+                "^Aut [1-9]\\d{1,2}\\b": 5090, // 5090: Quebec Autoroute 1-999
+                "^Rte [1-9]\\d{0,2}\\b": 5091, // 5091: Quebec Route 100-399
                 "R (10d|1[1-9]d|[2-9]d{2}|1[0-4]d{2}|15[0-5]d)\b": 5092, // 5092: Quebec Route 100-1559
             },
             "New Brunswick": {
@@ -705,6 +706,7 @@ function rsaInit() {
         2196, // Fort Bend
         2050, // AA Hwy,
         2069, // Blue Ridge Pkwy
+        5058, // QEW
     ]);
 
     type SettingName = Record<string, string>;
@@ -1515,8 +1517,9 @@ function rsaInit() {
         });
         // Add translated UI text
         if (!Strings[LANG]) LANG = "en";
-        for (let i = 0; i < Object.keys(Strings[LANG]).length; i++) {
-            let key = Object.keys(Strings[LANG])[i];
+        const messageKeys = Object.keys(Strings[LANG])
+        for (let i = 0; i < messageKeys.length; i++) {
+            let key = messageKeys[i];
             $(`#rsa-text-${key}`).text(Strings[LANG][key]);
         }
         $("#rsa-resetSettings").attr("value", Strings[LANG].resetSettings);
@@ -2046,8 +2049,9 @@ function rsaInit() {
                 ? RoadAbbr[countryId][""]
                 : { ...RoadAbbr[countryId][stateName], ...RoadAbbr[countryId]["*"] };
 
-            for (let i = 0; i < Object.keys(abbrvs).length; i++) {
-                const abrKey = Object.keys(abbrvs)[i];
+            const abbreviationKeys = Object.keys(abbrvs);
+            for (let i = 0; i < abbreviationKeys.length; i++) {
+                const abrKey = abbreviationKeys[i];
                 const abbr = new RegExp(abrKey, "g");
                 const isMatch = name.match(abbr);
 
