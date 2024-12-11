@@ -62,44 +62,40 @@ function rsaInit() {
         //Canada
         40: {
             Alberta: {
-                "Hwy 1$": 5000, // 5000: National-Trans-Canada Highway
-                "Hwy 1A": 5011, // 5011: Alberta - Provincial Hwy
-                "Hwy 2": 5011, // 5011: Alberta - Provincial Hwy
-                "Hwy 3$": 5015, // 5015: Alberta - Crowsnext Hwy
-                "Hwy 3A": 5011, // 5011: Alberta - Provincial Hwy
-                "Hwy 16$": 5000, // 5000: National-Trans-Canada Highway
-                "Hwy 16A": 5011, // 5011: Alberta - Provincial Hwy
-                "Hwy ([4-9]|1[0-5])\b": 5011, // 5011: Alberta - Provincial Hwy
-                "Hwy (1[7-9]|[2-9]d|1d{2}|20d|21[0-6])\b": 5011, // 5011: Alberta - Provincial Hwy
-                "Hwy (21[7-9]|2[2-9]d|[3-9]d{2})\b": 5011, // 5011: Alberta - Provincial Hwy
+                "^Hwy 1$": 5000, // 5000: National-Trans-Canada Highway
+                "^Hwy 1A\\b": 5011, // 5011: Alberta - Provincial Hwy
+                "^Hwy 2\\b": 5011, // 5011: Alberta - Provincial Hwy
+                "^Hwy 3$": 5015, // 5015: Alberta - Crowsnext Hwy
+                "^Hwy 3A\\b": 5011, // 5011: Alberta - Provincial Hwy
+                "^Hwy 16$": 5000, // 5000: National-Trans-Canada Highway
+                "^Hwy 16A\\b": 5011, // 5011: Alberta - Provincial Hwy
+                "^Hwy ([4-9]|1[0-57-9]|[2-9]\\d{1}|2\\d{2})\\b": 5011,
+                "^Hwy ([3-9]\\d{2})\\b": 5012,
             },
             "British Columbia": {
-                "Hwy 1": 5000, // 5000: National-Trans-Canada Highway
-                "Hwy 2": 5001, // 5001: BC - Provincial Hwy
-                "Hwy 3": 5002, // 5002: BC - Crowsnest Hwy
-                "Hwy 16": 5000, // 5000: National-Trans-Canada Highway
-                "Hwy 113": 5004, // 5004: BC - Nisga'a Hwy
-                "^Hwy\\s+[1-9]\\d{0,2}[a-zA-Z]*\\b": 5001, // 5001: BC - Provincial Hwy
-                "Hwy (11[4-9]|1[2-9]d|[2-9]d{2})\b": 5001, // 5001: BC - Provincial Hwy
+                "^Hwy 1\\b": 5000, // 5000: National-Trans-Canada Highway
+                "^Hwy 2\\b": 5001, // 5001: BC - Provincial Hwy
+                "^Hwy 3\\b": 5002, // 5002: BC - Crowsnest Hwy
+                "^Hwy 16\\b": 5000, // 5000: National-Trans-Canada Highway
+                "^Hwy 113\\b": 5004, // 5004: BC - Nisga'a Hwy
+                "^Hwy\\s+([4-9]|[1-9][0-57-9]|10\\d|11[0-24-9]|1[2-9]\\d|[2-9]\\d{1,2})[a-zA-Z]*\\b": 5001, // 5001: BC - Provincial Hwy
             },
             Saskatchewan: {
-                "Hwy 1": 5000, // 5000: National - Trans-Canada Hwy
-                "Hwy 16": 5000, // 5000: National - Trans-Canada Hwy
-                "Hwy ([2-9]|1[0-5])\b": 5030, // 5030: Saskatchewan - Provincial Hwy
-                "Hwy (1[7-9]|[2-9]d|[1-3]d{2})\b": 5030, // 5030: Saskatchewan - Provincial Hwy
-                "Hwy (90d|9[1-9]d)\b": 5031, // 5031: Saskatchewan - Northern Secondary Hwy
-                "Hwy (60d|6[1-9]d|7d{2})\b": 5032, // 5032: Saskatchewan - Municipal Road
+                "^Hwy 1\\b": 5000, // 5000: National - Trans-Canada Hwy
+                "^Hwy 16\\b": 5000, // 5000: National - Trans-Canada Hwy
+                "^Hwy ([2-9]|1[0-57-9]|[2-9]\\d|[1-3]\\d{2})\\b": 5030, // 5030: Saskatchewan - Provincial Hwy
+                "^Hwy (9\\d{2})\\b": 5031, // 5031: Saskatchewan - Northern Secondary Hwy
+                "^Hwy ([6-7]\\d{2})\\b": 5032, // 5032: Saskatchewan - Municipal Road
             },
             Manitoba: {
-                "Hwy 1": 5000, // 5000: National - Trans-Canada Hwy
-                "Hwy 16": 5000, // 5000: National - Trans-Canada Hwy
-                "Hwy ([2-9]|1[0-5])\b": 5038, // 5038: Manitoba - Provincial Trunk Highway
-                "Hwy (1[7-9]|[2-9]d|1d{2})\b": 5038, // 5038: Manitoba - Provincial Trunk Highway
-                "Hwy (20d|2[1-9]d|[3-9]d{2})\b": 5039, // 5039: Manitoba - Provincial Rd
+                "^Hwy 1\\b": 5000, // 5000: National - Trans-Canada Hwy
+                "^Hwy 16\\b": 5000, // 5000: National - Trans-Canada Hwy
+                "^Hwy ([2-9]|1[0-57-9]|[2-9]\\d|1\\d{2})\\b": 5038, // 5038: Manitoba - Provincial Trunk Highway
+                "^Hwy ([2-9]\\d{2})\\b": 5039, // 5039: Manitoba - Provincial Rd
             },
             Ontario: {
                 "^QEW\\b": 5058, // 5058: Ontario QEW
-                // "^Hwy 17\\b": 5000, // 5000: National - Trans-Canada Hwy
+                "(^Hwy 17\\b|Hwy 17$)": new Set([5000, 5057]), // 5000: National - Trans-Canada Hwy
                 "^Hwy 407\\b": new Set([5207, 5206]), // 5060: Ontario ETR
                 "^Hwy 412\\b": 5059, // 5059: Ontario Toll Hwy
                 "^Hwy 418\\b": new Set([5059, 5057]), // 5059: Ontario Toll Hwy
@@ -108,10 +104,10 @@ function rsaInit() {
                 // "Hwy (40[89]|41[01])\\b": 5057, // 5057: Ontario King's Hwy 408-411
                 // "Hwy (41[3-7])\\b": 5057, // 5057: Ontario King's Hwy 413-417
                 "^CR-[1-9]\\d{0,2}\\b": 5063,
-                "^Hwy\\s+(?:(?:1-16)|(?:17-406)|(?:408-411)|(?:413-417)|(?:419-499)|(?:700-999))\\b": 5057,
+                "^Hwy\\s+([1-9]|[1-68-9]\\d|[1-3]\\d{2}|40[0-68-9]|41[0-13-79]|4[2-9]\\d|[7-9]\\d{2})[A-Z]*\\b": 5057,
                 "^Hwy\\s+[5-6]\\d{2}\\b": 5061, // 5061: Ontario Secondary Hwy 500-699
                 // "Hwy (80d|8[1-9]d)\\b": 5057, // 5057: Ontario Tertiary Hwy
-                "^(Wellington|Winchester|Regional) (Road|Rd) [1-9]\\d{0,2}\\b": new Set([5065, 5063, 5077]), // Ontario Regional
+                "^(Muskoka|Wellington|Winchester|Regional) (Road|Rd) [1-9]\\d{0,2}\\b": new Set([5065, 5063, 5077]), // Ontario Regional
             },
             Quebec: {
                 "Rte Transcanadienne": 5093, // 5093: Quebec: Route Transcanadienne
@@ -120,28 +116,27 @@ function rsaInit() {
                 "R (10d|1[1-9]d|[2-9]d{2}|1[0-4]d{2}|15[0-5]d)\b": 5092, // 5092: Quebec Route 100-1559
             },
             "New Brunswick": {
-                "Rte 2": 5000, // 5000: Trans-Canada Hwy
-                "Rte 16": 5000, // 5000: Trans-Canada Hwy
-                "Rte 1": 5112, // 5112: NB Arterial Highway 1
-                "Rte ([3-9]|1[0-5])\b": 5112, // 5112: NB Arterial Highway 3-15
-                "Rte (1[7-9]|[2-9]d)\b": 5112, // 5112: NB Arterial Highway 17-99
-                "Rte (10d|1[1-9]d)\b": 511, // 5113: NB Collector Highway 100-199
-                "Rte (20d|2[1-9]d|[3-9]d{2})\b": 5114, // 5114: NB Local Highway 200-999
+                "^Rte 2\\b": 5000, // 5000: Trans-Canada Hwy
+                "^Rte 16\\b": 5000, // 5000: Trans-Canada Hwy
+                "^Rte 1\\b": 5112, // 5112: NB Arterial Highway 1
+                "^Rte ([3-9]|1[0-57-9]|[2-9]\\d)\\b": 5112, // 5112: NB Arterial Highway 17-99
+                "^Rte (10\\d|11[02-9]|1[2-9]\\d)\\b": 5113, // 5113: NB Collector Highway 100-199
+                "^Rte (111|[2-9]\\d{2})\\b": 5114, // 5114: NB Local Highway 200-999
             },
             "Nova Scotia": {
-                "Hwy ([1-9]|[1-9]d)\b": 5116, // 5116: NS Trunk Hwy 1-99
-                "Hwy (10[0-4])\b": 5115, // 5115: NS Arterial Hwy 100-104
-                "Hwy (10[5-6])\b": 5000, // 5000: National Trans Canada Highway 105-106
-                "Hwy (10[7-9]|1[1-9]d)\b": 5115, // 5115: NS Aterial Hwy 107-199
-                "Hwy (20d|2[1-9]d|3d{2})\b": 5117, // 5117: NS Collector Hwy 200-399
+                "^Hwy ([1-9]\\d{0,1})\\b": 5116, // 5116: NS Trunk Hwy 1-99
+                "^Hwy 104\\b": new Set([5115, 5000]), // In NS 104 has 2 different shields
+                "^Hwy (10[5-6])\\b": 5000, // 5000: National Trans Canada Highway 105-106
+                "^Hwy (10[0-37-9]|1[1-9]\\d)\\b": 5115, // 5115: NS Aterial Hwy 107-199
+                "^Hwy ([2-3]\\d{2})\\b": 5117, // 5117: NS Collector Hwy 200-399
             },
-            "Newfoundland & Labrador": {
-                "Hwy 1": 5000, // 5000: National - Trans-Canada Hwy 1
-                "Hwy ([2-9]|[1-9]d|[1-5]d{2})\b": 5129, // NLR: Newfoundland Labrador Route 2-599
+            "Newfoundland and Labrador": {
+                "^Hwy 1": 5000, // 5000: National - Trans-Canada Hwy 1
+                "^Rte ([2-9]|[1-9]\\d|[1-5]\\d{2})\\b": 5129, // NLR: Newfoundland Labrador Route 2-599
             },
             "Prince Edward Island": {
-                "Rte 1$": 5000, // 5000: National Trans-Canada Hwy
-                "Rte ([2-9]|[1-9]d{1,2})\b": 5144, // 5144: PEI - Provincial Highway
+                "^Rte 1$": 5000, // 5000: National Trans-Canada Hwy
+                "^Rte ([2-9]|[1-9]\\d{1,2})\\b": 5144, // 5144: PEI - Provincial Highway
             },
             "Yukon Territory": {
                 "^Hwy 1\\b": 5146, // 5145: Yukon - Territorial Hwy - Orange
