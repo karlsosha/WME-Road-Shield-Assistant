@@ -181,6 +181,12 @@ function rsaInit() {
             },
             "Quintana Roo": {
                 "Q.ROO-[1-9]\\d{0,2}\\b": 1000,
+            },
+            Yucatán: {
+                "YUC-[1-9]\\d{0,2}\\b": 1000,
+            },
+            Campeche: {
+                "CAM-[1-9]\\d{0,2}\\b": 1000,
             }
         },
         // Ukraine
