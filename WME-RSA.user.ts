@@ -23,10 +23,10 @@
 // import $ from "jquery";
 // import WazeWrap from "https://greasyfork.org/scripts/24851-wazewrap/code/WazeWrap.js";
 
-window.SDK_INITIALIZED.then(rsaInit);
+unsafeWindow.SDK_INITIALIZED.then(rsaInit);
 
 function rsaInit() {
-    if (!window.getWmeSdk) {
+    if (!unsafeWindow.getWmeSdk) {
         throw new Error("SDK is not installed");
     }
     if (!WazeWrap.Ready) {
@@ -35,7 +35,7 @@ function rsaInit() {
         }, 100);
         return;
     }
-    const sdk: WmeSDK = window.getWmeSdk({
+    const sdk: WmeSDK = unsafeWindow.getWmeSdk({
         scriptId: "wme-road-shield-assistant",
         scriptName: "WME Road Shield-Assistant",
     });
