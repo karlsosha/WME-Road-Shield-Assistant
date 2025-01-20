@@ -17,30 +17,33 @@
 /* global W */
 /* global WazeWrap */
 
-// import { City, Node, Segment, State, Street, Turn, WmeSDK } from "wme-sdk";
+// import { City, Node, Segment, State, Street, Turn, WmeSDK } from "wme-sdk-typings";
 // import { Point, LineString, Position } from "geojson";
 // import _ from "underscore";
 // import $ from "jquery";
 // import WazeWrap from "https://greasyfork.org/scripts/24851-wazewrap/code/WazeWrap.js";
 
-window.SDK_INITIALIZED.then(rsaInit);
-
-function rsaInit() {
+var sdk: WmeSDK;
+window.SDK_INITIALIZED.then(() => {
     if (!window.getWmeSdk) {
         throw new Error("SDK is not installed");
     }
+    sdk = window.getWmeSdk({
+        scriptId: "wme-road-shield-assistant",
+        scriptName: "WME Road Shield Assistant",
+    });
+
+    console.log(`SDK v ${sdk.getSDKVersion()} on ${sdk.getWMEVersion()} initialized`);
+    sdk.Events.once({ eventName: "wme-ready" }).then(rsaInit);
+});
+
+function rsaInit() {
     if (!WazeWrap.Ready) {
         setTimeout(() => {
             rsaInit();
         }, 100);
         return;
     }
-    const sdk: WmeSDK = window.getWmeSdk({
-        scriptId: "wme-road-shield-assistant",
-        scriptName: "WME Road Shield Assistant",
-    });
-
-    console.log(`SDK v ${sdk.getSDKVersion()} on ${sdk.getWMEVersion()} initialized`);
 
     const GF_LINK = "https://greasyfork.org/en/scripts/425050-wme-road-shield-assisstant";
     const FORUM_LINK = "https://www.waze.com/discuss/t/script-road-shield-assistant-rsa/227100";
@@ -276,7 +279,7 @@ function rsaInit() {
             "*": {
                 "^I-[1-9]\\d{0,2}(?!\s+(?:W|E|East|West))\\b": 5,
                 "^I-[1-9]\\d{0,2}\\s{1,}\\b(?:Bus|BUS|Business|BUSINESS)\\b": 2003,
-                "^US-[1-9]\\d{0,2}\\b": 6,
+                "^US-[1-9]\\d{0,2}[A-Z]*\\b": 6,
             },
             Alabama: {
                 "^CR-[1-9]\\d{0,2}\\b": 2002,
@@ -481,7 +484,7 @@ function rsaInit() {
             },
             "New York": {
                 "^CH-[1-9]\\d{0,2}": 2002,
-                "^CR-[1-9]\\d{0,2}\\b": 2002,
+                "^CR-[1-9]\\d{0,2}[A-Z]*\\b": 2002,
                 "^SH-[1-9]\\d{0,2}": 2087,
                 "^SR-[1-9]\\d{0,2}": 2087,
                 "^NY-[1-9]\\d{0,2}": 2087,
@@ -2604,7 +2607,7 @@ function rsaInit() {
                     ) {
                         // let LabelPoint = new OpenLayers.Geometry.Point(centerparam.x, centerparam.y);
                         // const pointFeature = new OpenLayers.Feature.Vector(LabelPoint, null, style);
-                        let coordCenterPoint = epsg3857toEpsg4326([centerparam.x, centerparam.y])
+                        let coordCenterPoint = epsg3857toEpsg4326([centerparam.x, centerparam.y]);
                         const shieldFeature = {
                             type: "Feature",
                             geometry: {
