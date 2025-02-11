@@ -2218,8 +2218,8 @@ function rsaInit() {
         let isBad = false;
         if (dir !== "" && dir !== null) {
             // console.log(dir);
-            if (dir.match(/\b(north|south|east|west)\b/i) != null) isBad = true;
-            if (dir.match(/([ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘʀꜱᴛᴜᴠᴡʏᴢ][a-z]|[a-z][ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘʀꜱᴛᴜᴠᴡʏᴢ])/) != null) isBad = true;
+            if (dir.match(/\\b(north|south|east|west)\\b/i) !== null) isBad = true;
+            if (dir.match(/([ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘʀꜱᴛᴜᴠᴡʏᴢ][a-z]|[a-z][ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘʀꜱᴛᴜᴠᴡʏᴢ])/) !== null) isBad = true;
 
             if (isBad) {
                 if (BadNames.length === 0) {
