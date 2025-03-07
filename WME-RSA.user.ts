@@ -18,7 +18,7 @@
 /* global WazeWrap */
 
 // import { City, Node, Segment, State, Street, Turn, WmeSDK } from "wme-sdk-typings";
-// import { Point, LineString, Position } from "geojson";
+// import { Point, LineString, Position, Feature } from "geojson";
 // import _ from "underscore";
 // import $ from "jquery";
 // import WazeWrap from "https://greasyfork.org/scripts/24851-wazewrap/code/WazeWrap.js";
@@ -28,10 +28,7 @@ window.SDK_INITIALIZED.then(() => {
     if (!window.getWmeSdk) {
         throw new Error("SDK is not installed");
     }
-    sdk = window.getWmeSdk({
-        scriptId: "wme-road-shield-assistant",
-        scriptName: "WME Road Shield Assistant",
-    });
+    sdk = window.getWmeSdk({ scriptId: "wme-road-shield-assistant", scriptName: "WME Road Shield Assistant" });
 
     console.log(`SDK v ${sdk.getSDKVersion()} on ${sdk.getWMEVersion()} initialized`);
     sdk.Events.once({ eventName: "wme-ready" }).then(rsaInit);
@@ -58,6 +55,7 @@ function rsaInit() {
         y: number | null | undefined;
     }
 
+    const MIN_ZOOM_LEVEL: number = 14;
     enum ZoomLevel {
         ZM0 = 12,
         ZM1 = 13,
@@ -121,6 +119,17 @@ function rsaInit() {
         styleName: string;
     }
 
+    type minShieldDisplayLengthsType = Record<number, number>;
+    const minShieldDisplayLengths: minShieldDisplayLengthsType = {
+        15: 150,
+        16: 90,
+        17: 80,
+        18: 70,
+        19: 60,
+        20: 50,
+        21: 40,
+        22: 30,
+    }
     interface Candidate {
         isCandidate: boolean;
         iconID: number | null | Set<number>;
@@ -240,26 +249,13 @@ function rsaInit() {
             },
         },
         // Germany
-        81: {
-            "": {
-                "(A\\d{1,3})": 1012,
-                "(B\\d{1,3})": 1094,
-            },
-        },
+        81: { "": { "(A\\d{1,3})": 1012, "(B\\d{1,3})": 1094 } },
         // Mexico
         145: {
-            "*": {
-                "^MEX-[1-9]\\d{0,2}[A-Z]*\\b": new Set<number>([1107, 1106]),
-            },
-            "Quintana Roo": {
-                "Q.ROO-[1-9]\\d{0,2}\\b": 1000,
-            },
-            Yucatán: {
-                "YUC-[1-9]\\d{0,2}\\b": 1000,
-            },
-            Campeche: {
-                "CAM-[1-9]\\d{0,2}\\b": 1000,
-            },
+            "*": { "^MEX-[1-9]\\d{0,2}[A-Z]*\\b": new Set<number>([1107, 1106]) },
+            "Quintana Roo": { "Q.ROO-[1-9]\\d{0,2}\\b": 1000 },
+            Yucatán: { "YUC-[1-9]\\d{0,2}\\b": 1000 },
+            Campeche: { "CAM-[1-9]\\d{0,2}\\b": 1000 },
         },
 
         // Ukraine
@@ -281,30 +277,16 @@ function rsaInit() {
                 "^I-[1-9]\\d{0,2}\\s{1,}\\b(?:Bus|BUS|Business|BUSINESS)\\b": 2003,
                 "^US-[1-9]\\d{0,2}[A-Z]*\\b": 6,
             },
-            Alabama: {
-                "^CR-[1-9]\\d{0,2}\\b": 2002,
-                "^SR-[1-9]\\d{0,2}\\b": 2019,
-            },
+            Alabama: { "^CR-[1-9]\\d{0,2}\\b": 2002, "^SR-[1-9]\\d{0,2}\\b": 2019 },
             Alaska: {
                 "CR-[1-9]\\d{0,2}": 2002,
                 "SR-[1-9]\\d{0,2}": 2017,
                 "AK-[1-9]\\d{0,2}": 2017,
                 "A-[1-9]\\d{0,2}": 2017,
             },
-            Arizona: {
-                "CR-[1-9]\\d{0,2}": 2002,
-                "SR-[1-9]\\d{0,2}": 2022,
-            },
-            Arkansas: {
-                "^CR-[1-9]\\d{0,2}\\b": 2002,
-                "^AR-[1-9]\\d{0,2}\\b": 2020,
-                "^AR-$1 SPUR\\b": 2020,
-            },
-            California: {
-                "^CR-[1-9]\\d{0,2}\\b": 2002,
-                "^SH-[1-9]\\d{0,2}\\b": 1082,
-                "^SR-[1-9]\\d{0,2}\\b": 1082,
-            },
+            Arizona: { "CR-[1-9]\\d{0,2}": 2002, "SR-[1-9]\\d{0,2}": 2022 },
+            Arkansas: { "^CR-[1-9]\\d{0,2}\\b": 2002, "^AR-[1-9]\\d{0,2}\\b": 2020, "^AR-$1 SPUR\\b": 2020 },
+            California: { "^CR-[1-9]\\d{0,2}\\b": 2002, "^SH-[1-9]\\d{0,2}\\b": 1082, "^SR-[1-9]\\d{0,2}\\b": 1082 },
             Colorado: {
                 "^CR-[1-9]\\d{0,2}[a-zA-Z]*\\b": 2002,
                 "^SH-[1-9]\\d{0,2}[a-zA-Z]*\\b": 2025,
@@ -316,25 +298,15 @@ function rsaInit() {
                 "^SR-[1-9]\\d{0,2}": 2027,
                 "\\b(?:Wilbur Cross(?: Parkway| Pkwy))\\b": 2027,
             },
-            Delaware: {
-                "^CR-[1-9]\\d{0,2}\\b": 2002,
-                "^SH-[1-9]\\d{0,2}\\b": 7,
-                "^SR-[1-9]\\d{0,2}\\b": 7,
-            },
-            "District of Columbia": {
-                "DC-[1-9]\\d{0,2}": 7,
-            },
+            Delaware: { "^CR-[1-9]\\d{0,2}\\b": 2002, "^SH-[1-9]\\d{0,2}\\b": 7, "^SR-[1-9]\\d{0,2}\\b": 7 },
+            "District of Columbia": { "DC-[1-9]\\d{0,2}": 7 },
             Florida: {
                 "^CR-[1-9]\\d{0,2}": 2002,
                 "^SH-[1-9]\\d{0,2}": 2030,
                 "^SR-[1-9]\\d{0,2}": 2030,
                 "^Florida.* (Turnpike|Tpk|Tpke)\\b": 2033,
             },
-            Georgia: {
-                "^CR-[1-9]\\d{0,2}\\b": 2002,
-                "^SH-[1-9]\\d{0,2}\\b": 2036,
-                "^SR-[1-9]\\d{0,2}\\b": 2036,
-            },
+            Georgia: { "^CR-[1-9]\\d{0,2}\\b": 2002, "^SH-[1-9]\\d{0,2}\\b": 2036, "^SR-[1-9]\\d{0,2}\\b": 2036 },
             Hawaii: {
                 "H-[1-9]\\d{0,2}": 5,
                 "CR-[1-9]\\d{0,2}": 2002,
@@ -411,11 +383,7 @@ function rsaInit() {
                 "^SH-[1-9]\\d{0,2}\\b": 2055,
                 "^SR-[1-9]\\d{0,2}[a-zA-Z]*\\b": 2055,
             },
-            Michigan: {
-                "^CR-[1-9]\\d{0,2}\\b": 2056,
-                "^M-[1-9]\\d{0,2}\\b": 2056,
-                "^SR-[1-9]\\d{0,2}\\b": 2056,
-            },
+            Michigan: { "^CR-[1-9]\\d{0,2}\\b": 2056, "^M-[1-9]\\d{0,2}\\b": 2056, "^SR-[1-9]\\d{0,2}\\b": 2056 },
             Minnesota: {
                 "^CH-[1-9]\\d{0,2}\\b": 2002,
                 "^CR-[1-9]\\d{0,2}\\b": 2180,
@@ -423,11 +391,7 @@ function rsaInit() {
                 "^SR-[1-9]\\d{0,2}\\b": 2060,
                 "^MN-[1-9]\\d{0,2}\\b": 2060,
             },
-            Mississippi: {
-                "^SH-[1-9]\\d{0,2}\\b": 7,
-                "^SR-[1-9]\\d{0,2}\\b": 7,
-                "^MS-[1-9]\\d{0,2}\\b": 7,
-            },
+            Mississippi: { "^SH-[1-9]\\d{0,2}\\b": 7, "^SR-[1-9]\\d{0,2}\\b": 7, "^MS-[1-9]\\d{0,2}\\b": 7 },
             Missouri: {
                 "^CH-[1-9]\\d{0,2}\\b": 2002,
                 "^CR-[1-9]\\d{0,2}\\b": 2002,
@@ -540,10 +504,7 @@ function rsaInit() {
                 "^SH-[1-9]\\d{0,2}\\b": 2095,
                 "^SR-[1-9]\\d{0,2}\\b": 2095,
             },
-            Oklahoma: {
-                "^SH-[1-9]\\d{0,2}\\b": 2097,
-                "^SR-[1-9]\\d{0,2}\\b": 2097,
-            },
+            Oklahoma: { "^SH-[1-9]\\d{0,2}\\b": 2097, "^SR-[1-9]\\d{0,2}\\b": 2097 },
             Oregon: {
                 "^CH-[1-9]\\d{0,2}\\b": 2002,
                 "^CR-[1-9]\\d{0,2}\\b": 2002,
@@ -655,54 +616,20 @@ function rsaInit() {
             },
         },
         // Uruguay
-        236: {
-            "": {
-                Ruta: 1111,
-            },
-        },
+        236: { "": { Ruta: 1111 } },
 
         // Réunion
-        262: {
-            "": {
-                "D\\d+[^:]*": 1092,
-                "N\\d+[^:]*": 1072,
-            },
-        },
+        262: { "": { "D\\d+[^:]*": 1092, "N\\d+[^:]*": 1072 } },
         // Guadeloupe
-        590: {
-            "": {
-                "D\\d+[^:]*": 1092,
-                "N\\d+[^:]*": 1072,
-            },
-        },
+        590: { "": { "D\\d+[^:]*": 1092, "N\\d+[^:]*": 1072 } },
         // French Guyana
-        594: {
-            "": {
-                "D\\d+[^:]*": 1092,
-                "N\\d+[^:]*": 1072,
-            },
-        },
+        594: { "": { "D\\d+[^:]*": 1092, "N\\d+[^:]*": 1072 } },
         // Martinique
-        596: {
-            "": {
-                "D\\d+[^:]*": 1092,
-                "N\\d+[^:]*": 1072,
-            },
-        },
+        596: { "": { "D\\d+[^:]*": 1092, "N\\d+[^:]*": 1072 } },
         // Wallis and Futuna
-        681: {
-            "": {
-                "D\\d+[^:]*": 1092,
-                "N\\d+[^:]*": 1072,
-            },
-        },
+        681: { "": { "D\\d+[^:]*": 1092, "N\\d+[^:]*": 1072 } },
         // French Polynesia
-        689: {
-            "": {
-                "D\\d+[^:]*": 1092,
-                "N\\d+[^:]*": 1072,
-            },
-        },
+        689: { "": { "D\\d+[^:]*": 1092, "N\\d+[^:]*": 1072 } },
     };
 
     const iconsAllowingNoText = new Set<number>([
@@ -933,7 +860,7 @@ function rsaInit() {
         // France
         73,
     ]);
-    let BadNames = [];
+    let BadNames: Street[] = [];
     let rsaSettings: RSASettings = {
         lastSaveAction: 0,
         enableScript: true,
@@ -1405,10 +1332,7 @@ function rsaInit() {
             styleContext: styleConfig.styleContext,
         });
         sdk.LayerSwitcher.addLayerCheckbox({ name: rsaMapLayer.layerName });
-        sdk.Map.setLayerVisibility({
-            layerName: rsaMapLayer.layerName,
-            visibility: rsaSettings.mapLayerVisible,
-        });
+        sdk.Map.setLayerVisibility({ layerName: rsaMapLayer.layerName, visibility: rsaSettings.mapLayerVisible });
 
         sdk.Map.addLayer({
             layerName: rsaIconLayer.layerName,
@@ -1416,17 +1340,11 @@ function rsaInit() {
             styleContext: styleConfig.styleContext,
         });
         sdk.LayerSwitcher.addLayerCheckbox({ name: rsaIconLayer.layerName });
-        sdk.Map.setLayerVisibility({
-            layerName: rsaIconLayer.layerName,
-            visibility: rsaSettings.iconLayerVisible,
-        });
+        sdk.Map.setLayerVisibility({ layerName: rsaIconLayer.layerName, visibility: rsaSettings.iconLayerVisible });
         sdk.Events.on({
             eventName: "wme-layer-checkbox-toggled",
             eventHandler: (payload) => {
-                sdk.Map.setLayerVisibility({
-                    layerName: payload.name,
-                    visibility: payload.checked,
-                });
+                sdk.Map.setLayerVisibility({ layerName: payload.name, visibility: payload.checked });
                 if (payload.name === rsaMapLayer.layerName) {
                     rsaSettings.mapLayerVisible = payload.checked;
                 } else if (payload.name === rsaIconLayer.layerName) {
@@ -1489,19 +1407,10 @@ function rsaInit() {
 
         // Register event listeners
         // WazeWrap.Events.register('selectionchanged', null, removeAutoFixButton);
-        sdk.Events.on({
-            eventName: "wme-selection-changed",
-            eventHandler: removeAutoFixButton,
-        });
+        sdk.Events.on({ eventName: "wme-selection-changed", eventHandler: removeAutoFixButton });
         // WazeWrap.Events.register('selectionchanged', null, tryScan);
-        sdk.Events.on({
-            eventName: "wme-map-move-end",
-            eventHandler: updateMap,
-        });
-        sdk.Events.on({
-            eventName: "wme-map-zoom-changed",
-            eventHandler: updateMap,
-        });
+        sdk.Events.on({ eventName: "wme-map-move-end", eventHandler: updateMap });
+        sdk.Events.on({ eventName: "wme-map-zoom-changed", eventHandler: updateMap });
 
         sdk.Shortcuts.createShortcut({
             callback: addShieldClick,
@@ -1996,13 +1905,9 @@ function rsaInit() {
         let streetID: number | null = seg.primaryStreetId;
         if (streetID === null) return;
         // let oldStreet = W.model.streets.getObjectById(streetID).attributes;
-        let street: Street | null = sdk.DataModel.Streets.getById({
-            streetId: streetID,
-        });
+        let street: Street | null = sdk.DataModel.Streets.getById({ streetId: streetID });
         if (street === null || street.cityId === null) return;
-        let city: City | null = sdk.DataModel.Cities.getById({
-            cityId: street.cityId,
-        });
+        let city: City | null = sdk.DataModel.Cities.getById({ cityId: street.cityId });
         if (city === null) return;
         let stateID = city.stateId;
 
@@ -2048,9 +1953,22 @@ function rsaInit() {
             return;
 
         // Display shield on map
-        if (street.signType !== null) {
-            if (rsaSettings.ShowSegShields) displaySegShields(seg, street.signType, street.signText, street.direction);
+        function checkDeclutterSettings(seg: Segment): boolean {
+            let result: boolean = false;
+            
+            let zoomLevel = sdk.Map.getZoomLevel();
+            if (zoomLevel > MIN_ZOOM_LEVEL) {
+                if(seg.length > minShieldDisplayLengths[zoomLevel]) {
+                    result = true;
+                }
+            }
 
+            return result;
+        }
+        if (street.signType !== null) {
+            if (rsaSettings.ShowSegShields && checkDeclutterSettings(seg)) {
+                displaySegShields(seg, street.signType, street.signText, street.direction);
+            }
             // If candidate and has shield
             if (rsaSettings.HighSegShields && candidate.isCandidate) {
                 if (isValidShield(seg, candidate.iconID)) {
@@ -2115,9 +2033,7 @@ function rsaInit() {
         let candidate = isStreetCandidate(street, stateName, countryId);
         if (!candidate.isCandidate && countryId !== null && CheckAltName.has(countryId)) {
             for (let i = 0; i < seg.alternateStreetIds.length; i++) {
-                street = sdk.DataModel.Streets.getById({
-                    streetId: seg.alternateStreetIds[i],
-                });
+                street = sdk.DataModel.Streets.getById({ streetId: seg.alternateStreetIds[i] });
                 candidate = isStreetCandidate(street, stateName, countryId);
                 if (candidate.isCandidate) {
                     return candidate;
@@ -2128,10 +2044,7 @@ function rsaInit() {
     }
 
     function isStreetCandidate(street: Street | null, stateName: string | null, countryId: number | null): Candidate {
-        const info: Candidate = {
-            isCandidate: false,
-            iconID: null,
-        };
+        const info: Candidate = { isCandidate: false, iconID: null };
 
         if (countryId === null || !RoadAbbr[countryId]) {
             return info;
@@ -2190,9 +2103,7 @@ function rsaInit() {
     function isValidShield(seg: Segment | null, iconID: number | null | Set<number>): boolean {
         // let primaryStreet = W.model.streets.getObjectById(segAtt.primaryStreetID);
         if (seg === null || seg.primaryStreetId === null) return false;
-        let primaryStreet: Street | null = sdk.DataModel.Streets.getById({
-            streetId: seg.primaryStreetId,
-        });
+        let primaryStreet: Street | null = sdk.DataModel.Streets.getById({ streetId: seg.primaryStreetId });
         if (
             primaryStreet === null ||
             primaryStreet.signText === null ||
@@ -2203,9 +2114,7 @@ function rsaInit() {
             return true;
         }
         for (var i = 0; i < seg.alternateStreetIds.length; i++) {
-            let street: Street | null = sdk.DataModel.Streets.getById({
-                streetId: seg.alternateStreetIds[i],
-            });
+            let street: Street | null = sdk.DataModel.Streets.getById({ streetId: seg.alternateStreetIds[i] });
             if (street !== null && street.name?.includes(primaryStreet.signText)) {
                 return true;
             }
@@ -2244,10 +2153,7 @@ function rsaInit() {
         const twd = turnGuid.getTowards();
         const tts = turnGuid.getTTS();
         const VI = turnGuid.getVisualInstruction();
-        let info = {
-            isBad: false,
-            softIssue: false,
-        };
+        let info = { isBad: false, softIssue: false };
 
         function checkText(txt: string | null, isSoft = false) {
             if (txt !== "" && txt !== null) {
@@ -2301,46 +2207,11 @@ function rsaInit() {
         const geo = node.geometry.clone();
         const trnGuid = turnDat.getTurnGuidance();
         const GUIDANCE = {
-            shields: {
-                exists: false,
-                color: "",
-                width: 30,
-                height: 30,
-                sign: "6",
-                txt: "TG",
-            },
-            exitsign: {
-                exists: false,
-                color: "",
-                width: 30,
-                height: 20,
-                sign: "2159",
-                txt: "EX",
-            },
-            tts: {
-                exists: false,
-                color: "",
-                width: 30,
-                height: 30,
-                sign: "7",
-                txt: "TIO",
-            },
-            towards: {
-                exists: false,
-                color: "",
-                width: 30,
-                height: 30,
-                sign: "7",
-                txt: "TW",
-            },
-            visualIn: {
-                exists: false,
-                color: "",
-                width: 30,
-                height: 30,
-                sign: "7",
-                txt: "VI",
-            },
+            shields: { exists: false, color: "", width: 30, height: 30, sign: "6", txt: "TG" },
+            exitsign: { exists: false, color: "", width: 30, height: 20, sign: "2159", txt: "EX" },
+            tts: { exists: false, color: "", width: 30, height: 30, sign: "7", txt: "TIO" },
+            towards: { exists: false, color: "", width: 30, height: 30, sign: "7", txt: "TW" },
+            visualIn: { exists: false, color: "", width: 30, height: 30, sign: "7", txt: "VI" },
         };
         let count = 0;
 
@@ -2359,14 +2230,8 @@ function rsaInit() {
                 trnGuid.getVisualInstruction() !== null && trnGuid.getVisualInstruction().length > 0;
         }
 
-        let startPoint = {
-            x: geo.getVertices()[0].x,
-            y: geo.getVertices()[0].y,
-        };
-        let lblStart = {
-            x: startPoint.x + labelDistance().label,
-            y: startPoint.y + labelDistance().label,
-        };
+        let startPoint = { x: geo.getVertices()[0].x, y: geo.getVertices()[0].y };
+        let lblStart = { x: startPoint.x + labelDistance().label, y: startPoint.y + labelDistance().label };
 
         // Array of points for line connecting node to icons
         let points = [];
@@ -2374,10 +2239,7 @@ function rsaInit() {
         // let pointNode = new OpenLayers.Geometry.Point(startPoint.x, startPoint.y);
         let pointNode = {
             id: "node_" + startPoint.x + " " + startPoint.y,
-            geometry: {
-                coordinates: [startPoint.x, startPoint.y],
-                type: "Point",
-            },
+            geometry: { coordinates: [startPoint.x, startPoint.y], type: "Point" },
             type: "Feature",
             properties: {
                 styleName: "styleNode",
@@ -2396,10 +2258,7 @@ function rsaInit() {
         // var pointLabel = new OpenLayers.Geometry.Point(lblStart.x, lblStart.y);
         var nodeLabel = {
             id: "pointNode_" + startPoint.x + " " + startPoint.y,
-            geometry: {
-                coordinates: [startPoint.x, startPoint.y],
-                type: "Point",
-            },
+            geometry: { coordinates: [startPoint.x, startPoint.y], type: "Point" },
             type: "Feature",
             properties: {
                 styleName: "styleNode",
@@ -2415,16 +2274,10 @@ function rsaInit() {
         };
         points.push(nodeLabel);
 
-        sdk.Map.addFeaturesToLayer({
-            features: points,
-            layerName: rsaMapLayer.layerName,
-        });
+        sdk.Map.addFeaturesToLayer({ features: points, layerName: rsaMapLayer.layerName });
         let newLine = {
             id: "line_" + points[0].toString(),
-            geometry: {
-                type: "LineString",
-                coordinates: [points],
-            },
+            geometry: { type: "LineString", coordinates: [points] },
             type: "Feature",
             properties: {
                 styleName: "styleNode",
@@ -2438,10 +2291,7 @@ function rsaInit() {
                 },
             },
         };
-        sdk.Map.addFeatureToLayer({
-            feature: newLine,
-            layerName: rsaIconLayer.layerName,
-        });
+        sdk.Map.addFeatureToLayer({ feature: newLine, layerName: rsaIconLayer.layerName });
 
         _.each(GUIDANCE, (q) => {
             if (q.exists) {
@@ -2480,25 +2330,14 @@ function rsaInit() {
                 // labelFeat = new OpenLayers.Feature.Vector(pointLabel, null, styleLabel);
                 let pointLabelFeature = {
                     type: "Feature",
-                    geometry: {
-                        type: "Point",
-                        coordinates: [xpoint, ypoint],
-                    },
+                    geometry: { type: "Point", coordinates: [xpoint, ypoint] },
                     properties: {
                         styleName: "styleLabel",
-                        style: {
-                            sign: q.sign,
-                            txt: q.txt,
-                            height: q.height,
-                            width: q.width,
-                        },
+                        style: { sign: q.sign, txt: q.txt, height: q.height, width: q.width },
                     },
                     id: "pointLabel_" + xpoint.toString() + "_" + ypoint.toString(),
                 };
-                sdk.Map.addFeatureToLayer({
-                    feature: pointLabelFeature,
-                    layerName: rsaIconLayer.layerName,
-                });
+                sdk.Map.addFeatureToLayer({ feature: pointLabelFeature, layerName: rsaIconLayer.layerName });
 
                 count++;
             }
@@ -2527,14 +2366,9 @@ function rsaInit() {
         shieldText: string | null,
         shieldDir: string | null
     ) {
-        if (sdk.Map.getZoomLevel() < 14) return;
-
         const iconURL = `https://renderer-am.waze.com/renderer/v1/signs/${shieldID}?text=${shieldText}`;
         // let SegmentPoints = [];
-        let oldparam: Coordinates = {
-            x: null,
-            y: null,
-        };
+        let oldparam: Coordinates = { x: null, y: null };
         let labelDis = labelDistance();
         let width = 37;
         let height = 37;
@@ -2594,10 +2428,7 @@ function rsaInit() {
                     Math.abs(oldparam.y - pointParam[1]) > labelDis.space ||
                     !AtLeastOne
                 ) {
-                    let centerparam: Coordinates = {
-                        x: undefined,
-                        y: undefined,
-                    };
+                    let centerparam: Coordinates = { x: undefined, y: undefined };
                     centerparam.x = (oldparam.x + pointParam[0]) / 2;
                     centerparam.y = (oldparam.y + pointParam[1]) / 2;
                     if (
@@ -2610,10 +2441,7 @@ function rsaInit() {
                         let coordCenterPoint = epsg3857toEpsg4326([centerparam.x, centerparam.y]);
                         const shieldFeature = {
                             type: "Feature",
-                            geometry: {
-                                type: "Point",
-                                coordinates: coordCenterPoint,
-                            },
+                            geometry: { type: "Point", coordinates: coordCenterPoint },
                             properties: {
                                 styleName: "shield",
                                 style: {
@@ -2628,10 +2456,7 @@ function rsaInit() {
                         };
                         // Shield icon style
                         // shieldWithLabelStyle.labelYOffset = -1 * labelDis.label;
-                        sdk.Map.addFeatureToLayer({
-                            feature: shieldFeature,
-                            layerName: rsaIconLayer.layerName,
-                        });
+                        sdk.Map.addFeatureToLayer({ feature: shieldFeature, layerName: rsaIconLayer.layerName });
                         AtLeastOne = true;
                     }
                 }
@@ -2649,11 +2474,8 @@ function rsaInit() {
         if (isNode) {
             // Point coords
             // let pointNode = new OpenLayers.Geometry.Point(geo.x, geo.y);
-            let pointNode = {
-                type: "Point",
-                coordinates: [geo.coordinates[0], geo.coordinates[1]],
-            };
-            let pointFeature = {
+            let pointNode: GeoJSON.Point = { type: "Point", coordinates: (geo as Point).coordinates };
+            let pointFeature: Feature = {
                 geometry: pointNode,
                 type: "Feature",
                 properties: {
@@ -2669,10 +2491,7 @@ function rsaInit() {
                 },
                 id: "point_" + geo.coordinates[0] + "_" + geo.coordinates[1],
             };
-            sdk.Map.addFeatureToLayer({
-                feature: pointFeature,
-                layerName: rsaIconLayer.layerName,
-            });
+            sdk.Map.addFeatureToLayer({ feature: pointFeature, layerName: rsaIconLayer.layerName });
         } else {
             // console.log('seg highlight')
             // Object.assign(styleRules.segHighlight.style, {
@@ -2686,10 +2505,7 @@ function rsaInit() {
             // const newVector = new OpenLayers.Feature.Vector(newFeat, null, style);
             // rsaMapLayer.addFeatures([newVector]);
             const newLineFeature = {
-                geometry: {
-                    type: "LineString",
-                    coordinates: geo.coordinates,
-                },
+                geometry: { type: "LineString", coordinates: geo.coordinates },
                 type: "Feature",
                 properties: {
                     styleName: "segHighlight",
@@ -2701,12 +2517,9 @@ function rsaInit() {
                         fillOpacity: 0.75,
                     },
                 },
-                id: "line_" + geo.coordinates[0][0] + "_" + geo.coordinates[0][0],
+                id: "line_" + geo.coordinates[0][0] + "_" + geo.coordinates[0][1],
             };
-            sdk.Map.addFeatureToLayer({
-                feature: newLineFeature,
-                layerName: rsaMapLayer.layerName,
-            });
+            sdk.Map.addFeatureToLayer({ feature: newLineFeature, layerName: rsaMapLayer.layerName });
         }
     }
 
@@ -2718,11 +2531,7 @@ function rsaInit() {
     function labelDistance(): LabelDistance {
         // Return object with two variables - label is the distance used to place the direction below the icon,
         // space is the space between geo points needed to render another icon
-        let label_distance: LabelDistance = {
-            icon: 0,
-            label: 0,
-            space: 0,
-        };
+        let label_distance: LabelDistance = { icon: 0, label: 0, space: 0 };
         switch (sdk.Map.getZoomLevel()) {
             case ZoomLevel.ZM10:
                 label_distance.label = 18;

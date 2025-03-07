@@ -12,7 +12,9 @@
     "outDir": "./",
     "types": [
       "jquery",
-      "wme-sdk-typings"
+      "wme-sdk-typings",
+      "tampermonkey",
+      "geojson"
     ]
   },
   "exclude": ["node_modules", "releases"],
