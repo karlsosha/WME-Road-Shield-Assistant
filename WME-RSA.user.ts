@@ -17,13 +17,14 @@
 /* global W */
 /* global WazeWrap */
 
-// import { City, Node, Segment, State, Street, Turn, WmeSDK } from "wme-sdk-typings";
-// import { Point, LineString, Position, Feature } from "geojson";
-// import _ from "underscore";
-// import $ from "jquery";
-// import WazeWrap from "https://greasyfork.org/scripts/24851-wazewrap/code/WazeWrap.js";
+import type { City, Node, Segment, State, Street, Turn, WmeSDK } from "wme-sdk-typings";
+import type { Point, LineString, Position, Feature } from "geojson";
+import _ from "underscore";
+import WazeWrap from "https://greasyfork.org/scripts/24851-wazewrap/code/WazeWrap.js";
+import proj4 from "proj4";
+import * as turf from "@turf/turf";
 
-var sdk: WmeSDK;
+let sdk: WmeSDK;
 window.SDK_INITIALIZED.then(() => {
     if (!window.getWmeSdk) {
         throw new Error("SDK is not installed");
@@ -129,7 +130,7 @@ function rsaInit() {
         20: 50,
         21: 40,
         22: 30,
-    }
+    };
     interface Candidate {
         isCandidate: boolean;
         iconID: number | null | Set<number>;
@@ -900,8 +901,8 @@ function rsaInit() {
     let UpdateObj;
     let SetTurn;
 
-    let rsaMapLayer = { layerName: "RSA Map Layer", zIndexing: false };
-    let rsaIconLayer = { layerName: "RSA Icon Layer", zIndexing: false };
+    const rsaMapLayer = { layerName: "RSA Map Layer", zIndexing: false };
+    const rsaIconLayer = { layerName: "RSA Icon Layer", zIndexing: false };
     let LANG: string;
     let alternativeType: string;
     let styleConfig = {
@@ -1044,7 +1045,7 @@ function rsaInit() {
     // }
 
     function initRSA() {
-        let locale = sdk.Settings.getLocale();
+        const locale = sdk.Settings.getLocale();
         LANG = locale.localeCode.toLowerCase();
 
         console.log("RSA: Initializing...");
@@ -1258,13 +1259,13 @@ function rsaInit() {
 
     function processAlternativeSettings() {
         if (rsaSettings.AlternativeShields) {
-            let alt_primary = $("#rsa-AlternativePrimaryCity");
+            const alt_primary = $("#rsa-AlternativePrimaryCity");
             alt_primary.prop("disabled", false);
-            let alt_nocity = $("#rsa-AlternativeNoCity");
+            const alt_nocity = $("#rsa-AlternativeNoCity");
             alt_nocity.prop("disabled", false);
-            let primaryCityButton = alt_primary[0];
-            let noCityButton = alt_primary[0];
-            if (primaryCityButton.check) {
+            const primaryCityButton: HTMLInputElement = alt_primary[0] as HTMLInputElement;
+            const noCityButton: HTMLInputElement = alt_primary[0] as HTMLInputElement;
+            if (primaryCityButton.checked) {
                 alternativeType = primaryCityButton.value;
             }
             if (noCityButton.checked) {
@@ -1388,7 +1389,7 @@ function rsaInit() {
             setValue("rsa-TitleCaseClr", rsaSettings.TitleCaseClr);
             setValue("rsa-TitleCaseSftClr", rsaSettings.TitleCaseSftClr);
 
-            $("#rsa-AlternativeShields").on("change", function (e) {
+            $("#rsa-AlternativeShields").on("change", (e) => {
                 processAlternativeSettings();
             });
 
@@ -1427,7 +1428,7 @@ function rsaInit() {
 
         setEleStatus();
 
-        $("input[type=radio][name=AlternativeShields]").on("change", function () {
+        $("input[type=radio][name=AlternativeShields]").on("change", () => {
             processAlternativeSettings();
             saveSettings();
             removeHighlights();
@@ -1435,7 +1436,7 @@ function rsaInit() {
         });
 
         $(".rsa-checkbox").on("change", function () {
-            let settingName = $(this)[0].id.substring(4);
+            const settingName = $(this)[0].id.substring(4);
             rsaSettings[settingName as keyof typeof rsaSettings] = this.checked;
 
             // Check to ensure highlight nodes and show node shields don't overlap each other
@@ -1463,9 +1464,9 @@ function rsaInit() {
             removeHighlights();
             tryScan();
         });
-        $("#rsa-titleCase").trigger("click", function () {
-            let titleCase = getId("rsa-titleCase");
-            if (titleCase && titleCase.checked) {
+        $("#rsa-titleCase").trigger("click", () => {
+            const titleCase: HTMLInputElement = getId("rsa-titleCase") as HTMLInputElement;
+            if (titleCase?.checked) {
                 $("#rsa-container-checkTWD").css("display", "block");
                 $("#rsa-container-checkTTS").css("display", "block");
                 $("#rsa-container-checkVI").css("display", "block");
@@ -1479,7 +1480,7 @@ function rsaInit() {
         //     if (!getId('rsa-ShowNodeShields').checked) $('.rsa-option-container.sub').hide();
         //     else $('.rsa-option-container.sub').show();
         // });
-        $("#rsa-resetSettings").on("click", function () {
+        $("#rsa-resetSettings").on("click", () => {
             const defaultSettings: RSASettings = {
                 lastSaveAction: 0,
                 enableScript: true,
@@ -1525,7 +1526,7 @@ function rsaInit() {
         if (!Strings[LANG]) LANG = "en";
         const messageKeys = Object.keys(Strings[LANG]);
         for (let i = 0; i < messageKeys.length; i++) {
-            let key = messageKeys[i];
+            const key = messageKeys[i];
             $(`#rsa-text-${key}`).text(Strings[LANG][key]);
         }
         $("#rsa-resetSettings").attr("value", Strings[LANG].resetSettings);
@@ -1586,12 +1587,12 @@ function rsaInit() {
         }
 
         // If there is no value set in any of the stored settings then use the default
-        Object.keys(defaultSettings).forEach((funcProp) => {
+        for (const funcProp of Object.keys(defaultSettings)) {
             if (!rsaSettings.hasOwnProperty(funcProp)) {
                 rsaSettings[funcProp as keyof typeof rsaSettings] =
                     defaultSettings[funcProp as keyof typeof defaultSettings];
             }
-        });
+        }
     }
 
     async function saveSettings() {
@@ -1718,53 +1719,52 @@ function rsaInit() {
         // const countries = W.model.countries.getObjectArray();
 
         if (countries.length < 1) {
-            setTimeout(function () {
+            setTimeout(() => {
                 checkOptions();
             }, 500);
             return;
+        }
+        let allowFeat = false;
+
+        for (let i = 0; i < countries.length; i++) {
+            if (RoadAbbr[countries[i].id]) allowFeat = true;
+        }
+
+        const segShieldMissing: JQuery<HTMLElement> = $("#rsa-SegShieldMissing");
+        const segShieldError: JQuery<HTMLElement> = $("#rsa-SegShieldError");
+        const nodeShieldMissing: JQuery<HTMLElement> = $("#rsa-NodeShieldMissing");
+        const textSegShieldMissing: JQuery<HTMLElement> = $("#rsa-text-SegShieldMissing");
+        const textSegShieldError: JQuery<HTMLElement> = $("#rsa-text-SegShieldError");
+        const textNodeShieldMissing: JQuery<HTMLElement> = $("#rsa-text-NodeShieldMissing");
+        if (!allowFeat) {
+            textSegShieldMissing.prop("checked", false);
+            textSegShieldError.prop("checked", false);
+            textNodeShieldMissing.prop("checked", false);
+
+            textSegShieldMissing.text(`${Strings[LANG].SegShieldMissing} ${Strings[LANG].disabledFeat}`);
+            textSegShieldError.text(`${Strings[LANG].SegShieldError} ${Strings[LANG].disabledFeat}`);
+            textNodeShieldMissing.text(`${Strings[LANG].NodeShieldMissing} ${Strings[LANG].disabledFeat}`);
+
+            segShieldMissing.prop("disabled", true);
+            segShieldError.prop("disabled", true);
+            nodeShieldMissing.prop("disabled", true);
+
+            rsaSettings.SegShieldMissing = false;
+            rsaSettings.SegShieldError = false;
+            rsaSettings.NodeShieldMissing = false;
+            saveSettings();
         } else {
-            let allowFeat = false;
+            textSegShieldMissing.prop("checked", rsaSettings.SegShieldMissing);
+            textSegShieldError.prop("checked", rsaSettings.SegShieldError);
+            textNodeShieldMissing.prop("checked", rsaSettings.NodeShieldMissing);
 
-            for (let i = 0; i < countries.length; i++) {
-                if (RoadAbbr[countries[i].id]) allowFeat = true;
-            }
+            textSegShieldMissing.text(Strings[LANG].SegShieldMissing);
+            textSegShieldError.text(Strings[LANG].SegShieldError);
+            textNodeShieldMissing.text(Strings[LANG].NodeShieldMissing);
 
-            let segShieldMissing: JQuery<HTMLElement> = $("#rsa-SegShieldMissing");
-            let segShieldError: JQuery<HTMLElement> = $("#rsa-SegShieldError");
-            let nodeShieldMissing: JQuery<HTMLElement> = $(`#rsa-NodeShieldMissing`);
-            let textSegShieldMissing: JQuery<HTMLElement> = $("#rsa-text-SegShieldMissing");
-            let textSegShieldError: JQuery<HTMLElement> = $("#rsa-text-SegShieldError");
-            let textNodeShieldMissing: JQuery<HTMLElement> = $("#rsa-text-NodeShieldMissing");
-            if (!allowFeat) {
-                textSegShieldMissing.prop("checked", false);
-                textSegShieldError.prop("checked", false);
-                textNodeShieldMissing.prop("checked", false);
-
-                textSegShieldMissing.text(Strings[LANG].SegShieldMissing + " " + Strings[LANG].disabledFeat);
-                textSegShieldError.text(Strings[LANG].SegShieldError + " " + Strings[LANG].disabledFeat);
-                textNodeShieldMissing.text(Strings[LANG].NodeShieldMissing + " " + Strings[LANG].disabledFeat);
-
-                segShieldMissing.prop("disabled", true);
-                segShieldError.prop("disabled", true);
-                nodeShieldMissing.prop("disabled", true);
-
-                rsaSettings.SegShieldMissing = false;
-                rsaSettings.SegShieldError = false;
-                rsaSettings.NodeShieldMissing = false;
-                saveSettings();
-            } else {
-                textSegShieldMissing.prop("checked", rsaSettings.SegShieldMissing);
-                textSegShieldError.prop("checked", rsaSettings.SegShieldError);
-                textNodeShieldMissing.prop("checked", rsaSettings.NodeShieldMissing);
-
-                textSegShieldMissing.text(Strings[LANG].SegShieldMissing);
-                textSegShieldError.text(Strings[LANG].SegShieldError);
-                textNodeShieldMissing.text(Strings[LANG].NodeShieldMissing);
-
-                segShieldMissing.prop("disabled", false);
-                segShieldError.prop("disabled", false);
-                nodeShieldMissing.prop("disabled", false);
-            }
+            segShieldMissing.prop("disabled", false);
+            segShieldError.prop("disabled", false);
+            nodeShieldMissing.prop("disabled", false);
         }
 
         let topCountry = sdk.DataModel.Countries.getTopCountry();
@@ -1955,10 +1955,10 @@ function rsaInit() {
         // Display shield on map
         function checkDeclutterSettings(seg: Segment): boolean {
             let result: boolean = false;
-            
+
             let zoomLevel = sdk.Map.getZoomLevel();
             if (zoomLevel > MIN_ZOOM_LEVEL) {
-                if(seg.length > minShieldDisplayLengths[zoomLevel]) {
+                if (seg.length > minShieldDisplayLengths[zoomLevel]) {
                     result = true;
                 }
             }
@@ -2356,7 +2356,7 @@ function rsaInit() {
         let y = pos[1];
         x = (x * 180) / 20037508.34;
         y = (y * 180) / 20037508.34;
-        y = (Math.atan(Math.pow(Math.E, y * (Math.PI / 180))) * 360) / Math.PI - 90;
+        y = (Math.atan(Math.E ** (y * (Math.PI / 180))) * 360) / Math.PI - 90;
         return [x, y];
     }
 
@@ -2368,8 +2368,8 @@ function rsaInit() {
     ) {
         const iconURL = `https://renderer-am.waze.com/renderer/v1/signs/${shieldID}?text=${shieldText}`;
         // let SegmentPoints = [];
-        let oldparam: Coordinates = { x: null, y: null };
-        let labelDis = labelDistance();
+        const oldparam: Coordinates = { x: null, y: null };
+        const labelDis = labelDistance();
         let width = 37;
         let height = 37;
 
@@ -2388,8 +2388,8 @@ function rsaInit() {
         // oldparam.x = null;
         // oldparam.y = null;
         let AtLeastOne = false;
-        $.each(segment.geometry.coordinates, function (idx: number, param: Position) {
-            let pointParam = epsg4326toEpsg3857(param);
+        $.each(segment.geometry.coordinates, (idx: number, param: Position) => {
+            const pointParam = proj4("EPSG:4326", "EPSG:3857", param);
             // Build a new segment with same geometry
 
             // SegmentPoints.push(new OpenLayers.Geometry.Point(param[0], param[1]));
@@ -2428,7 +2428,7 @@ function rsaInit() {
                     Math.abs(oldparam.y - pointParam[1]) > labelDis.space ||
                     !AtLeastOne
                 ) {
-                    let centerparam: Coordinates = { x: undefined, y: undefined };
+                    const centerparam: Coordinates = { x: undefined, y: undefined };
                     centerparam.x = (oldparam.x + pointParam[0]) / 2;
                     centerparam.y = (oldparam.y + pointParam[1]) / 2;
                     if (
@@ -2438,11 +2438,10 @@ function rsaInit() {
                     ) {
                         // let LabelPoint = new OpenLayers.Geometry.Point(centerparam.x, centerparam.y);
                         // const pointFeature = new OpenLayers.Feature.Vector(LabelPoint, null, style);
-                        let coordCenterPoint = epsg3857toEpsg4326([centerparam.x, centerparam.y]);
-                        const shieldFeature = {
-                            type: "Feature",
-                            geometry: { type: "Point", coordinates: coordCenterPoint },
-                            properties: {
+                        const coordCenterPoint = epsg3857toEpsg4326([centerparam.x, centerparam.y]);
+                        const shieldFeature = turf.point(
+                            coordCenterPoint,
+                            {
                                 styleName: "shield",
                                 style: {
                                     externalGraphic: iconURL,
@@ -2452,8 +2451,8 @@ function rsaInit() {
                                     labelYOffset: shieldDir !== null ? -1 * labelDis.label : 0,
                                 },
                             },
-                            id: "shield_" + centerparam.x.toString() + "_" + centerparam.y.toString(),
-                        };
+                            { id: `shield_${centerparam.x.toString()}_${centerparam.y.toString()}` }
+                        );
                         // Shield icon style
                         // shieldWithLabelStyle.labelYOffset = -1 * labelDis.label;
                         sdk.Map.addFeatureToLayer({ feature: shieldFeature, layerName: rsaIconLayer.layerName });
