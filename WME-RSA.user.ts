@@ -10,6 +10,8 @@
 // @match        https://beta.waze.com/*/editor*
 // @exclude      https://www.waze.com/user/editor*
 // @require      https://greasyfork.org/scripts/24851-wazewrap/code/WazeWrap.js
+// @require      https://cdn.jsdelivr.net/npm/@turf/turf@7/turf.min.js
+// @require      https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.15.0/proj4.js
 // @grant        none
 // @contributionURL https://github.com/WazeDev/Thank-The-Authors
 // ==/UserScript==
@@ -19,10 +21,10 @@
 
 import type { City, Node, Segment, State, Street, Turn, WmeSDK } from "wme-sdk-typings";
 import type { Point, LineString, Position, Feature } from "geojson";
+import * as turf from "@turf/turf";
 import _ from "underscore";
 import WazeWrap from "https://greasyfork.org/scripts/24851-wazewrap/code/WazeWrap.js";
 import proj4 from "proj4";
-import * as turf from "@turf/turf";
 
 let sdk: WmeSDK;
 window.SDK_INITIALIZED.then(() => {
@@ -905,13 +907,13 @@ function rsaInit() {
     const rsaIconLayer = { layerName: "RSA Icon Layer", zIndexing: false };
     let LANG: string;
     let alternativeType: string;
-    let styleConfig = {
+    const styleConfig = {
         styleContext: {
             highNodeColor: (context) => {
                 return context?.feature?.properties?.style?.strokeColor;
             },
             labelExternalGraphic: (context) => {
-                let style = context?.feature?.properties?.style;
+                const style = context?.feature?.properties?.style;
                 if (!style || !style?.sign || !style?.txt)
                     return `https://renderer-am.waze.com/renderer/v1/signs/${style.sign}?text=${style.txt}`;
             },
@@ -1457,7 +1459,7 @@ function rsaInit() {
             tryScan();
         });
         $(".rsa-color-input").on("change", function () {
-            let settingName: string = $(this)[0].id.substring(4);
+            const settingName: string = $(this)[0].id.substring(4);
             rsaSettings[settingName as keyof typeof rsaSettings] = this.value;
             saveSettings();
             setEleStatus();
@@ -1767,7 +1769,7 @@ function rsaInit() {
             nodeShieldMissing.prop("disabled", false);
         }
 
-        let topCountry = sdk.DataModel.Countries.getTopCountry();
+        const topCountry = sdk.DataModel.Countries.getTopCountry();
         if (topCountry === null || topCountry.id !== 235) {
             $("#rsa-container-titleCase").css("display", "none");
             $("#rsa-container-TitleCaseClr").css("display", "none");
@@ -1785,14 +1787,14 @@ function rsaInit() {
 
         // console.log(BadNames);
         // Create function to fix case types when button clicked
-        $("#rsa-autoWrapper > div").on("click", function () {
+        $("#rsa-autoWrapper > div").on("click", () => {
             // const turnGraph = W.model.getTurnGraph();
             const turnGraph: Turn[] = sdk.DataModel.Turns.getAll();
 
             for (let i = 0; i < BadNames.length; i++) {
                 // Check if street or turn
                 if (BadNames[i]) {
-                    let strt = BadNames[i];
+                    const strt = BadNames[i];
                     let dir = strt.direction;
                     if (dir !== null) {
                         if (dir.match(/\b(north)\b/i) != null) dir = "Nᴏʀᴛʜ";
@@ -1816,12 +1818,12 @@ function rsaInit() {
                         return temp;
                     }
 
-                    let turn = BadNames[i];
+                    const turn = BadNames[i];
                     let turnDat = turn.getTurnData();
-                    let turnGuid = turnDat.getTurnGuidance();
+                    const turnGuid = turnDat.getTurnGuidance();
                     // let newGuid = turnGuid;
                     console.log(turn);
-                    for (let s in turnGuid.roadShields) {
+                    for (const s in turnGuid.roadShields) {
                         turnGuid.roadShields[s].direction = fixName(turnGuid.roadShields[s].direction);
                     }
                     if (rsaSettings.checkTWD && turnGuid.towards) turnGuid.towards = fixName(turnGuid.towards);
@@ -1902,14 +1904,14 @@ function rsaInit() {
         if (seg === null) return;
         // let segAtt = seg.attributes;
         // let streetID = segAtt.primaryStreetID;
-        let streetID: number | null = seg.primaryStreetId;
+        const streetID: number | null = seg.primaryStreetId;
         if (streetID === null) return;
         // let oldStreet = W.model.streets.getObjectById(streetID).attributes;
         let street: Street | null = sdk.DataModel.Streets.getById({ streetId: streetID });
         if (street === null || street.cityId === null) return;
-        let city: City | null = sdk.DataModel.Cities.getById({ cityId: street.cityId });
+        const city: City | null = sdk.DataModel.Cities.getById({ cityId: street.cityId });
         if (city === null) return;
-        let stateID = city.stateId;
+        const stateID = city.stateId;
 
         if (rsaSettings.AlternativeShields) {
             if (seg.alternateStreetIds.length > 0) {
@@ -1926,7 +1928,7 @@ function rsaInit() {
                             }
                         } else if (alternativeType === "AlternativeNoCity") {
                             // let altCity = W.model.cities.getObjectById(altStreet.cityID).attributes;
-                            let altCity: City | null =
+                            const altCity: City | null =
                                 altStreet.cityId === null
                                     ? null
                                     : sdk.DataModel.Cities.getById({ cityId: altStreet.cityId });
@@ -1940,10 +1942,10 @@ function rsaInit() {
             }
         }
         // let oldStateName = W.model.states.getObjectById(cityID.stateID).attributes.name;
-        let state: State | null = stateID !== null ? sdk.DataModel.States.getById({ stateId: stateID }) : null;
-        let stateName: string | null = state === null ? null : state.name;
-        let countryID = city.countryId;
-        let candidate: Candidate = isSegmentCandidate(seg, stateName, countryID);
+        const state: State | null = stateID !== null ? sdk.DataModel.States.getById({ stateId: stateID }) : null;
+        const stateName: string | null = state === null ? null : state.name;
+        const countryID = city.countryId;
+        const candidate: Candidate = isSegmentCandidate(seg, stateName, countryID);
 
         // Exclude ramps
         if (!rsaSettings.ShowRamps && seg.roadType === 4) return;
@@ -1956,7 +1958,7 @@ function rsaInit() {
         function checkDeclutterSettings(seg: Segment): boolean {
             let result: boolean = false;
 
-            let zoomLevel = sdk.Map.getZoomLevel();
+            const zoomLevel = sdk.Map.getZoomLevel();
             if (zoomLevel > MIN_ZOOM_LEVEL) {
                 if (seg.length > minShieldDisplayLengths[zoomLevel]) {
                     result = true;
@@ -2001,22 +2003,22 @@ function rsaInit() {
 
     function processNode(node: Node | null) {
         if (node === null) return;
-        let turns = sdk.DataModel.Turns.getTurnsThroughNode({ nodeId: node.id });
+        const turns = sdk.DataModel.Turns.getTurnsThroughNode({ nodeId: node.id });
         for (let idx = 0; idx < turns.length; ++idx) {
-            let turn = turns[idx];
+            const turn = turns[idx];
             // let oldTurn = W.model.getTurnGraph().getTurnThroughNode(node,turn.fromSegmentId,turn.toSegmentId);
-            let turnData = sdk.DataModel.Turns.getById({ turnId: turns[idx].id });
+            const turnData = sdk.DataModel.Turns.getById({ turnId: turns[idx].id });
             if (!turnData) continue;
-            let hasGuidance = turnData.lanes?.guidanceMode();
+            const hasGuidance = turnData.lanes?.guidanceMode();
 
             if (hasGuidance) {
                 if (rsaSettings.ShowNodeShields && sdk.Map.getZoomLevel() > ZoomLevel.ZM2)
                     displayNodeIcons(node, turnData);
 
                 if (rsaSettings.titleCase) {
-                    let badName = matchTitleCaseThroughNode(turn);
+                    const badName = matchTitleCaseThroughNode(turn);
                     if (badName.isBad) {
-                        let color = badName.softIssue ? rsaSettings.TitleCaseSftClr : rsaSettings.TitleCaseClr;
+                        const color = badName.softIssue ? rsaSettings.TitleCaseSftClr : rsaSettings.TitleCaseClr;
                         createHighlight(node, color, true);
                         // autoFixButton();
                     }
@@ -2080,7 +2082,7 @@ function rsaInit() {
         signText: string | null,
         iconId: number | null | Set<number>
     ): boolean {
-        let result: boolean = true;
+        let result = true;
         if (
             signType === null ||
             typeof signType === "undefined" ||
@@ -2113,9 +2115,9 @@ function rsaInit() {
         if (primaryStreet.name?.includes(primaryStreet.signText)) {
             return true;
         }
-        for (var i = 0; i < seg.alternateStreetIds.length; i++) {
-            let street: Street | null = sdk.DataModel.Streets.getById({ streetId: seg.alternateStreetIds[i] });
-            if (street !== null && street.name?.includes(primaryStreet.signText)) {
+        for (let i = 0; i < seg.alternateStreetIds.length; i++) {
+            const street: Street | null = sdk.DataModel.Streets.getById({ streetId: seg.alternateStreetIds[i] });
+            if (street?.name?.includes(primaryStreet.signText)) {
                 return true;
             }
         }
@@ -2230,18 +2232,16 @@ function rsaInit() {
                 trnGuid.getVisualInstruction() !== null && trnGuid.getVisualInstruction().length > 0;
         }
 
-        let startPoint = { x: geo.getVertices()[0].x, y: geo.getVertices()[0].y };
-        let lblStart = { x: startPoint.x + labelDistance().label, y: startPoint.y + labelDistance().label };
+        const startPoint = { x: geo.getVertices()[0].x, y: geo.getVertices()[0].y };
+        const lblStart = { x: startPoint.x + labelDistance().label, y: startPoint.y + labelDistance().label };
 
         // Array of points for line connecting node to icons
-        let points = [];
+        const points = [];
         // Point coords
         // let pointNode = new OpenLayers.Geometry.Point(startPoint.x, startPoint.y);
-        let pointNode = {
-            id: "node_" + startPoint.x + " " + startPoint.y,
-            geometry: { coordinates: [startPoint.x, startPoint.y], type: "Point" },
-            type: "Feature",
-            properties: {
+        const pointNode = turf.point(
+            [startPoint.x, startPoint.y],
+            {
                 styleName: "styleNode",
                 style: {
                     strokeColor: rsaSettings.HighNodeClr,
@@ -2252,15 +2252,14 @@ function rsaInit() {
                     pointRadius: 3,
                 },
             },
-        };
+            { id: `node_${startPoint.x} ${startPoint.y}` }
+        );
         points.push(pointNode);
         // Label coords
         // var pointLabel = new OpenLayers.Geometry.Point(lblStart.x, lblStart.y);
-        var nodeLabel = {
-            id: "pointNode_" + startPoint.x + " " + startPoint.y,
-            geometry: { coordinates: [startPoint.x, startPoint.y], type: "Point" },
-            type: "Feature",
-            properties: {
+        const nodeLabel = turf.point(
+            [startPoint.x, startPoint.y],
+            {
                 styleName: "styleNode",
                 style: {
                     strokeColor: rsaSettings.HighNodeClr,
@@ -2271,15 +2270,14 @@ function rsaInit() {
                     pointRadius: 3,
                 },
             },
-        };
+            { id: `pointNode_${startPoint.x} ${startPoint.y}` }
+        );
         points.push(nodeLabel);
 
         sdk.Map.addFeaturesToLayer({ features: points, layerName: rsaMapLayer.layerName });
-        let newLine = {
-            id: "line_" + points[0].toString(),
-            geometry: { type: "LineString", coordinates: [points] },
-            type: "Feature",
-            properties: {
+        const newLine = turf.lineString(
+            [points],
+            {
                 styleName: "styleNode",
                 style: {
                     strokeColor: rsaSettings.HighNodeClr,
@@ -2290,21 +2288,18 @@ function rsaInit() {
                     pointRadius: 3,
                 },
             },
-        };
+            { id: `line_${points[0].toString()}` }
+        );
         sdk.Map.addFeatureToLayer({ feature: newLine, layerName: rsaIconLayer.layerName });
 
         _.each(GUIDANCE, (q) => {
             if (q.exists) {
                 // console.log(q);
-                let xpoint;
-                let ypoint;
+                let xpoint: number = lblStart.x;
+                let ypoint: number = lblStart.y;
 
                 const lblDis: LabelDistance = labelDistance();
                 switch (count) {
-                    case 0:
-                        xpoint = lblStart.x;
-                        ypoint = lblStart.y;
-                        break;
                     case 1:
                         xpoint = lblStart.x + lblDis.icon;
                         ypoint = lblStart.y;
@@ -2328,36 +2323,19 @@ function rsaInit() {
                 // Label coords
                 // let pointLabel = new OpenLayers.Geometry.Point(xpoint, ypoint);
                 // labelFeat = new OpenLayers.Feature.Vector(pointLabel, null, styleLabel);
-                let pointLabelFeature = {
-                    type: "Feature",
-                    geometry: { type: "Point", coordinates: [xpoint, ypoint] },
-                    properties: {
+                const pointLabelFeature = turf.point(
+                    [xpoint, ypoint],
+                    {
                         styleName: "styleLabel",
                         style: { sign: q.sign, txt: q.txt, height: q.height, width: q.width },
                     },
-                    id: "pointLabel_" + xpoint.toString() + "_" + ypoint.toString(),
-                };
+                    { id: `pointLabel_${xpoint.toString()}_${ypoint.toString()}` }
+                );
                 sdk.Map.addFeatureToLayer({ feature: pointLabelFeature, layerName: rsaIconLayer.layerName });
 
                 count++;
             }
         });
-    }
-
-    function epsg4326toEpsg3857(coordinates: Position): Position {
-        let x: number = (coordinates[0] * 20037508.34) / 180;
-        let y: number = Math.log(Math.tan(((90 + coordinates[1]) * Math.PI) / 360)) / (Math.PI / 180);
-        y = (y * 20037508.34) / 180;
-        return [x, y];
-    }
-
-    function epsg3857toEpsg4326(pos: Position): Position {
-        let x = pos[0];
-        let y = pos[1];
-        x = (x * 180) / 20037508.34;
-        y = (y * 180) / 20037508.34;
-        y = (Math.atan(Math.E ** (y * (Math.PI / 180))) * 360) / Math.PI - 90;
-        return [x, y];
     }
 
     function displaySegShields(
@@ -2438,7 +2416,7 @@ function rsaInit() {
                     ) {
                         // let LabelPoint = new OpenLayers.Geometry.Point(centerparam.x, centerparam.y);
                         // const pointFeature = new OpenLayers.Feature.Vector(LabelPoint, null, style);
-                        const coordCenterPoint = epsg3857toEpsg4326([centerparam.x, centerparam.y]);
+                        const coordCenterPoint = proj4("EPSG:3857", "EPSG:4326", [centerparam.x, centerparam.y]);
                         const shieldFeature = turf.point(
                             coordCenterPoint,
                             {
@@ -2465,19 +2443,17 @@ function rsaInit() {
         });
     }
 
-    function createHighlight(obj: Segment | Node, color: string, overSized: boolean = false) {
+    function createHighlight(obj: Segment | Node, color: string, overSized = false) {
         // const geo = obj.getOLGeometry().clone();
         const geo: Point | LineString = structuredClone(obj.geometry);
-        let isNode = obj instanceof Node;
+        const isNode = obj instanceof Node;
 
         if (isNode) {
             // Point coords
             // let pointNode = new OpenLayers.Geometry.Point(geo.x, geo.y);
-            let pointNode: GeoJSON.Point = { type: "Point", coordinates: (geo as Point).coordinates };
-            let pointFeature: Feature = {
-                geometry: pointNode,
-                type: "Feature",
-                properties: {
+            const pointFeature: Feature = turf.point(
+                geo.coordinates,
+                {
                     styleName: "styleNode",
                     style: {
                         strokeColor: color,
@@ -2488,8 +2464,8 @@ function rsaInit() {
                         pointRadius: overSized ? 7 : 3,
                     },
                 },
-                id: "point_" + geo.coordinates[0] + "_" + geo.coordinates[1],
-            };
+                { id: `point_${geo.coordinates[0]}_${geo.coordinates[1]}` }
+            );
             sdk.Map.addFeatureToLayer({ feature: pointFeature, layerName: rsaIconLayer.layerName });
         } else {
             // console.log('seg highlight')
@@ -2516,7 +2492,7 @@ function rsaInit() {
                         fillOpacity: 0.75,
                     },
                 },
-                id: "line_" + geo.coordinates[0][0] + "_" + geo.coordinates[0][1],
+                id: `line_${geo}`,
             };
             sdk.Map.addFeatureToLayer({ feature: newLineFeature, layerName: rsaMapLayer.layerName });
         }
