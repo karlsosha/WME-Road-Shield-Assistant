@@ -11,7 +11,7 @@
 // @exclude      https://www.waze.com/user/editor*
 // @require      https://greasyfork.org/scripts/24851-wazewrap/code/WazeWrap.js
 // @require      https://cdn.jsdelivr.net/npm/@turf/turf@7/turf.min.js
-// @require      https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.15.0/proj4.js
+// @require      https://cdn.jsdelivr.net/npm/proj4@2/dist/proj4.min.js
 // @grant        none
 // @contributionURL https://github.com/WazeDev/Thank-The-Authors
 // ==/UserScript==
@@ -19,12 +19,12 @@
 /* global W */
 /* global WazeWrap */
 
-import type { City, Node, Segment, State, Street, Turn, WmeSDK } from "wme-sdk-typings";
-import type { Point, LineString, Position, Feature } from "geojson";
-import * as turf from "@turf/turf";
-import _ from "underscore";
-import WazeWrap from "https://greasyfork.org/scripts/24851-wazewrap/code/WazeWrap.js";
-import proj4 from "proj4";
+// import type { City, Node, Segment, State, Street, Turn, WmeSDK } from "wme-sdk-typings";
+// import type { Point, LineString, Position, Feature } from "geojson";
+// import * as turf from "@turf/turf";
+// import _ from "underscore";
+// import proj4 from "proj4";
+// import WazeWrap from "https://greasyfork.org/scripts/24851-wazewrap/code/WazeWrap.js";
 
 let sdk: WmeSDK;
 window.SDK_INITIALIZED.then(() => {

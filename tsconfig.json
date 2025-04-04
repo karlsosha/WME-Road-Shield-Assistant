@@ -10,6 +10,7 @@
     "skipLibCheck": true,
     "allowJs": true,
     "outDir": "./",
+    "allowSyntheticDefaultImports": true,
     "types": [
       "jquery",
       "wme-sdk-typings",
