@@ -11,6 +11,7 @@
     "allowJs": true,
     "outDir": "./",
     "allowSyntheticDefaultImports": true,
+    "rootDirs": ["./", "./src"],
     "types": [
       "jquery",
       "wme-sdk-typings",
@@ -19,5 +20,5 @@
     ]
   },
   "exclude": ["node_modules", "releases"],
-  "include": ["./WME-RSA.user.ts", "./src/declarations.d.ts"]
+  "include": ["./WME-RSA.user.ts", "src/**/*"]
 }

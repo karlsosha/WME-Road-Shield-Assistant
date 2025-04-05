@@ -1,4 +1,3 @@
-"use strict";
 // ==UserScript==
 // @name         WME Road Shield Assistant
 // @namespace    https://greasyfork.org/en/users/286957-skidooguy
@@ -24,6 +23,7 @@
 // import _ from "underscore";
 // import proj4 from "proj4";
 // import WazeWrap from "https://greasyfork.org/scripts/24851-wazewrap/code/WazeWrap.js";
+import { CountryID } from "./src/RSA";
 let sdk;
 window.SDK_INITIALIZED.then(() => {
     if (!window.getWmeSdk) {
@@ -1285,7 +1285,7 @@ function rsaInit() {
             $("#rsa-AlternativeShields").on("change", (e) => {
                 processAlternativeSettings();
             });
-            if (rsaSettings.titleCase && sdk.DataModel.Countries.getTopCountry()?.id === 235) {
+            if (rsaSettings.titleCase && sdk.DataModel.Countries.getTopCountry()?.id === CountryID.UNITED_STATES) {
                 $("#rsa-container-checkTWD").css("display", "block");
                 $("#rsa-container-checkTTS").css("display", "block");
                 $("#rsa-container-checkVI").css("display", "block");
@@ -1745,7 +1745,7 @@ function rsaInit() {
             if (seg.alternateStreetIds.length > 0) {
                 for (let i = 0; i < seg.alternateStreetIds.length; ++i) {
                     // let oldAltStreet = W.model.streets.getObjectById(segAtt.streetIDs[i]).attributes;
-                    let altStreet = sdk.DataModel.Streets.getById({
+                    const altStreet = sdk.DataModel.Streets.getById({
                         streetId: seg.alternateStreetIds[i],
                     });
                     if (altStreet !== null) {
@@ -1771,7 +1771,7 @@ function rsaInit() {
         }
         // let oldStateName = W.model.states.getObjectById(cityID.stateID).attributes.name;
         const state = stateID !== null ? sdk.DataModel.States.getById({ stateId: stateID }) : null;
-        const stateName = state === null ? null : state.name;
+        const stateName = state === null ? "" : state.name;
         const countryID = city.countryId;
         const candidate = isSegmentCandidate(seg, stateName, countryID);
         // Exclude ramps
@@ -1871,8 +1871,7 @@ function rsaInit() {
         if (countryId === null || !RoadAbbr[countryId]) {
             return info;
         }
-        if (stateName === null)
-            stateName = "";
+        // if (stateName === null) stateName = "";
         //Check to see if the country has states configured in RSA by looking for a key with nothing in it
         const name = street === null ? "" : street.name;
         if (name) {
@@ -1914,7 +1913,7 @@ function rsaInit() {
         // let primaryStreet = W.model.streets.getObjectById(segAtt.primaryStreetID);
         if (seg === null || seg.primaryStreetId === null)
             return false;
-        let primaryStreet = sdk.DataModel.Streets.getById({ streetId: seg.primaryStreetId });
+        const primaryStreet = sdk.DataModel.Streets.getById({ streetId: seg.primaryStreetId });
         if (primaryStreet === null ||
             primaryStreet.signText === null ||
             !iconTextValidation(primaryStreet.signType, primaryStreet.signText, iconID))

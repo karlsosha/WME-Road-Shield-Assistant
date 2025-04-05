@@ -25,6 +25,7 @@
 // import _ from "underscore";
 // import proj4 from "proj4";
 // import WazeWrap from "https://greasyfork.org/scripts/24851-wazewrap/code/WazeWrap.js";
+import { CountryID } from "./src/RSA";
 
 let sdk: WmeSDK;
 window.SDK_INITIALIZED.then(() => {
@@ -140,6 +141,7 @@ function rsaInit() {
     type RoadInfo = Record<string, number | Set<number>>;
     type StateRoadInfo = Record<string, RoadInfo>;
     type CountryRoadInfo = Record<number, StateRoadInfo>;
+
     const RoadAbbr: CountryRoadInfo = {
         //Canada
         40: {
@@ -1395,7 +1397,7 @@ function rsaInit() {
                 processAlternativeSettings();
             });
 
-            if (rsaSettings.titleCase && sdk.DataModel.Countries.getTopCountry()?.id === 235) {
+            if (rsaSettings.titleCase && sdk.DataModel.Countries.getTopCountry()?.id === CountryID.UNITED_STATES) {
                 $("#rsa-container-checkTWD").css("display", "block");
                 $("#rsa-container-checkTTS").css("display", "block");
                 $("#rsa-container-checkVI").css("display", "block");
@@ -1917,7 +1919,7 @@ function rsaInit() {
             if (seg.alternateStreetIds.length > 0) {
                 for (let i = 0; i < seg.alternateStreetIds.length; ++i) {
                     // let oldAltStreet = W.model.streets.getObjectById(segAtt.streetIDs[i]).attributes;
-                    let altStreet: Street | null = sdk.DataModel.Streets.getById({
+                    const altStreet: Street | null = sdk.DataModel.Streets.getById({
                         streetId: seg.alternateStreetIds[i],
                     });
                     if (altStreet !== null) {
@@ -1943,7 +1945,7 @@ function rsaInit() {
         }
         // let oldStateName = W.model.states.getObjectById(cityID.stateID).attributes.name;
         const state: State | null = stateID !== null ? sdk.DataModel.States.getById({ stateId: stateID }) : null;
-        const stateName: string | null = state === null ? null : state.name;
+        const stateName: string = state === null ? "" : state.name;
         const countryID = city.countryId;
         const candidate: Candidate = isSegmentCandidate(seg, stateName, countryID);
 
@@ -1956,7 +1958,7 @@ function rsaInit() {
 
         // Display shield on map
         function checkDeclutterSettings(seg: Segment): boolean {
-            let result: boolean = false;
+            let result = false;
 
             const zoomLevel = sdk.Map.getZoomLevel();
             if (zoomLevel > MIN_ZOOM_LEVEL) {
@@ -2028,7 +2030,7 @@ function rsaInit() {
     }
 
     // Function written by kpouer to accommodate French conventions of shields being based on alt names
-    function isSegmentCandidate(seg: Segment, stateName: string | null, countryId: number | null) {
+    function isSegmentCandidate(seg: Segment, stateName: string, countryId: number | null) {
         // let street = W.model.streets.getObjectById(segAtt.primaryStreetID);
         let street: Street | null =
             seg.primaryStreetId === null ? null : sdk.DataModel.Streets.getById({ streetId: seg.primaryStreetId });
@@ -2045,13 +2047,13 @@ function rsaInit() {
         return candidate;
     }
 
-    function isStreetCandidate(street: Street | null, stateName: string | null, countryId: number | null): Candidate {
+    function isStreetCandidate(street: Street | null, stateName: string, countryId: number | null): Candidate {
         const info: Candidate = { isCandidate: false, iconID: null };
 
         if (countryId === null || !RoadAbbr[countryId]) {
             return info;
         }
-        if (stateName === null) stateName = "";
+        // if (stateName === null) stateName = "";
 
         //Check to see if the country has states configured in RSA by looking for a key with nothing in it
         const name = street === null ? "" : street.name;
@@ -2105,7 +2107,7 @@ function rsaInit() {
     function isValidShield(seg: Segment | null, iconID: number | null | Set<number>): boolean {
         // let primaryStreet = W.model.streets.getObjectById(segAtt.primaryStreetID);
         if (seg === null || seg.primaryStreetId === null) return false;
-        let primaryStreet: Street | null = sdk.DataModel.Streets.getById({ streetId: seg.primaryStreetId });
+        const primaryStreet: Street | null = sdk.DataModel.Streets.getById({ streetId: seg.primaryStreetId });
         if (
             primaryStreet === null ||
             primaryStreet.signText === null ||
