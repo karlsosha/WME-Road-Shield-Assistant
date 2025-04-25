@@ -20,5 +20,5 @@
     ]
   },
   "exclude": ["node_modules", "releases"],
-  "include": ["./WME-RSA.user.ts", "src/**/*"]
+  "include": ["./*.ts", "src/**/*"]
 }

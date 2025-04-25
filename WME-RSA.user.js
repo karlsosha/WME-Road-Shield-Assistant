@@ -1,3 +1,4 @@
+"use strict";
 // ==UserScript==
 // @name         WME Road Shield Assistant
 // @namespace    https://greasyfork.org/en/users/286957-skidooguy
@@ -12,6 +13,7 @@
 // @require      https://greasyfork.org/scripts/24851-wazewrap/code/WazeWrap.js
 // @require      https://cdn.jsdelivr.net/npm/@turf/turf@7/turf.min.js
 // @require      https://cdn.jsdelivr.net/npm/proj4@2/dist/proj4.min.js
+// @require      RSA.js
 // @grant        none
 // @contributionURL https://github.com/WazeDev/Thank-The-Authors
 // ==/UserScript==
@@ -23,7 +25,7 @@
 // import _ from "underscore";
 // import proj4 from "proj4";
 // import WazeWrap from "https://greasyfork.org/scripts/24851-wazewrap/code/WazeWrap.js";
-import { CountryID } from "./src/RSA";
+// import { CountryID } from "./RSA";
 let sdk;
 window.SDK_INITIALIZED.then(() => {
     if (!window.getWmeSdk) {
