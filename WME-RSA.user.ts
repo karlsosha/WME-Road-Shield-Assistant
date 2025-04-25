@@ -19,12 +19,12 @@
 /* global W */
 /* global WazeWrap */
 
-import type { City, Node, Segment, State, Street, Turn, WmeSDK } from "wme-sdk-typings";
-import type { Point, LineString, Position, Feature } from "geojson";
-import * as turf from "@turf/turf";
-import _ from "underscore";
-import proj4 from "proj4";
-import WazeWrap from "https://greasyfork.org/scripts/24851-wazewrap/code/WazeWrap.js";
+// import type { City, Node, Segment, State, Street, Turn, WmeSDK } from "wme-sdk-typings";
+// import type { Point, LineString, Position, Feature } from "geojson";
+// import * as turf from "@turf/turf";
+// import _ from "underscore";
+// import proj4 from "proj4";
+// import WazeWrap from "https://greasyfork.org/scripts/24851-wazewrap/code/WazeWrap.js";
 
 let sdk: WmeSDK;
 window.SDK_INITIALIZED.then(() => {
