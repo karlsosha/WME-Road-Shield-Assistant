@@ -25,7 +25,7 @@
 // import _ from "underscore";
 // import proj4 from "proj4";
 // import WazeWrap from "https://greasyfork.org/scripts/24851-wazewrap/code/WazeWrap.js";
-import { CountryID } from "./src/RSA";
+// import { CountryID } from "./src/RSA";
 
 let sdk: WmeSDK;
 window.SDK_INITIALIZED.then(() => {
@@ -1397,7 +1397,7 @@ function rsaInit() {
                 processAlternativeSettings();
             });
 
-            if (rsaSettings.titleCase && sdk.DataModel.Countries.getTopCountry()?.id === CountryID.UNITED_STATES) {
+            if (rsaSettings.titleCase && sdk.DataModel.Countries.getTopCountry()?.id === 235) {
                 $("#rsa-container-checkTWD").css("display", "block");
                 $("#rsa-container-checkTTS").css("display", "block");
                 $("#rsa-container-checkVI").css("display", "block");
@@ -1891,15 +1891,15 @@ function rsaInit() {
             });
         }
         // Scan all nodes on screen
-        // if (
-        //   rsaSettings.HighNodeShields ||
-        //   rsaSettings.ShowNodeShields ||
-        //   rsaSettings.titleCase
-        // ) {
-        //   _.each(sdk.DataModel.Nodes.getAll(), (n) => {
-        //     scanNode(n);
-        //   });
-        // }
+        if (
+          rsaSettings.HighNodeShields ||
+          rsaSettings.ShowNodeShields ||
+          rsaSettings.titleCase
+        ) {
+          _.each(sdk.DataModel.Nodes.getAll(), (n) => {
+            scanNode(n);
+          });
+        }
     }
 
     function processSeg(seg: Segment) {
@@ -2009,7 +2009,7 @@ function rsaInit() {
         for (let idx = 0; idx < turns.length; ++idx) {
             const turn = turns[idx];
             // let oldTurn = W.model.getTurnGraph().getTurnThroughNode(node,turn.fromSegmentId,turn.toSegmentId);
-            const turnData = sdk.DataModel.Turns.getById({ turnId: turns[idx].id });
+            const turnData = turn.getTurnData();
             if (!turnData) continue;
             const hasGuidance = turnData.lanes?.guidanceMode();
 
