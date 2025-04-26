@@ -358,6 +358,7 @@ function rsaInit() {
     }
 
     interface RSASettings {
+        [key: string]:  string | number | boolean;
         lastSaveAction: number;
         enableScript: boolean;
         HighSegShields: boolean;
@@ -1562,7 +1563,7 @@ function rsaInit() {
         $(`#${ele}`).prop("checked", status);
     }
 
-    function setValue(ele: string, value: any) {
+    function setValue(ele: string, value: string) {
         const inputElem = $(`#${ele}`);
         inputElem.attr("value", value);
         // inputElem.css('border', `1px solid ${value}`);
@@ -1716,7 +1717,7 @@ function rsaInit() {
 
         $(".rsa-checkbox").on("change", function () {
             const settingName = $(this)[0].id.substring(4);
-            rsaSettings[settingName as keyof typeof rsaSettings] = this.checked;
+            rsaSettings[settingName as keyof RSASettings] = (this as HTMLInputElement).checked;
 
             // Check to ensure highlight nodes and show node shields don't overlap each other
             // if (settingName = 'ShowNodeShields') {
@@ -1737,7 +1738,7 @@ function rsaInit() {
         });
         $(".rsa-color-input").on("change", function () {
             const settingName: string = $(this)[0].id.substring(4);
-            rsaSettings[settingName as keyof typeof rsaSettings] = this.value;
+            rsaSettings[settingName as keyof RSASettings] = (this as HTMLInputElement).value;
             saveSettings();
             setEleStatus();
             removeHighlights();
@@ -1863,14 +1864,6 @@ function rsaInit() {
             // console.log('RSA: server settings used');
         } else {
             // console.log('RSA: local settings used');
-        }
-
-        // If there is no value set in any of the stored settings then use the default
-        for (const funcProp of Object.keys(defaultSettings)) {
-            if (!rsaSettings.hasOwnProperty(funcProp)) {
-                rsaSettings[funcProp as keyof typeof rsaSettings] =
-                    defaultSettings[funcProp as keyof typeof defaultSettings];
-            }
         }
     }
 
@@ -2513,7 +2506,7 @@ function rsaInit() {
         const lblStart = { x: startPoint.x + labelDistance().label, y: startPoint.y + labelDistance().label };
 
         // Array of points for line connecting node to icons
-        const points = [];
+        const points: GeoJSON.Feature[] = [];
         // Point coords
         // let pointNode = new OpenLayers.Geometry.Point(startPoint.x, startPoint.y);
         const pointNode = turf.point(
@@ -2553,7 +2546,7 @@ function rsaInit() {
 
         sdk.Map.addFeaturesToLayer({ features: points, layerName: rsaMapLayer.layerName });
         const newLine = turf.lineString(
-            [points],
+            [points.map((feature: GeoJSON.Feature) => {return feature.geometry.coordinates})],
             {
                 styleName: "styleNode",
                 style: {
@@ -2729,7 +2722,7 @@ function rsaInit() {
             // Point coords
             // let pointNode = new OpenLayers.Geometry.Point(geo.x, geo.y);
             const pointFeature: Feature = turf.point(
-                geo.coordinates,
+                (geo as Point).coordinates,
                 {
                     styleName: "styleNode",
                     style: {
@@ -2756,10 +2749,9 @@ function rsaInit() {
             // const newFeat =  new OpenLayers.Geometry.LineString(geo.components, {});
             // const newVector = new OpenLayers.Feature.Vector(newFeat, null, style);
             // rsaMapLayer.addFeatures([newVector]);
-            const newLineFeature = {
-                geometry: { type: "LineString", coordinates: geo.coordinates },
-                type: "Feature",
-                properties: {
+            const newLineFeature: Feature = turf.lineString(
+                (geo as LineString).coordinates,
+                {
                     styleName: "segHighlight",
                     style: {
                         strokeColor: color,
@@ -2769,8 +2761,8 @@ function rsaInit() {
                         fillOpacity: 0.75,
                     },
                 },
-                id: `line_${geo}`,
-            };
+                { id: `line_${geo}` }
+            );
             sdk.Map.addFeatureToLayer({ feature: newLineFeature, layerName: rsaMapLayer.layerName });
         }
     }
@@ -2783,7 +2775,7 @@ function rsaInit() {
     function labelDistance(): LabelDistance {
         // Return object with two variables - label is the distance used to place the direction below the icon,
         // space is the space between geo points needed to render another icon
-        let label_distance: LabelDistance = { icon: 0, label: 0, space: 0 };
+        const label_distance: LabelDistance = { icon: 0, label: 0, space: 0 };
         switch (sdk.Map.getZoomLevel()) {
             case ZoomLevel.ZM10:
                 label_distance.label = 18;

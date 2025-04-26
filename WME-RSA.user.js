@@ -1561,7 +1561,7 @@ function rsaInit() {
             $("#rsa-AlternativeShields").on("change", (e) => {
                 processAlternativeSettings();
             });
-            if (rsaSettings.titleCase && sdk.DataModel.Countries.getTopCountry()?.id === CountryID.UNITED_STATES) {
+            if (rsaSettings.titleCase && sdk.DataModel.Countries.getTopCountry()?.id === 235) {
                 $("#rsa-container-checkTWD").css("display", "block");
                 $("#rsa-container-checkTTS").css("display", "block");
                 $("#rsa-container-checkVI").css("display", "block");
@@ -1745,13 +1745,6 @@ function rsaInit() {
         }
         else {
             // console.log('RSA: local settings used');
-        }
-        // If there is no value set in any of the stored settings then use the default
-        for (const funcProp of Object.keys(defaultSettings)) {
-            if (!rsaSettings.hasOwnProperty(funcProp)) {
-                rsaSettings[funcProp] =
-                    defaultSettings[funcProp];
-            }
         }
     }
     async function saveSettings() {
@@ -2349,7 +2342,7 @@ function rsaInit() {
         }, { id: `pointNode_${startPoint.x} ${startPoint.y}` });
         points.push(nodeLabel);
         sdk.Map.addFeaturesToLayer({ features: points, layerName: rsaMapLayer.layerName });
-        const newLine = turf.lineString([points], {
+        const newLine = turf.lineString([points.map((feature) => { return feature.geometry.coordinates; })], {
             styleName: "styleNode",
             style: {
                 strokeColor: rsaSettings.HighNodeClr,
@@ -2520,21 +2513,16 @@ function rsaInit() {
             // const newFeat =  new OpenLayers.Geometry.LineString(geo.components, {});
             // const newVector = new OpenLayers.Feature.Vector(newFeat, null, style);
             // rsaMapLayer.addFeatures([newVector]);
-            const newLineFeature = {
-                geometry: { type: "LineString", coordinates: geo.coordinates },
-                type: "Feature",
-                properties: {
-                    styleName: "segHighlight",
-                    style: {
-                        strokeColor: color,
-                        strokeOpacity: overSized ? 1 : 0.75,
-                        strokeWidth: overSized ? 7 : 4,
-                        fillColor: color,
-                        fillOpacity: 0.75,
-                    },
+            const newLineFeature = turf.lineString(geo.coordinates, {
+                styleName: "segHighlight",
+                style: {
+                    strokeColor: color,
+                    strokeOpacity: overSized ? 1 : 0.75,
+                    strokeWidth: overSized ? 7 : 4,
+                    fillColor: color,
+                    fillOpacity: 0.75,
                 },
-                id: `line_${geo}`,
-            };
+            }, { id: `line_${geo}` });
             sdk.Map.addFeatureToLayer({ feature: newLineFeature, layerName: rsaMapLayer.layerName });
         }
     }
@@ -2545,7 +2533,7 @@ function rsaInit() {
     function labelDistance() {
         // Return object with two variables - label is the distance used to place the direction below the icon,
         // space is the space between geo points needed to render another icon
-        let label_distance = { icon: 0, label: 0, space: 0 };
+        const label_distance = { icon: 0, label: 0, space: 0 };
         switch (sdk.Map.getZoomLevel()) {
             case ZoomLevel.ZM10:
                 label_distance.label = 18;
