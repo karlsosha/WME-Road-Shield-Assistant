@@ -1304,6 +1304,7 @@ function rsaInit() {
                     externalGraphic: "${labelExternalGraphic}",
                     graphicHeight: "${labelGraphicHeight}",
                     graphicWidth: "${labelGraphicWidth}",
+                    fillOpacity: "${nodeStyleFillOpacity}",
                     fontSize: 12,
                     graphicZIndex: 2432,
                 },
@@ -2582,7 +2583,7 @@ function rsaInit() {
                     proj4("EPSG:3857", "EPSG:4326", [xpoint, ypoint]),
                     {
                         styleName: "styleLabel",
-                        style: { sign: q.sign, txt: q.txt, height: q.height, width: q.width },
+                        style: { sign: q.sign, txt: q.txt, height: q.height, width: q.width, fillOpacity: 1 },
                     },
                     { id: `pointLabel_${xpoint.toString()}_${ypoint.toString()}` }
                 );
