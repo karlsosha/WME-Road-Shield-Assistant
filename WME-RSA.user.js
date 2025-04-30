@@ -11,7 +11,7 @@
 // @match        https://beta.waze.com/*/editor*
 // @exclude      https://www.waze.com/user/editor*
 // @require      https://greasyfork.org/scripts/24851-wazewrap/code/WazeWrap.js
-// @require      https://cdn.jsdelivr.net/npm/@turf/turf@7/turf.min.js
+// @require      https://cdn.jsdelivr.net/npm/@turf/turf@7.2.0/turf.min.js
 // @require      https://cdn.jsdelivr.net/npm/proj4@2/dist/proj4.min.js
 // @grant        none
 // @contributionURL https://github.com/WazeDev/Thank-The-Authors
@@ -1987,9 +1987,9 @@ function rsaInit() {
         if (rsaSettings.HighNodeShields ||
             rsaSettings.ShowNodeShields ||
             rsaSettings.titleCase) {
-            _.each(sdk.DataModel.Nodes.getAll(), (n) => {
-                scanNode(n);
-            });
+            //   _.each(sdk.DataModel.Nodes.getAll(), (n) => {
+            //     scanNode(n);
+            //   });
         }
     }
     function processSeg(seg) {
