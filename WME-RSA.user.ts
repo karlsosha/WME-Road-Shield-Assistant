@@ -10,8 +10,8 @@
 // @match        https://beta.waze.com/*/editor*
 // @exclude      https://www.waze.com/user/editor*
 // @require      https://greasyfork.org/scripts/24851-wazewrap/code/WazeWrap.js
-// @require      https://cdn.jsdelivr.net/npm/@turf/turf@7/turf.min.js
-// @require      https://cdn.jsdelivr.net/npm/proj4@2/dist/proj4.min.js
+// @require      https://cdn.jsdelivr.net/npm/@turf/turf@7.2.0/turf.min.js
+// @require      https://cdn.jsdelivr.net/npm/proj4@2.15.0/dist/proj4.min.js
 // @grant        none
 // @contributionURL https://github.com/WazeDev/Thank-The-Authors
 // ==/UserScript==
@@ -1141,7 +1141,7 @@ function rsaInit() {
         // France
         73,
     ]);
-    let BadNames: Street[] = [];
+    let BadNames: (Street| Turn)[] = [];
     let rsaSettings: RSASettings = {
         lastSaveAction: 0,
         enableScript: true,
@@ -1192,8 +1192,8 @@ function rsaInit() {
             },
             labelExternalGraphic: (context) => {
                 const style = context?.feature?.properties?.style;
-                if (!style || !style?.sign || !style?.txt)
-                    return `https://renderer-am.waze.com/renderer/v1/signs/${style.sign}?text=${style.txt}`;
+                if (!style || !style?.sign || !style?.txt) return "";
+                return `https://renderer-am.waze.com/renderer/v1/signs/${style.sign}?text=${style.txt}`;
             },
             labelGraphicHeight: (context) => {
                 return context?.feature?.properties?.style?.height;
@@ -2277,13 +2277,11 @@ function rsaInit() {
         for (let idx = 0; idx < turns.length; ++idx) {
             const turn = turns[idx];
             // let oldTurn = W.model.getTurnGraph().getTurnThroughNode(node,turn.fromSegmentId,turn.toSegmentId);
-            const turnData = turn.getTurnData();
-            if (!turnData) continue;
-            const hasGuidance = turnData.lanes?.guidanceMode();
+            const hasGuidance = turn.hasCustomTTS || turn.hasShieldsPopulated || turn.hasTowardsGuidance || turn.hasTurnGuidance || turn.hasVisualInstruction;
 
             if (hasGuidance) {
                 if (rsaSettings.ShowNodeShields && sdk.Map.getZoomLevel() > ZoomLevel.ZM2)
-                    displayNodeIcons(node, turnData);
+                    displayNodeIcons(node, turn);
 
                 if (rsaSettings.titleCase) {
                     const badName = matchTitleCaseThroughNode(turn);
@@ -2409,7 +2407,7 @@ function rsaInit() {
                     let isDuplicate = false;
                     for (let i = 0; i < BadNames.length; i++) {
                         // if (BadNames[i].type) console.log(BadNames[i].id === street.id);
-                        if (BadNames[i].type && BadNames[i].id === street.id) isDuplicate = true;
+                        if (typeof(BadNames[i]) && BadNames[i].id === street.id) isDuplicate = true;
                     }
                     if (!isDuplicate) BadNames.push(street);
                 }
@@ -2476,41 +2474,26 @@ function rsaInit() {
     }
 
     function displayNodeIcons(node: Node, turnDat: Turn) {
-        const geo = node.geometry.clone();
-        const trnGuid = turnDat.getTurnGuidance();
         const GUIDANCE = {
-            shields: { exists: false, color: "", width: 30, height: 30, sign: "6", txt: "TG" },
-            exitsign: { exists: false, color: "", width: 30, height: 20, sign: "2159", txt: "EX" },
-            tts: { exists: false, color: "", width: 30, height: 30, sign: "7", txt: "TIO" },
-            towards: { exists: false, color: "", width: 30, height: 30, sign: "7", txt: "TW" },
-            visualIn: { exists: false, color: "", width: 30, height: 30, sign: "7", txt: "VI" },
+            shields: { exists: turnDat.hasShieldsPopulated, color: "", width: 30, height: 30, sign: "6", txt: "TG" },
+            exitsign: { exists: turnDat.hasTurnGuidance, color: "", width: 30, height: 20, sign: "2159", txt: "EX" },
+            tts: { exists: turnDat.hasCustomTTS, color: "", width: 30, height: 30, sign: "7", txt: "TIO" },
+            towards: { exists: turnDat.hasTowardsGuidance, color: "", width: 30, height: 30, sign: "7", txt: "TW" },
+            visualIn: { exists: turnDat.hasVisualInstruction, color: "", width: 30, height: 30, sign: "7", txt: "VI" },
         };
         let count = 0;
 
-        GUIDANCE.shields.exists = trnGuid.getRoadShields() !== null;
-        if (rsaSettings.ShowExitShields) {
-            GUIDANCE.exitsign.exists = trnGuid.getExitSigns() !== null && trnGuid.getExitSigns().length > 0;
-        }
-        if (rsaSettings.ShowTurnTTS) {
-            GUIDANCE.tts.exists = trnGuid.getTTS() !== null && trnGuid.getTTS().length > 0;
-        }
-        if (rsaSettings.ShowTowards) {
-            GUIDANCE.towards.exists = trnGuid.getTowards() !== null && trnGuid.getTowards().length > 0;
-        }
-        if (rsaSettings.ShowVisualInst) {
-            GUIDANCE.visualIn.exists =
-                trnGuid.getVisualInstruction() !== null && trnGuid.getVisualInstruction().length > 0;
-        }
-
-        const startPoint = { x: geo.getVertices()[0].x, y: geo.getVertices()[0].y };
+        const pixelPos = proj4("EPSG:4326", "EPSG:3857", node.geometry.coordinates);
+        const startPoint = { x: pixelPos[0], y: pixelPos[1] };
         const lblStart = { x: startPoint.x + labelDistance().label, y: startPoint.y + labelDistance().label };
 
         // Array of points for line connecting node to icons
         const points: GeoJSON.Feature[] = [];
+        const pointCoordinates: GeoJSON.Position[] = [];
         // Point coords
         // let pointNode = new OpenLayers.Geometry.Point(startPoint.x, startPoint.y);
         const pointNode = turf.point(
-            [startPoint.x, startPoint.y],
+            node.geometry.coordinates,
             {
                 styleName: "styleNode",
                 style: {
@@ -2525,10 +2508,11 @@ function rsaInit() {
             { id: `node_${startPoint.x} ${startPoint.y}` }
         );
         points.push(pointNode);
+        pointCoordinates.push(node.geometry.coordinates);
         // Label coords
         // var pointLabel = new OpenLayers.Geometry.Point(lblStart.x, lblStart.y);
         const nodeLabel = turf.point(
-            [startPoint.x, startPoint.y],
+            node.geometry.coordinates,
             {
                 styleName: "styleNode",
                 style: {
@@ -2543,10 +2527,11 @@ function rsaInit() {
             { id: `pointNode_${startPoint.x} ${startPoint.y}` }
         );
         points.push(nodeLabel);
+        pointCoordinates.push(node.geometry.coordinates)
 
         sdk.Map.addFeaturesToLayer({ features: points, layerName: rsaMapLayer.layerName });
         const newLine = turf.lineString(
-            [points.map((feature: GeoJSON.Feature) => {return feature.geometry.coordinates})],
+            pointCoordinates,
             {
                 styleName: "styleNode",
                 style: {
@@ -2594,7 +2579,7 @@ function rsaInit() {
                 // let pointLabel = new OpenLayers.Geometry.Point(xpoint, ypoint);
                 // labelFeat = new OpenLayers.Feature.Vector(pointLabel, null, styleLabel);
                 const pointLabelFeature = turf.point(
-                    [xpoint, ypoint],
+                    proj4("EPSG:3857", "EPSG:4326", [xpoint, ypoint]),
                     {
                         styleName: "styleLabel",
                         style: { sign: q.sign, txt: q.txt, height: q.height, width: q.width },
