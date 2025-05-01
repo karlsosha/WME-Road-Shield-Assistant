@@ -54,284 +54,292 @@ function rsaInit() {
     - Some of the highlighting may be incorrect showing issues when there are none<br><br>`;
 
     enum CountryID {
-        AFGANISTAN= 1,
-        ALBANIA= 2,
-        ALGERIA= 3,
-        AMERICAN_SAMOA= 4,
-        ANDORRA= 5,
-        ANGOLA= 6,
-        ANGUILLA= 7,
-        ANTARCTICA= 8,
-        ANTIGUA_AND_BARBUDA= 9,
-        ARGENTINA= 10,
-        ARMENIA= 11,
-        ARUBA= 12,
-        AUSTRALIA= 13,
-        AUSTRIA= 14,
-        AZERBAIJAN= 15,
-        BAHAMAS= 16,
-        BAHRAIN= 17,
-        BAKER_ISLAND= 18,
-        BANGLADESH= 19,
-        BARBADOS= 20,
-        BELGUIM= 21,
-        BELIZE= 22,
-        BENIN= 23,
-        BERMUDA= 24,
-        BHUTAN= 25,
-        BOLIVIA= 26,
-        BOSNIA_AND_HERZEGOWINA= 27,
-        BOTSWANA= 28,
-        BOUVET_ISLAND= 29,
-        BRAZIL= 30,
-        BRITISH_INDIAN_OCEAN_TERRITORY= 31,
-        BRITISH_VIRGIN_ISLANDS= 32,
-        BRUNEI= 33,
-        BULGARIA= 34,
-        BURKINA_FASO= 35,
-        BURUNDI= 36,
-        BELARUS= 37,
-        CAMBODIA= 38,
-        CAMEROON= 39,
-        CANADA= 40,
-        CAPE_VERDE= 41,
-        CAYMAN_ISLANDS= 42,
-        CENTRAL_AFRICAN_REPUBLIC= 43,
-        CHAD= 44,
-        CHILE= 45,
-        CHINA= 46,
-        CHRISTMAS_ISLAND= 47,
-        COCOS_ISLANDS= 48,
-        KEELING_ISLANDS= 48,
-        COLOMBIA= 49,
-        COMOROS= 50,
-        CONGO= 51,
-        COOK_ISLANDS= 52,
-        COSTA_RICA= 53,
-        CROATIA= 54,
-        CUBA= 55,
-        CYPRUS= 56,
-        CZECH_REPUBLIC= 57,
-        DENMARK= 58,
-        DJIBOUTI= 59,
-        DOMINICA= 60,
-        DOMINICAN_REPUBLIC= 61,
-        ECUADOR= 62,
-        EGYPT= 63,
-        EL_SALVADOR= 64,
-        EQUATORIAL_GUINEA= 65,
-        ERITREA= 66,
-        ESTONIA= 67,
-        ETHIOPIA= 68,
-        FALKLAND_ISLANDS= 69,
-        ISLAS_MALVINAS= 69,
-        FAROE_ISLANDS= 70,
-        MICRONEISA= 71,
-        FIJI= 72,
-        FRNACE= 73,
-        FRENCH_GUIANA= 74,
-        FRENCH_POLYNESIA= 75,
-        FRENCH_SOUTHERN_TERRITORIES= 76,
-        GABON= 77,
-        GAMBIA= 78,
-        GEORGIA= 80,
-        GERMANY= 81,
-        GHANA= 82,
-        GIBRALTAR= 83,
-        GLORIOSO_ISLANDS= 84,
-        GREECE= 85,
-        GREENLAND= 86,
-        GRENADA= 87,
-        GUADELOUPE= 88,
-        GUAM= 89,
-        GUATEMALA= 90,
-        GUERNSEY= 91,
-        GUINEA= 92,
-        GUINEA_BISSAU= 93,
-        GUYANA= 94,
-        HAITI= 95,
-        HEARD_AND_MCDONAL_ISLANDS= 96,
-        HONDURAS= 97,
-        HOWLAND_ISLAND= 98,
-        HUNGARY= 99,
-        ICELAND= 100,
-        INDIA= 101,
-        INDONESIA= 102,
-        IRAN= 103,
-        IRAQ= 104,
-        IRELAND= 105,
-        ITALY= 107,
-        COTE_DIVORE= 108,
-        JAMAICA= 109,
-        JAN_MAYEN= 110,
-        JAPAN= 111,
-        JARVIS_ISLAND= 112,
-        JERSEY= 113,
-        JOHNSTON_ATOLL= 114,
-        JORDAN= 115,
-        JUAN_DE_NOVA_ISLAND= 116,
-        KAZAKHSTAN= 117,
-        KENYA= 118,
-        KIRIBATI= 119,
-        KUWAIT= 120,
-        KYRGYZSTAN= 121,
-        LAOS= 122,
-        LATVIA= 123,
-        LEBANON= 124,
-        LESOTHO= 125,
-        LIBERIA= 126,
-        LIBYA= 127,
-        LIECHTENSTEIN= 128,
-        LITHUANIA= 129,
-        LUXEMBOURG= 130,
-        MACAU= 131,
-        MACEDONIA= 132,
-        MADAGASCAR= 133,
-        MALAWI= 134,
-        MALAYSIA= 135,
-        MALDIVES= 136,
-        MALI= 137,
-        MALTA= 138,
-        ISLE_OF_MAN= 139,
-        MARSHALL_ISLANDS= 140,
-        MARTINIQUE= 141,
-        MAURITANIA= 142,
-        MAURITIUS= 143,
-        MAYOTTE= 144,
-        MEXICO= 145,
-        MIDWAY_ISLAND= 146,
-        MOLDOVA= 147,
-        MONACO= 148,
-        MONGOLIA= 149,
-        MONTENEGRO= 150,
-        MONTSERRAT= 151,
-        MOROCCO= 152,
-        MOZAMBIQUE= 153,
-        MYANMAR= 154,
-        NAMIBIA= 155,
-        NAURU= 156,
-        NEPAL= 157,
-        NETHERLANDS= 158,
-        NEW_CALEDONIA= 159,
-        NEW_ZEALAND= 161,
-        NICARAGUA= 162,
-        NIGER= 163,
-        NIGERIA= 164,
-        NIUE= 165,
-        NORFOLK_ISLAND= 166,
-        NORTHERN_MARIANA_ISLANDS= 167,
-        NORTH_KOREA= 168,
-        KOREA_NORTH= 168,
-        NORWAY= 169,
-        OMAN= 170,
-        PASIFIC_ISLANDS= 171,
-        PALAU= 171,
-        PAKISTAN= 172,
-        PANAMA= 173,
-        PAPUA_NEW_GUINEA= 174,
-        PARACEL_ISLANDS= 175,
-        PARAGUAY= 176,
-        PERU= 177,
-        PHILIPPINES= 178,
-        PITCAIRN_ISLANDS= 179,
-        POLAND= 180,
-        PORTUGAL= 181,
-        PUERTO_RICO= 182,
-        QATAR= 183,
-        REUNION= 184,
-        ROMANIA= 185,
-        RUSSIA= 186,
-        RWANDA= 187,
-        SAN_MARINO= 188,
-        SAO_TOME_AND_PRINCIPE= 189,
-        SAUDI_ARABIA= 190,
-        SENEGAL= 191,
-        SERBIA= 192,
-        SEYCHELLES= 193,
-        SIERRA_LEONE= 194,
-        SINGAPORE= 195,
-        SLOVAKIA= 196,
-        SLOVENIA= 197,
-        SOLOMON_ISLANDS= 198,
-        SOMALIA= 199,
-        SOUTH_AFRICA= 200,
-        SOUTH_GEORGIA_AND_THE_SOUTH_SANDWICH_ISLANDS= 201,
-        SOUTH_GEORGIA= 201,
-        SOUTH_SANDWICH_ISLANDS= 201,
-        SOUTH_KOREA= 202,
-        KOREA_SOUTH= 202,
-        SPAIN= 203,
-        SPRATLY_ISLANDS= 204,
-        SRI_LANKA= 205,
-        ST_MARTIN= 254,
-        SAINT_MARTIN= 254,
-        ST_HELENA= 206,
-        ST_KITTS_AND_NEVIS= 207,
-        ST_LUCIA= 208,
-        ST_PIERRE_AND_MIQUELON= 209,
-        ST_VINCENT_AND_THE_GRENADINES= 210,
-        SUDAN= 211,
-        SURINAME= 212,
-        SVALBARD= 213,
-        SWAZILAND= 214,
-        SWEDEN= 215,
-        SWITZERLAND= 216,
-        SYRIA= 217,
-        TAIWAN= 218,
-        TAJIKISTAN= 219,
-        TANZANIA= 220,
-        THAILAND= 221,
-        TOGO= 222,
-        TOKELAU= 223,
-        TONGA= 224,
-        TRINIDAD_AND_TOBAGO= 225,
-        TUNISIA= 226,
-        TURKEY= 227,
-        TURKMENISTAN= 228,
-        TURKS_AND_CAICOS_ISLANDS= 229,
-        TUVALU= 230,
-        UGANDA= 231,
-        UKRAINE= 232,
-        UNITED_ARAB_EMIRATES= 233,
-        UNITED_KINGDOM= 234,
-        UK= 234,
-        GREAT_BRITAIN= 234,
-        UNITED_STATES= 235,
-        USA= 235,
-        UNITED_STATES_OF_AMERICA= 235,
-        URUGUAY= 236,
-        UZBEKISTAN= 237,
-        VANUATU= 238,
-        VENEZUELA= 239,
-        VIETNAM= 240,
-        US_VIRGIN_ISLANDS= 241,
-        WAKE_ISLAND= 242,
-        WALLIS_AND_FUTUNA= 243,
-        WESTERN_SAHARA= 245,
-        SAMOA= 246,
-        YEMEN= 247,
-        DEMOCRATIC_REPUBLIC_OF_THE_CONGO= 248,
-        DRC= 248,
-        ZAMBIA= 249,
-        ZIMBABWE= 250,
-        FINLAND= 251,
-        CURACAO= 252,
-        BONAIRE_SINT_EUSTATIUS_SABA_ISLAND= 253,
-        BONAIRE= 253,
-        SINT_EUSTATIUS= 253,
-        SABA_ISLAND= 253,
-        SAINT_BARTHELEMY= 255,
-        SAINT_BARTHS= 255,
-        SAINT_BARTS= 255,
-        HONG_KONG= 256,
-        SINT_MAARTEN= 257,
-        TIMOR_LESTE= 258,
-        SOUTH_SUDAN= 259,
+        AFGANISTAN = 1,
+        ALBANIA = 2,
+        ALGERIA = 3,
+        AMERICAN_SAMOA = 4,
+        ANDORRA = 5,
+        ANGOLA = 6,
+        ANGUILLA = 7,
+        ANTARCTICA = 8,
+        ANTIGUA_AND_BARBUDA = 9,
+        ARGENTINA = 10,
+        ARMENIA = 11,
+        ARUBA = 12,
+        AUSTRALIA = 13,
+        AUSTRIA = 14,
+        AZERBAIJAN = 15,
+        BAHAMAS = 16,
+        BAHRAIN = 17,
+        BAKER_ISLAND = 18,
+        BANGLADESH = 19,
+        BARBADOS = 20,
+        BELGUIM = 21,
+        BELIZE = 22,
+        BENIN = 23,
+        BERMUDA = 24,
+        BHUTAN = 25,
+        BOLIVIA = 26,
+        BOSNIA_AND_HERZEGOWINA = 27,
+        BOTSWANA = 28,
+        BOUVET_ISLAND = 29,
+        BRAZIL = 30,
+        BRITISH_INDIAN_OCEAN_TERRITORY = 31,
+        BRITISH_VIRGIN_ISLANDS = 32,
+        BRUNEI = 33,
+        BULGARIA = 34,
+        BURKINA_FASO = 35,
+        BURUNDI = 36,
+        BELARUS = 37,
+        CAMBODIA = 38,
+        CAMEROON = 39,
+        CANADA = 40,
+        CAPE_VERDE = 41,
+        CAYMAN_ISLANDS = 42,
+        CENTRAL_AFRICAN_REPUBLIC = 43,
+        CHAD = 44,
+        CHILE = 45,
+        CHINA = 46,
+        CHRISTMAS_ISLAND = 47,
+        COCOS_ISLANDS = 48,
+        KEELING_ISLANDS = 48,
+        COLOMBIA = 49,
+        COMOROS = 50,
+        CONGO = 51,
+        COOK_ISLANDS = 52,
+        COSTA_RICA = 53,
+        CROATIA = 54,
+        CUBA = 55,
+        CYPRUS = 56,
+        CZECH_REPUBLIC = 57,
+        DENMARK = 58,
+        DJIBOUTI = 59,
+        DOMINICA = 60,
+        DOMINICAN_REPUBLIC = 61,
+        ECUADOR = 62,
+        EGYPT = 63,
+        EL_SALVADOR = 64,
+        EQUATORIAL_GUINEA = 65,
+        ERITREA = 66,
+        ESTONIA = 67,
+        ETHIOPIA = 68,
+        FALKLAND_ISLANDS = 69,
+        ISLAS_MALVINAS = 69,
+        FAROE_ISLANDS = 70,
+        MICRONEISA = 71,
+        FIJI = 72,
+        FRNACE = 73,
+        FRENCH_GUIANA = 74,
+        FRENCH_POLYNESIA = 75,
+        FRENCH_SOUTHERN_TERRITORIES = 76,
+        GABON = 77,
+        GAMBIA = 78,
+        GEORGIA = 80,
+        GERMANY = 81,
+        GHANA = 82,
+        GIBRALTAR = 83,
+        GLORIOSO_ISLANDS = 84,
+        GREECE = 85,
+        GREENLAND = 86,
+        GRENADA = 87,
+        GUADELOUPE = 88,
+        GUAM = 89,
+        GUATEMALA = 90,
+        GUERNSEY = 91,
+        GUINEA = 92,
+        GUINEA_BISSAU = 93,
+        GUYANA = 94,
+        HAITI = 95,
+        HEARD_AND_MCDONAL_ISLANDS = 96,
+        HONDURAS = 97,
+        HOWLAND_ISLAND = 98,
+        HUNGARY = 99,
+        ICELAND = 100,
+        INDIA = 101,
+        INDONESIA = 102,
+        IRAN = 103,
+        IRAQ = 104,
+        IRELAND = 105,
+        ITALY = 107,
+        COTE_DIVORE = 108,
+        JAMAICA = 109,
+        JAN_MAYEN = 110,
+        JAPAN = 111,
+        JARVIS_ISLAND = 112,
+        JERSEY = 113,
+        JOHNSTON_ATOLL = 114,
+        JORDAN = 115,
+        JUAN_DE_NOVA_ISLAND = 116,
+        KAZAKHSTAN = 117,
+        KENYA = 118,
+        KIRIBATI = 119,
+        KUWAIT = 120,
+        KYRGYZSTAN = 121,
+        LAOS = 122,
+        LATVIA = 123,
+        LEBANON = 124,
+        LESOTHO = 125,
+        LIBERIA = 126,
+        LIBYA = 127,
+        LIECHTENSTEIN = 128,
+        LITHUANIA = 129,
+        LUXEMBOURG = 130,
+        MACAU = 131,
+        MACEDONIA = 132,
+        MADAGASCAR = 133,
+        MALAWI = 134,
+        MALAYSIA = 135,
+        MALDIVES = 136,
+        MALI = 137,
+        MALTA = 138,
+        ISLE_OF_MAN = 139,
+        MARSHALL_ISLANDS = 140,
+        MARTINIQUE = 141,
+        MAURITANIA = 142,
+        MAURITIUS = 143,
+        MAYOTTE = 144,
+        MEXICO = 145,
+        MIDWAY_ISLAND = 146,
+        MOLDOVA = 147,
+        MONACO = 148,
+        MONGOLIA = 149,
+        MONTENEGRO = 150,
+        MONTSERRAT = 151,
+        MOROCCO = 152,
+        MOZAMBIQUE = 153,
+        MYANMAR = 154,
+        NAMIBIA = 155,
+        NAURU = 156,
+        NEPAL = 157,
+        NETHERLANDS = 158,
+        NEW_CALEDONIA = 159,
+        NEW_ZEALAND = 161,
+        NICARAGUA = 162,
+        NIGER = 163,
+        NIGERIA = 164,
+        NIUE = 165,
+        NORFOLK_ISLAND = 166,
+        NORTHERN_MARIANA_ISLANDS = 167,
+        NORTH_KOREA = 168,
+        KOREA_NORTH = 168,
+        NORWAY = 169,
+        OMAN = 170,
+        PASIFIC_ISLANDS = 171,
+        PALAU = 171,
+        PAKISTAN = 172,
+        PANAMA = 173,
+        PAPUA_NEW_GUINEA = 174,
+        PARACEL_ISLANDS = 175,
+        PARAGUAY = 176,
+        PERU = 177,
+        PHILIPPINES = 178,
+        PITCAIRN_ISLANDS = 179,
+        POLAND = 180,
+        PORTUGAL = 181,
+        PUERTO_RICO = 182,
+        QATAR = 183,
+        REUNION = 184,
+        ROMANIA = 185,
+        RUSSIA = 186,
+        RWANDA = 187,
+        SAN_MARINO = 188,
+        SAO_TOME_AND_PRINCIPE = 189,
+        SAUDI_ARABIA = 190,
+        SENEGAL = 191,
+        SERBIA = 192,
+        SEYCHELLES = 193,
+        SIERRA_LEONE = 194,
+        SINGAPORE = 195,
+        SLOVAKIA = 196,
+        SLOVENIA = 197,
+        SOLOMON_ISLANDS = 198,
+        SOMALIA = 199,
+        SOUTH_AFRICA = 200,
+        SOUTH_GEORGIA_AND_THE_SOUTH_SANDWICH_ISLANDS = 201,
+        SOUTH_GEORGIA = 201,
+        SOUTH_SANDWICH_ISLANDS = 201,
+        SOUTH_KOREA = 202,
+        KOREA_SOUTH = 202,
+        SPAIN = 203,
+        SPRATLY_ISLANDS = 204,
+        SRI_LANKA = 205,
+        ST_MARTIN = 254,
+        SAINT_MARTIN = 254,
+        ST_HELENA = 206,
+        ST_KITTS_AND_NEVIS = 207,
+        ST_LUCIA = 208,
+        ST_PIERRE_AND_MIQUELON = 209,
+        ST_VINCENT_AND_THE_GRENADINES = 210,
+        SUDAN = 211,
+        SURINAME = 212,
+        SVALBARD = 213,
+        SWAZILAND = 214,
+        SWEDEN = 215,
+        SWITZERLAND = 216,
+        SYRIA = 217,
+        TAIWAN = 218,
+        TAJIKISTAN = 219,
+        TANZANIA = 220,
+        THAILAND = 221,
+        TOGO = 222,
+        TOKELAU = 223,
+        TONGA = 224,
+        TRINIDAD_AND_TOBAGO = 225,
+        TUNISIA = 226,
+        TURKEY = 227,
+        TURKMENISTAN = 228,
+        TURKS_AND_CAICOS_ISLANDS = 229,
+        TUVALU = 230,
+        UGANDA = 231,
+        UKRAINE = 232,
+        UNITED_ARAB_EMIRATES = 233,
+        UNITED_KINGDOM = 234,
+        UK = 234,
+        GREAT_BRITAIN = 234,
+        UNITED_STATES = 235,
+        USA = 235,
+        UNITED_STATES_OF_AMERICA = 235,
+        URUGUAY = 236,
+        UZBEKISTAN = 237,
+        VANUATU = 238,
+        VENEZUELA = 239,
+        VIETNAM = 240,
+        US_VIRGIN_ISLANDS = 241,
+        WAKE_ISLAND = 242,
+        WALLIS_AND_FUTUNA = 243,
+        WESTERN_SAHARA = 245,
+        SAMOA = 246,
+        YEMEN = 247,
+        DEMOCRATIC_REPUBLIC_OF_THE_CONGO = 248,
+        DRC = 248,
+        ZAMBIA = 249,
+        ZIMBABWE = 250,
+        FINLAND = 251,
+        CURACAO = 252,
+        BONAIRE_SINT_EUSTATIUS_SABA_ISLAND = 253,
+        BONAIRE = 253,
+        SINT_EUSTATIUS = 253,
+        SABA_ISLAND = 253,
+        SAINT_BARTHELEMY = 255,
+        SAINT_BARTHS = 255,
+        SAINT_BARTS = 255,
+        HONG_KONG = 256,
+        SINT_MAARTEN = 257,
+        TIMOR_LESTE = 258,
+        SOUTH_SUDAN = 259,
     }
-    
+
     interface Coordinates {
         x: number | null | undefined;
         y: number | null | undefined;
+    }
+
+    interface GuidanceInterface {
+        shield: boolean;
+        exit: boolean;
+        tts: boolean;
+        towards: boolean;
+        visual: boolean;
     }
 
     const MIN_ZOOM_LEVEL: number = 14;
@@ -358,7 +366,7 @@ function rsaInit() {
     }
 
     interface RSASettings {
-        [key: string]:  string | number | boolean;
+        [key: string]: string | number | boolean;
         lastSaveAction: number;
         enableScript: boolean;
         HighSegShields: boolean;
@@ -1141,7 +1149,7 @@ function rsaInit() {
         // France
         73,
     ]);
-    let BadNames: (Street| Turn)[] = [];
+    let BadNames: (Street | Turn)[] = [];
     let rsaSettings: RSASettings = {
         lastSaveAction: 0,
         enableScript: true,
@@ -2155,19 +2163,16 @@ function rsaInit() {
             // _.each(W.model.segments.getObjectArray(), s => {
             //     scanSeg(s);
             // }
-            _.each(sdk.DataModel.Segments.getAll(), (s) => {
+            for (const s of sdk.DataModel.Segments.getAll()) {
                 scanSeg(s);
-            });
+            }
         }
         // Scan all nodes on screen
-        if (
-          rsaSettings.HighNodeShields ||
-          rsaSettings.ShowNodeShields ||
-          rsaSettings.titleCase
-        ) {
-        //   _.each(sdk.DataModel.Nodes.getAll(), (n) => {
-        //     scanNode(n);
-        //   });
+        if (rsaSettings.HighNodeShields || rsaSettings.ShowNodeShields || rsaSettings.titleCase) {
+            const nodeSet: Set<Node> = new Set<Node>(sdk.DataModel.Nodes.getAll());
+            for (const n of nodeSet) {
+                scanNode(n);
+            }
         }
     }
 
@@ -2274,26 +2279,38 @@ function rsaInit() {
 
     function processNode(node: Node | null) {
         if (node === null) return;
+        const guidance: GuidanceInterface = {
+            tts: false,
+            visual: false,
+            exit: false,
+            shield: false,
+            towards: false,
+        };
         const turns = sdk.DataModel.Turns.getTurnsThroughNode({ nodeId: node.id });
         for (let idx = 0; idx < turns.length; ++idx) {
             const turn = turns[idx];
             // let oldTurn = W.model.getTurnGraph().getTurnThroughNode(node,turn.fromSegmentId,turn.toSegmentId);
-            const hasGuidance = turn.hasCustomTTS || turn.hasShieldsPopulated || turn.hasTowardsGuidance || turn.hasTurnGuidance || turn.hasVisualInstruction;
+            guidance.tts = guidance.tts || turn.hasCustomTTS;
+            guidance.shield = guidance.shield || turn.hasShieldsPopulated;
+            guidance.towards = guidance.towards || turn.hasTowardsGuidance;
+            guidance.visual = guidance.visual || turn.hasVisualInstruction;
 
-            if (hasGuidance) {
-                if (rsaSettings.ShowNodeShields && sdk.Map.getZoomLevel() > ZoomLevel.ZM2)
-                    displayNodeIcons(node, turn);
-
-                if (rsaSettings.titleCase) {
-                    const badName = matchTitleCaseThroughNode(turn);
-                    if (badName.isBad) {
-                        const color = badName.softIssue ? rsaSettings.TitleCaseSftClr : rsaSettings.TitleCaseClr;
-                        createHighlight(node, color, true);
-                        // autoFixButton();
-                    }
+            if (rsaSettings.titleCase) {
+                const badName = matchTitleCaseThroughNode(turn);
+                if (badName.isBad) {
+                    const color = badName.softIssue ? rsaSettings.TitleCaseSftClr : rsaSettings.TitleCaseClr;
+                    createHighlight(node, color, true);
+                    // autoFixButton();
                 }
             }
         }
+
+        if (
+            rsaSettings.ShowNodeShields &&
+            sdk.Map.getZoomLevel() > ZoomLevel.ZM2 &&
+            (guidance.exit || guidance.tts || guidance.shield || guidance.visual || guidance.towards)
+        )
+            displayNodeIcons(node, guidance);
     }
 
     // Function written by kpouer to accommodate French conventions of shields being based on alt names
@@ -2408,7 +2425,7 @@ function rsaInit() {
                     let isDuplicate = false;
                     for (let i = 0; i < BadNames.length; i++) {
                         // if (BadNames[i].type) console.log(BadNames[i].id === street.id);
-                        if (typeof(BadNames[i]) && BadNames[i].id === street.id) isDuplicate = true;
+                        if (typeof BadNames[i] && BadNames[i].id === street.id) isDuplicate = true;
                     }
                     if (!isDuplicate) BadNames.push(street);
                 }
@@ -2418,13 +2435,15 @@ function rsaInit() {
     }
 
     function matchTitleCaseThroughNode(turn: Turn) {
-        const turnData = turn.getTurnData();
+        const info = { isBad: false, softIssue: false };
+
+        return info;
+
         const turnGuid = turnData.getTurnGuidance();
         const shields = turnGuid.getRoadShields();
         const twd = turnGuid.getTowards();
         const tts = turnGuid.getTTS();
         const VI = turnGuid.getVisualInstruction();
-        let info = { isBad: false, softIssue: false };
 
         function checkText(txt: string | null, isSoft = false) {
             if (txt !== "" && txt !== null) {
@@ -2474,19 +2493,19 @@ function rsaInit() {
         return info;
     }
 
-    function displayNodeIcons(node: Node, turnDat: Turn) {
+    function displayNodeIcons(node: Node, guidance: GuidanceInterface) {
         const GUIDANCE = {
-            shields: { exists: turnDat.hasShieldsPopulated, color: "", width: 30, height: 30, sign: "6", txt: "TG" },
-            exitsign: { exists: turnDat.hasTurnGuidance, color: "", width: 30, height: 20, sign: "2159", txt: "EX" },
-            tts: { exists: turnDat.hasCustomTTS, color: "", width: 30, height: 30, sign: "7", txt: "TIO" },
-            towards: { exists: turnDat.hasTowardsGuidance, color: "", width: 30, height: 30, sign: "7", txt: "TW" },
-            visualIn: { exists: turnDat.hasVisualInstruction, color: "", width: 30, height: 30, sign: "7", txt: "VI" },
+            shields: { exists: guidance.shield, color: "", width: 30, height: 30, sign: "6", txt: "TG" },
+            exitsign: { exists: guidance.exit, color: "", width: 30, height: 20, sign: "2159", txt: "EX" },
+            tts: { exists: guidance.tts, color: "", width: 30, height: 30, sign: "7", txt: "TIO" },
+            towards: { exists: guidance.towards, color: "", width: 30, height: 30, sign: "7", txt: "TW" },
+            visualIn: { exists: guidance.visual, color: "", width: 30, height: 30, sign: "7", txt: "VI" },
         };
         let count = 0;
 
         const pixelPos = proj4("EPSG:4326", "EPSG:3857", node.geometry.coordinates);
         const startPoint = { x: pixelPos[0], y: pixelPos[1] };
-        const lblStart = { x: startPoint.x + labelDistance().label, y: startPoint.y + labelDistance().label };
+        const lblStart = { x: startPoint.x - labelDistance().label, y: startPoint.y + labelDistance().label };
 
         // Array of points for line connecting node to icons
         const points: GeoJSON.Feature[] = [];
@@ -2528,7 +2547,7 @@ function rsaInit() {
             { id: `pointNode_${startPoint.x} ${startPoint.y}` }
         );
         points.push(nodeLabel);
-        pointCoordinates.push(node.geometry.coordinates)
+        pointCoordinates.push(node.geometry.coordinates);
 
         sdk.Map.addFeaturesToLayer({ features: points, layerName: rsaMapLayer.layerName });
         const newLine = turf.lineString(
@@ -2682,7 +2701,7 @@ function rsaInit() {
                                     graphicWidth: width,
                                     graphicHeight: height,
                                     label: shieldDir !== null ? shieldDir : "",
-                                    labelYOffset: shieldDir !== null ? -1 * labelDis.label : 0,
+                                    labelYOffset: shieldDir !== null ? -20 : 0,
                                 },
                             },
                             { id: `shield_${centerparam.x.toString()}_${centerparam.y.toString()}` }
@@ -2764,52 +2783,52 @@ function rsaInit() {
         const label_distance: LabelDistance = { icon: 0, label: 0, space: 0 };
         switch (sdk.Map.getZoomLevel()) {
             case ZoomLevel.ZM10:
-                label_distance.label = 18;
-                label_distance.space = 20;
+                label_distance.label = 2;
+                label_distance.space = 30;
                 label_distance.icon = 1.1;
                 break;
             case ZoomLevel.ZM9:
-                label_distance.label = 18;
-                label_distance.space = 20;
+                label_distance.label = 4;
+                label_distance.space = 30;
                 label_distance.icon = 2.2;
                 break;
             case ZoomLevel.ZM8:
-                label_distance.label = 18;
-                label_distance.space = 20;
+                label_distance.label = 8;
+                label_distance.space = 30;
                 label_distance.icon = 4.5;
                 break;
             case ZoomLevel.ZM7:
-                label_distance.label = 18;
-                label_distance.space = 20;
+                label_distance.label = 14;
+                label_distance.space = 30;
                 label_distance.icon = 8.3;
                 break;
             case ZoomLevel.ZM6:
-                label_distance.label = 18;
+                label_distance.label = 28;
                 label_distance.space = 30;
                 label_distance.icon = 17;
                 break;
             case ZoomLevel.ZM5:
-                label_distance.label = 18;
+                label_distance.label = 50;
                 label_distance.space = 30;
                 label_distance.icon = 34;
                 break;
             case ZoomLevel.ZM4:
-                label_distance.label = 18;
+                label_distance.label = 100;
                 label_distance.space = 40;
                 label_distance.icon = 68;
                 break;
             case ZoomLevel.ZM3:
-                label_distance.label = 18;
+                label_distance.label = 300;
                 label_distance.space = 70;
                 label_distance.icon = 140;
                 break;
             case ZoomLevel.ZM2:
-                label_distance.label = 18;
+                label_distance.label = 300;
                 label_distance.space = 200;
                 label_distance.icon = 140;
                 break;
             case ZoomLevel.ZM1:
-                label_distance.label = 18;
+                label_distance.label = 300;
                 label_distance.space = 250;
                 label_distance.icon = 140;
                 break;

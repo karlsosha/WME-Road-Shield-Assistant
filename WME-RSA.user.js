@@ -1981,17 +1981,16 @@ function rsaInit() {
             // _.each(W.model.segments.getObjectArray(), s => {
             //     scanSeg(s);
             // }
-            _.each(sdk.DataModel.Segments.getAll(), (s) => {
+            for (const s of sdk.DataModel.Segments.getAll()) {
                 scanSeg(s);
-            });
+            }
         }
         // Scan all nodes on screen
-        if (rsaSettings.HighNodeShields ||
-            rsaSettings.ShowNodeShields ||
-            rsaSettings.titleCase) {
-            //   _.each(sdk.DataModel.Nodes.getAll(), (n) => {
-            //     scanNode(n);
-            //   });
+        if (rsaSettings.HighNodeShields || rsaSettings.ShowNodeShields || rsaSettings.titleCase) {
+            const nodeSet = new Set(sdk.DataModel.Nodes.getAll());
+            for (const n of nodeSet) {
+                scanNode(n);
+            }
         }
     }
     function processSeg(seg) {
@@ -2097,24 +2096,34 @@ function rsaInit() {
     function processNode(node) {
         if (node === null)
             return;
+        const guidance = {
+            tts: false,
+            visual: false,
+            exit: false,
+            shield: false,
+            towards: false,
+        };
         const turns = sdk.DataModel.Turns.getTurnsThroughNode({ nodeId: node.id });
         for (let idx = 0; idx < turns.length; ++idx) {
             const turn = turns[idx];
             // let oldTurn = W.model.getTurnGraph().getTurnThroughNode(node,turn.fromSegmentId,turn.toSegmentId);
-            const hasGuidance = turn.hasCustomTTS || turn.hasShieldsPopulated || turn.hasTowardsGuidance || turn.hasTurnGuidance || turn.hasVisualInstruction;
-            if (hasGuidance) {
-                if (rsaSettings.ShowNodeShields && sdk.Map.getZoomLevel() > ZoomLevel.ZM2)
-                    displayNodeIcons(node, turn);
-                if (rsaSettings.titleCase) {
-                    const badName = matchTitleCaseThroughNode(turn);
-                    if (badName.isBad) {
-                        const color = badName.softIssue ? rsaSettings.TitleCaseSftClr : rsaSettings.TitleCaseClr;
-                        createHighlight(node, color, true);
-                        // autoFixButton();
-                    }
+            guidance.tts = guidance.tts || turn.hasCustomTTS;
+            guidance.shield = guidance.shield || turn.hasShieldsPopulated;
+            guidance.towards = guidance.towards || turn.hasTowardsGuidance;
+            guidance.visual = guidance.visual || turn.hasVisualInstruction;
+            if (rsaSettings.titleCase) {
+                const badName = matchTitleCaseThroughNode(turn);
+                if (badName.isBad) {
+                    const color = badName.softIssue ? rsaSettings.TitleCaseSftClr : rsaSettings.TitleCaseClr;
+                    createHighlight(node, color, true);
+                    // autoFixButton();
                 }
             }
         }
+        if (rsaSettings.ShowNodeShields &&
+            sdk.Map.getZoomLevel() > ZoomLevel.ZM2 &&
+            (guidance.exit || guidance.tts || guidance.shield || guidance.visual || guidance.towards))
+            displayNodeIcons(node, guidance);
     }
     // Function written by kpouer to accommodate French conventions of shields being based on alt names
     function isSegmentCandidate(seg, stateName, countryId) {
@@ -2212,7 +2221,7 @@ function rsaInit() {
                     let isDuplicate = false;
                     for (let i = 0; i < BadNames.length; i++) {
                         // if (BadNames[i].type) console.log(BadNames[i].id === street.id);
-                        if (typeof (BadNames[i]) && BadNames[i].id === street.id)
+                        if (typeof BadNames[i] && BadNames[i].id === street.id)
                             isDuplicate = true;
                     }
                     if (!isDuplicate)
@@ -2223,13 +2232,13 @@ function rsaInit() {
         return isBad;
     }
     function matchTitleCaseThroughNode(turn) {
-        const turnData = turn.getTurnData();
+        const info = { isBad: false, softIssue: false };
+        return info;
         const turnGuid = turnData.getTurnGuidance();
         const shields = turnGuid.getRoadShields();
         const twd = turnGuid.getTowards();
         const tts = turnGuid.getTTS();
         const VI = turnGuid.getVisualInstruction();
-        let info = { isBad: false, softIssue: false };
         function checkText(txt, isSoft = false) {
             if (txt !== "" && txt !== null) {
                 if (txt.match(/\b(north|south|east|west)\b/i) != null) {
@@ -2283,18 +2292,18 @@ function rsaInit() {
             BadNames.push(turn);
         return info;
     }
-    function displayNodeIcons(node, turnDat) {
+    function displayNodeIcons(node, guidance) {
         const GUIDANCE = {
-            shields: { exists: turnDat.hasShieldsPopulated, color: "", width: 30, height: 30, sign: "6", txt: "TG" },
-            exitsign: { exists: turnDat.hasTurnGuidance, color: "", width: 30, height: 20, sign: "2159", txt: "EX" },
-            tts: { exists: turnDat.hasCustomTTS, color: "", width: 30, height: 30, sign: "7", txt: "TIO" },
-            towards: { exists: turnDat.hasTowardsGuidance, color: "", width: 30, height: 30, sign: "7", txt: "TW" },
-            visualIn: { exists: turnDat.hasVisualInstruction, color: "", width: 30, height: 30, sign: "7", txt: "VI" },
+            shields: { exists: guidance.shield, color: "", width: 30, height: 30, sign: "6", txt: "TG" },
+            exitsign: { exists: guidance.exit, color: "", width: 30, height: 20, sign: "2159", txt: "EX" },
+            tts: { exists: guidance.tts, color: "", width: 30, height: 30, sign: "7", txt: "TIO" },
+            towards: { exists: guidance.towards, color: "", width: 30, height: 30, sign: "7", txt: "TW" },
+            visualIn: { exists: guidance.visual, color: "", width: 30, height: 30, sign: "7", txt: "VI" },
         };
         let count = 0;
         const pixelPos = proj4("EPSG:4326", "EPSG:3857", node.geometry.coordinates);
         const startPoint = { x: pixelPos[0], y: pixelPos[1] };
-        const lblStart = { x: startPoint.x + labelDistance().label, y: startPoint.y + labelDistance().label };
+        const lblStart = { x: startPoint.x - labelDistance().label, y: startPoint.y + labelDistance().label };
         // Array of points for line connecting node to icons
         const points = [];
         const pointCoordinates = [];
@@ -2454,7 +2463,7 @@ function rsaInit() {
                                 graphicWidth: width,
                                 graphicHeight: height,
                                 label: shieldDir !== null ? shieldDir : "",
-                                labelYOffset: shieldDir !== null ? -1 * labelDis.label : 0,
+                                labelYOffset: shieldDir !== null ? -20 : 0,
                             },
                         }, { id: `shield_${centerparam.x.toString()}_${centerparam.y.toString()}` });
                         // Shield icon style
@@ -2523,52 +2532,52 @@ function rsaInit() {
         const label_distance = { icon: 0, label: 0, space: 0 };
         switch (sdk.Map.getZoomLevel()) {
             case ZoomLevel.ZM10:
-                label_distance.label = 18;
-                label_distance.space = 20;
+                label_distance.label = 2;
+                label_distance.space = 30;
                 label_distance.icon = 1.1;
                 break;
             case ZoomLevel.ZM9:
-                label_distance.label = 18;
-                label_distance.space = 20;
+                label_distance.label = 4;
+                label_distance.space = 30;
                 label_distance.icon = 2.2;
                 break;
             case ZoomLevel.ZM8:
-                label_distance.label = 18;
-                label_distance.space = 20;
+                label_distance.label = 8;
+                label_distance.space = 30;
                 label_distance.icon = 4.5;
                 break;
             case ZoomLevel.ZM7:
-                label_distance.label = 18;
-                label_distance.space = 20;
+                label_distance.label = 14;
+                label_distance.space = 30;
                 label_distance.icon = 8.3;
                 break;
             case ZoomLevel.ZM6:
-                label_distance.label = 18;
+                label_distance.label = 28;
                 label_distance.space = 30;
                 label_distance.icon = 17;
                 break;
             case ZoomLevel.ZM5:
-                label_distance.label = 18;
+                label_distance.label = 50;
                 label_distance.space = 30;
                 label_distance.icon = 34;
                 break;
             case ZoomLevel.ZM4:
-                label_distance.label = 18;
+                label_distance.label = 100;
                 label_distance.space = 40;
                 label_distance.icon = 68;
                 break;
             case ZoomLevel.ZM3:
-                label_distance.label = 18;
+                label_distance.label = 300;
                 label_distance.space = 70;
                 label_distance.icon = 140;
                 break;
             case ZoomLevel.ZM2:
-                label_distance.label = 18;
+                label_distance.label = 300;
                 label_distance.space = 200;
                 label_distance.icon = 140;
                 break;
             case ZoomLevel.ZM1:
-                label_distance.label = 18;
+                label_distance.label = 300;
                 label_distance.space = 250;
                 label_distance.icon = 140;
                 break;
