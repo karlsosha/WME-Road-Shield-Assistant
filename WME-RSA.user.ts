@@ -1,4 +1,3 @@
-"use strict";
 // ==UserScript==
 // @name         WME Road Shield Assistant
 // @namespace    https://greasyfork.org/en/users/286957-skidooguy
@@ -16,23 +15,28 @@
 // @grant        none
 // @contributionURL https://github.com/WazeDev/Thank-The-Authors
 // ==/UserScript==
+
 /* global W */
 /* global WazeWrap */
+
 // import type { City, Node, Segment, State, Street, Turn, WmeSDK } from "wme-sdk-typings";
 // import type { Point, LineString, Position, Feature } from "geojson";
 // import * as turf from "@turf/turf";
 // import _ from "underscore";
 // import proj4 from "proj4";
 // import WazeWrap from "https://greasyfork.org/scripts/24851-wazewrap/code/WazeWrap.js";
-let sdk;
+
+let sdk: WmeSDK;
 window.SDK_INITIALIZED.then(() => {
     if (!window.getWmeSdk) {
         throw new Error("SDK is not installed");
     }
     sdk = window.getWmeSdk({ scriptId: "wme-road-shield-assistant", scriptName: "WME Road Shield Assistant" });
+
     console.log(`SDK v ${sdk.getSDKVersion()} on ${sdk.getWMEVersion()} initialized`);
     sdk.Events.once({ eventName: "wme-ready" }).then(rsaInit);
 });
+
 function rsaInit() {
     if (!WazeWrap.Ready) {
         setTimeout(() => {
@@ -40,6 +44,7 @@ function rsaInit() {
         }, 100);
         return;
     }
+
     const GF_LINK = "https://greasyfork.org/en/scripts/425050-wme-road-shield-assisstant";
     const FORUM_LINK = "https://www.waze.com/discuss/t/script-road-shield-assistant-rsa/227100";
     const RSA_UPDATE_NOTES = `<b>NEW:</b><br>
@@ -47,298 +52,363 @@ function rsaInit() {
 <b>KNOWN ISSUES:</b><br>
     - Shields for Turns currently unavailable through SDK<br>
     - Some of the highlighting may be incorrect showing issues when there are none<br><br>`;
-    let CountryID;
-    (function (CountryID) {
-        CountryID[CountryID["AFGANISTAN"] = 1] = "AFGANISTAN";
-        CountryID[CountryID["ALBANIA"] = 2] = "ALBANIA";
-        CountryID[CountryID["ALGERIA"] = 3] = "ALGERIA";
-        CountryID[CountryID["AMERICAN_SAMOA"] = 4] = "AMERICAN_SAMOA";
-        CountryID[CountryID["ANDORRA"] = 5] = "ANDORRA";
-        CountryID[CountryID["ANGOLA"] = 6] = "ANGOLA";
-        CountryID[CountryID["ANGUILLA"] = 7] = "ANGUILLA";
-        CountryID[CountryID["ANTARCTICA"] = 8] = "ANTARCTICA";
-        CountryID[CountryID["ANTIGUA_AND_BARBUDA"] = 9] = "ANTIGUA_AND_BARBUDA";
-        CountryID[CountryID["ARGENTINA"] = 10] = "ARGENTINA";
-        CountryID[CountryID["ARMENIA"] = 11] = "ARMENIA";
-        CountryID[CountryID["ARUBA"] = 12] = "ARUBA";
-        CountryID[CountryID["AUSTRALIA"] = 13] = "AUSTRALIA";
-        CountryID[CountryID["AUSTRIA"] = 14] = "AUSTRIA";
-        CountryID[CountryID["AZERBAIJAN"] = 15] = "AZERBAIJAN";
-        CountryID[CountryID["BAHAMAS"] = 16] = "BAHAMAS";
-        CountryID[CountryID["BAHRAIN"] = 17] = "BAHRAIN";
-        CountryID[CountryID["BAKER_ISLAND"] = 18] = "BAKER_ISLAND";
-        CountryID[CountryID["BANGLADESH"] = 19] = "BANGLADESH";
-        CountryID[CountryID["BARBADOS"] = 20] = "BARBADOS";
-        CountryID[CountryID["BELGUIM"] = 21] = "BELGUIM";
-        CountryID[CountryID["BELIZE"] = 22] = "BELIZE";
-        CountryID[CountryID["BENIN"] = 23] = "BENIN";
-        CountryID[CountryID["BERMUDA"] = 24] = "BERMUDA";
-        CountryID[CountryID["BHUTAN"] = 25] = "BHUTAN";
-        CountryID[CountryID["BOLIVIA"] = 26] = "BOLIVIA";
-        CountryID[CountryID["BOSNIA_AND_HERZEGOWINA"] = 27] = "BOSNIA_AND_HERZEGOWINA";
-        CountryID[CountryID["BOTSWANA"] = 28] = "BOTSWANA";
-        CountryID[CountryID["BOUVET_ISLAND"] = 29] = "BOUVET_ISLAND";
-        CountryID[CountryID["BRAZIL"] = 30] = "BRAZIL";
-        CountryID[CountryID["BRITISH_INDIAN_OCEAN_TERRITORY"] = 31] = "BRITISH_INDIAN_OCEAN_TERRITORY";
-        CountryID[CountryID["BRITISH_VIRGIN_ISLANDS"] = 32] = "BRITISH_VIRGIN_ISLANDS";
-        CountryID[CountryID["BRUNEI"] = 33] = "BRUNEI";
-        CountryID[CountryID["BULGARIA"] = 34] = "BULGARIA";
-        CountryID[CountryID["BURKINA_FASO"] = 35] = "BURKINA_FASO";
-        CountryID[CountryID["BURUNDI"] = 36] = "BURUNDI";
-        CountryID[CountryID["BELARUS"] = 37] = "BELARUS";
-        CountryID[CountryID["CAMBODIA"] = 38] = "CAMBODIA";
-        CountryID[CountryID["CAMEROON"] = 39] = "CAMEROON";
-        CountryID[CountryID["CANADA"] = 40] = "CANADA";
-        CountryID[CountryID["CAPE_VERDE"] = 41] = "CAPE_VERDE";
-        CountryID[CountryID["CAYMAN_ISLANDS"] = 42] = "CAYMAN_ISLANDS";
-        CountryID[CountryID["CENTRAL_AFRICAN_REPUBLIC"] = 43] = "CENTRAL_AFRICAN_REPUBLIC";
-        CountryID[CountryID["CHAD"] = 44] = "CHAD";
-        CountryID[CountryID["CHILE"] = 45] = "CHILE";
-        CountryID[CountryID["CHINA"] = 46] = "CHINA";
-        CountryID[CountryID["CHRISTMAS_ISLAND"] = 47] = "CHRISTMAS_ISLAND";
-        CountryID[CountryID["COCOS_ISLANDS"] = 48] = "COCOS_ISLANDS";
-        CountryID[CountryID["KEELING_ISLANDS"] = 48] = "KEELING_ISLANDS";
-        CountryID[CountryID["COLOMBIA"] = 49] = "COLOMBIA";
-        CountryID[CountryID["COMOROS"] = 50] = "COMOROS";
-        CountryID[CountryID["CONGO"] = 51] = "CONGO";
-        CountryID[CountryID["COOK_ISLANDS"] = 52] = "COOK_ISLANDS";
-        CountryID[CountryID["COSTA_RICA"] = 53] = "COSTA_RICA";
-        CountryID[CountryID["CROATIA"] = 54] = "CROATIA";
-        CountryID[CountryID["CUBA"] = 55] = "CUBA";
-        CountryID[CountryID["CYPRUS"] = 56] = "CYPRUS";
-        CountryID[CountryID["CZECH_REPUBLIC"] = 57] = "CZECH_REPUBLIC";
-        CountryID[CountryID["DENMARK"] = 58] = "DENMARK";
-        CountryID[CountryID["DJIBOUTI"] = 59] = "DJIBOUTI";
-        CountryID[CountryID["DOMINICA"] = 60] = "DOMINICA";
-        CountryID[CountryID["DOMINICAN_REPUBLIC"] = 61] = "DOMINICAN_REPUBLIC";
-        CountryID[CountryID["ECUADOR"] = 62] = "ECUADOR";
-        CountryID[CountryID["EGYPT"] = 63] = "EGYPT";
-        CountryID[CountryID["EL_SALVADOR"] = 64] = "EL_SALVADOR";
-        CountryID[CountryID["EQUATORIAL_GUINEA"] = 65] = "EQUATORIAL_GUINEA";
-        CountryID[CountryID["ERITREA"] = 66] = "ERITREA";
-        CountryID[CountryID["ESTONIA"] = 67] = "ESTONIA";
-        CountryID[CountryID["ETHIOPIA"] = 68] = "ETHIOPIA";
-        CountryID[CountryID["FALKLAND_ISLANDS"] = 69] = "FALKLAND_ISLANDS";
-        CountryID[CountryID["ISLAS_MALVINAS"] = 69] = "ISLAS_MALVINAS";
-        CountryID[CountryID["FAROE_ISLANDS"] = 70] = "FAROE_ISLANDS";
-        CountryID[CountryID["MICRONEISA"] = 71] = "MICRONEISA";
-        CountryID[CountryID["FIJI"] = 72] = "FIJI";
-        CountryID[CountryID["FRNACE"] = 73] = "FRNACE";
-        CountryID[CountryID["FRENCH_GUIANA"] = 74] = "FRENCH_GUIANA";
-        CountryID[CountryID["FRENCH_POLYNESIA"] = 75] = "FRENCH_POLYNESIA";
-        CountryID[CountryID["FRENCH_SOUTHERN_TERRITORIES"] = 76] = "FRENCH_SOUTHERN_TERRITORIES";
-        CountryID[CountryID["GABON"] = 77] = "GABON";
-        CountryID[CountryID["GAMBIA"] = 78] = "GAMBIA";
-        CountryID[CountryID["GEORGIA"] = 80] = "GEORGIA";
-        CountryID[CountryID["GERMANY"] = 81] = "GERMANY";
-        CountryID[CountryID["GHANA"] = 82] = "GHANA";
-        CountryID[CountryID["GIBRALTAR"] = 83] = "GIBRALTAR";
-        CountryID[CountryID["GLORIOSO_ISLANDS"] = 84] = "GLORIOSO_ISLANDS";
-        CountryID[CountryID["GREECE"] = 85] = "GREECE";
-        CountryID[CountryID["GREENLAND"] = 86] = "GREENLAND";
-        CountryID[CountryID["GRENADA"] = 87] = "GRENADA";
-        CountryID[CountryID["GUADELOUPE"] = 88] = "GUADELOUPE";
-        CountryID[CountryID["GUAM"] = 89] = "GUAM";
-        CountryID[CountryID["GUATEMALA"] = 90] = "GUATEMALA";
-        CountryID[CountryID["GUERNSEY"] = 91] = "GUERNSEY";
-        CountryID[CountryID["GUINEA"] = 92] = "GUINEA";
-        CountryID[CountryID["GUINEA_BISSAU"] = 93] = "GUINEA_BISSAU";
-        CountryID[CountryID["GUYANA"] = 94] = "GUYANA";
-        CountryID[CountryID["HAITI"] = 95] = "HAITI";
-        CountryID[CountryID["HEARD_AND_MCDONAL_ISLANDS"] = 96] = "HEARD_AND_MCDONAL_ISLANDS";
-        CountryID[CountryID["HONDURAS"] = 97] = "HONDURAS";
-        CountryID[CountryID["HOWLAND_ISLAND"] = 98] = "HOWLAND_ISLAND";
-        CountryID[CountryID["HUNGARY"] = 99] = "HUNGARY";
-        CountryID[CountryID["ICELAND"] = 100] = "ICELAND";
-        CountryID[CountryID["INDIA"] = 101] = "INDIA";
-        CountryID[CountryID["INDONESIA"] = 102] = "INDONESIA";
-        CountryID[CountryID["IRAN"] = 103] = "IRAN";
-        CountryID[CountryID["IRAQ"] = 104] = "IRAQ";
-        CountryID[CountryID["IRELAND"] = 105] = "IRELAND";
-        CountryID[CountryID["ITALY"] = 107] = "ITALY";
-        CountryID[CountryID["COTE_DIVORE"] = 108] = "COTE_DIVORE";
-        CountryID[CountryID["JAMAICA"] = 109] = "JAMAICA";
-        CountryID[CountryID["JAN_MAYEN"] = 110] = "JAN_MAYEN";
-        CountryID[CountryID["JAPAN"] = 111] = "JAPAN";
-        CountryID[CountryID["JARVIS_ISLAND"] = 112] = "JARVIS_ISLAND";
-        CountryID[CountryID["JERSEY"] = 113] = "JERSEY";
-        CountryID[CountryID["JOHNSTON_ATOLL"] = 114] = "JOHNSTON_ATOLL";
-        CountryID[CountryID["JORDAN"] = 115] = "JORDAN";
-        CountryID[CountryID["JUAN_DE_NOVA_ISLAND"] = 116] = "JUAN_DE_NOVA_ISLAND";
-        CountryID[CountryID["KAZAKHSTAN"] = 117] = "KAZAKHSTAN";
-        CountryID[CountryID["KENYA"] = 118] = "KENYA";
-        CountryID[CountryID["KIRIBATI"] = 119] = "KIRIBATI";
-        CountryID[CountryID["KUWAIT"] = 120] = "KUWAIT";
-        CountryID[CountryID["KYRGYZSTAN"] = 121] = "KYRGYZSTAN";
-        CountryID[CountryID["LAOS"] = 122] = "LAOS";
-        CountryID[CountryID["LATVIA"] = 123] = "LATVIA";
-        CountryID[CountryID["LEBANON"] = 124] = "LEBANON";
-        CountryID[CountryID["LESOTHO"] = 125] = "LESOTHO";
-        CountryID[CountryID["LIBERIA"] = 126] = "LIBERIA";
-        CountryID[CountryID["LIBYA"] = 127] = "LIBYA";
-        CountryID[CountryID["LIECHTENSTEIN"] = 128] = "LIECHTENSTEIN";
-        CountryID[CountryID["LITHUANIA"] = 129] = "LITHUANIA";
-        CountryID[CountryID["LUXEMBOURG"] = 130] = "LUXEMBOURG";
-        CountryID[CountryID["MACAU"] = 131] = "MACAU";
-        CountryID[CountryID["MACEDONIA"] = 132] = "MACEDONIA";
-        CountryID[CountryID["MADAGASCAR"] = 133] = "MADAGASCAR";
-        CountryID[CountryID["MALAWI"] = 134] = "MALAWI";
-        CountryID[CountryID["MALAYSIA"] = 135] = "MALAYSIA";
-        CountryID[CountryID["MALDIVES"] = 136] = "MALDIVES";
-        CountryID[CountryID["MALI"] = 137] = "MALI";
-        CountryID[CountryID["MALTA"] = 138] = "MALTA";
-        CountryID[CountryID["ISLE_OF_MAN"] = 139] = "ISLE_OF_MAN";
-        CountryID[CountryID["MARSHALL_ISLANDS"] = 140] = "MARSHALL_ISLANDS";
-        CountryID[CountryID["MARTINIQUE"] = 141] = "MARTINIQUE";
-        CountryID[CountryID["MAURITANIA"] = 142] = "MAURITANIA";
-        CountryID[CountryID["MAURITIUS"] = 143] = "MAURITIUS";
-        CountryID[CountryID["MAYOTTE"] = 144] = "MAYOTTE";
-        CountryID[CountryID["MEXICO"] = 145] = "MEXICO";
-        CountryID[CountryID["MIDWAY_ISLAND"] = 146] = "MIDWAY_ISLAND";
-        CountryID[CountryID["MOLDOVA"] = 147] = "MOLDOVA";
-        CountryID[CountryID["MONACO"] = 148] = "MONACO";
-        CountryID[CountryID["MONGOLIA"] = 149] = "MONGOLIA";
-        CountryID[CountryID["MONTENEGRO"] = 150] = "MONTENEGRO";
-        CountryID[CountryID["MONTSERRAT"] = 151] = "MONTSERRAT";
-        CountryID[CountryID["MOROCCO"] = 152] = "MOROCCO";
-        CountryID[CountryID["MOZAMBIQUE"] = 153] = "MOZAMBIQUE";
-        CountryID[CountryID["MYANMAR"] = 154] = "MYANMAR";
-        CountryID[CountryID["NAMIBIA"] = 155] = "NAMIBIA";
-        CountryID[CountryID["NAURU"] = 156] = "NAURU";
-        CountryID[CountryID["NEPAL"] = 157] = "NEPAL";
-        CountryID[CountryID["NETHERLANDS"] = 158] = "NETHERLANDS";
-        CountryID[CountryID["NEW_CALEDONIA"] = 159] = "NEW_CALEDONIA";
-        CountryID[CountryID["NEW_ZEALAND"] = 161] = "NEW_ZEALAND";
-        CountryID[CountryID["NICARAGUA"] = 162] = "NICARAGUA";
-        CountryID[CountryID["NIGER"] = 163] = "NIGER";
-        CountryID[CountryID["NIGERIA"] = 164] = "NIGERIA";
-        CountryID[CountryID["NIUE"] = 165] = "NIUE";
-        CountryID[CountryID["NORFOLK_ISLAND"] = 166] = "NORFOLK_ISLAND";
-        CountryID[CountryID["NORTHERN_MARIANA_ISLANDS"] = 167] = "NORTHERN_MARIANA_ISLANDS";
-        CountryID[CountryID["NORTH_KOREA"] = 168] = "NORTH_KOREA";
-        CountryID[CountryID["KOREA_NORTH"] = 168] = "KOREA_NORTH";
-        CountryID[CountryID["NORWAY"] = 169] = "NORWAY";
-        CountryID[CountryID["OMAN"] = 170] = "OMAN";
-        CountryID[CountryID["PASIFIC_ISLANDS"] = 171] = "PASIFIC_ISLANDS";
-        CountryID[CountryID["PALAU"] = 171] = "PALAU";
-        CountryID[CountryID["PAKISTAN"] = 172] = "PAKISTAN";
-        CountryID[CountryID["PANAMA"] = 173] = "PANAMA";
-        CountryID[CountryID["PAPUA_NEW_GUINEA"] = 174] = "PAPUA_NEW_GUINEA";
-        CountryID[CountryID["PARACEL_ISLANDS"] = 175] = "PARACEL_ISLANDS";
-        CountryID[CountryID["PARAGUAY"] = 176] = "PARAGUAY";
-        CountryID[CountryID["PERU"] = 177] = "PERU";
-        CountryID[CountryID["PHILIPPINES"] = 178] = "PHILIPPINES";
-        CountryID[CountryID["PITCAIRN_ISLANDS"] = 179] = "PITCAIRN_ISLANDS";
-        CountryID[CountryID["POLAND"] = 180] = "POLAND";
-        CountryID[CountryID["PORTUGAL"] = 181] = "PORTUGAL";
-        CountryID[CountryID["PUERTO_RICO"] = 182] = "PUERTO_RICO";
-        CountryID[CountryID["QATAR"] = 183] = "QATAR";
-        CountryID[CountryID["REUNION"] = 184] = "REUNION";
-        CountryID[CountryID["ROMANIA"] = 185] = "ROMANIA";
-        CountryID[CountryID["RUSSIA"] = 186] = "RUSSIA";
-        CountryID[CountryID["RWANDA"] = 187] = "RWANDA";
-        CountryID[CountryID["SAN_MARINO"] = 188] = "SAN_MARINO";
-        CountryID[CountryID["SAO_TOME_AND_PRINCIPE"] = 189] = "SAO_TOME_AND_PRINCIPE";
-        CountryID[CountryID["SAUDI_ARABIA"] = 190] = "SAUDI_ARABIA";
-        CountryID[CountryID["SENEGAL"] = 191] = "SENEGAL";
-        CountryID[CountryID["SERBIA"] = 192] = "SERBIA";
-        CountryID[CountryID["SEYCHELLES"] = 193] = "SEYCHELLES";
-        CountryID[CountryID["SIERRA_LEONE"] = 194] = "SIERRA_LEONE";
-        CountryID[CountryID["SINGAPORE"] = 195] = "SINGAPORE";
-        CountryID[CountryID["SLOVAKIA"] = 196] = "SLOVAKIA";
-        CountryID[CountryID["SLOVENIA"] = 197] = "SLOVENIA";
-        CountryID[CountryID["SOLOMON_ISLANDS"] = 198] = "SOLOMON_ISLANDS";
-        CountryID[CountryID["SOMALIA"] = 199] = "SOMALIA";
-        CountryID[CountryID["SOUTH_AFRICA"] = 200] = "SOUTH_AFRICA";
-        CountryID[CountryID["SOUTH_GEORGIA_AND_THE_SOUTH_SANDWICH_ISLANDS"] = 201] = "SOUTH_GEORGIA_AND_THE_SOUTH_SANDWICH_ISLANDS";
-        CountryID[CountryID["SOUTH_GEORGIA"] = 201] = "SOUTH_GEORGIA";
-        CountryID[CountryID["SOUTH_SANDWICH_ISLANDS"] = 201] = "SOUTH_SANDWICH_ISLANDS";
-        CountryID[CountryID["SOUTH_KOREA"] = 202] = "SOUTH_KOREA";
-        CountryID[CountryID["KOREA_SOUTH"] = 202] = "KOREA_SOUTH";
-        CountryID[CountryID["SPAIN"] = 203] = "SPAIN";
-        CountryID[CountryID["SPRATLY_ISLANDS"] = 204] = "SPRATLY_ISLANDS";
-        CountryID[CountryID["SRI_LANKA"] = 205] = "SRI_LANKA";
-        CountryID[CountryID["ST_MARTIN"] = 254] = "ST_MARTIN";
-        CountryID[CountryID["SAINT_MARTIN"] = 254] = "SAINT_MARTIN";
-        CountryID[CountryID["ST_HELENA"] = 206] = "ST_HELENA";
-        CountryID[CountryID["ST_KITTS_AND_NEVIS"] = 207] = "ST_KITTS_AND_NEVIS";
-        CountryID[CountryID["ST_LUCIA"] = 208] = "ST_LUCIA";
-        CountryID[CountryID["ST_PIERRE_AND_MIQUELON"] = 209] = "ST_PIERRE_AND_MIQUELON";
-        CountryID[CountryID["ST_VINCENT_AND_THE_GRENADINES"] = 210] = "ST_VINCENT_AND_THE_GRENADINES";
-        CountryID[CountryID["SUDAN"] = 211] = "SUDAN";
-        CountryID[CountryID["SURINAME"] = 212] = "SURINAME";
-        CountryID[CountryID["SVALBARD"] = 213] = "SVALBARD";
-        CountryID[CountryID["SWAZILAND"] = 214] = "SWAZILAND";
-        CountryID[CountryID["SWEDEN"] = 215] = "SWEDEN";
-        CountryID[CountryID["SWITZERLAND"] = 216] = "SWITZERLAND";
-        CountryID[CountryID["SYRIA"] = 217] = "SYRIA";
-        CountryID[CountryID["TAIWAN"] = 218] = "TAIWAN";
-        CountryID[CountryID["TAJIKISTAN"] = 219] = "TAJIKISTAN";
-        CountryID[CountryID["TANZANIA"] = 220] = "TANZANIA";
-        CountryID[CountryID["THAILAND"] = 221] = "THAILAND";
-        CountryID[CountryID["TOGO"] = 222] = "TOGO";
-        CountryID[CountryID["TOKELAU"] = 223] = "TOKELAU";
-        CountryID[CountryID["TONGA"] = 224] = "TONGA";
-        CountryID[CountryID["TRINIDAD_AND_TOBAGO"] = 225] = "TRINIDAD_AND_TOBAGO";
-        CountryID[CountryID["TUNISIA"] = 226] = "TUNISIA";
-        CountryID[CountryID["TURKEY"] = 227] = "TURKEY";
-        CountryID[CountryID["TURKMENISTAN"] = 228] = "TURKMENISTAN";
-        CountryID[CountryID["TURKS_AND_CAICOS_ISLANDS"] = 229] = "TURKS_AND_CAICOS_ISLANDS";
-        CountryID[CountryID["TUVALU"] = 230] = "TUVALU";
-        CountryID[CountryID["UGANDA"] = 231] = "UGANDA";
-        CountryID[CountryID["UKRAINE"] = 232] = "UKRAINE";
-        CountryID[CountryID["UNITED_ARAB_EMIRATES"] = 233] = "UNITED_ARAB_EMIRATES";
-        CountryID[CountryID["UNITED_KINGDOM"] = 234] = "UNITED_KINGDOM";
-        CountryID[CountryID["UK"] = 234] = "UK";
-        CountryID[CountryID["GREAT_BRITAIN"] = 234] = "GREAT_BRITAIN";
-        CountryID[CountryID["UNITED_STATES"] = 235] = "UNITED_STATES";
-        CountryID[CountryID["USA"] = 235] = "USA";
-        CountryID[CountryID["UNITED_STATES_OF_AMERICA"] = 235] = "UNITED_STATES_OF_AMERICA";
-        CountryID[CountryID["URUGUAY"] = 236] = "URUGUAY";
-        CountryID[CountryID["UZBEKISTAN"] = 237] = "UZBEKISTAN";
-        CountryID[CountryID["VANUATU"] = 238] = "VANUATU";
-        CountryID[CountryID["VENEZUELA"] = 239] = "VENEZUELA";
-        CountryID[CountryID["VIETNAM"] = 240] = "VIETNAM";
-        CountryID[CountryID["US_VIRGIN_ISLANDS"] = 241] = "US_VIRGIN_ISLANDS";
-        CountryID[CountryID["WAKE_ISLAND"] = 242] = "WAKE_ISLAND";
-        CountryID[CountryID["WALLIS_AND_FUTUNA"] = 243] = "WALLIS_AND_FUTUNA";
-        CountryID[CountryID["WESTERN_SAHARA"] = 245] = "WESTERN_SAHARA";
-        CountryID[CountryID["SAMOA"] = 246] = "SAMOA";
-        CountryID[CountryID["YEMEN"] = 247] = "YEMEN";
-        CountryID[CountryID["DEMOCRATIC_REPUBLIC_OF_THE_CONGO"] = 248] = "DEMOCRATIC_REPUBLIC_OF_THE_CONGO";
-        CountryID[CountryID["DRC"] = 248] = "DRC";
-        CountryID[CountryID["ZAMBIA"] = 249] = "ZAMBIA";
-        CountryID[CountryID["ZIMBABWE"] = 250] = "ZIMBABWE";
-        CountryID[CountryID["FINLAND"] = 251] = "FINLAND";
-        CountryID[CountryID["CURACAO"] = 252] = "CURACAO";
-        CountryID[CountryID["BONAIRE_SINT_EUSTATIUS_SABA_ISLAND"] = 253] = "BONAIRE_SINT_EUSTATIUS_SABA_ISLAND";
-        CountryID[CountryID["BONAIRE"] = 253] = "BONAIRE";
-        CountryID[CountryID["SINT_EUSTATIUS"] = 253] = "SINT_EUSTATIUS";
-        CountryID[CountryID["SABA_ISLAND"] = 253] = "SABA_ISLAND";
-        CountryID[CountryID["SAINT_BARTHELEMY"] = 255] = "SAINT_BARTHELEMY";
-        CountryID[CountryID["SAINT_BARTHS"] = 255] = "SAINT_BARTHS";
-        CountryID[CountryID["SAINT_BARTS"] = 255] = "SAINT_BARTS";
-        CountryID[CountryID["HONG_KONG"] = 256] = "HONG_KONG";
-        CountryID[CountryID["SINT_MAARTEN"] = 257] = "SINT_MAARTEN";
-        CountryID[CountryID["TIMOR_LESTE"] = 258] = "TIMOR_LESTE";
-        CountryID[CountryID["SOUTH_SUDAN"] = 259] = "SOUTH_SUDAN";
-    })(CountryID || (CountryID = {}));
-    const MIN_ZOOM_LEVEL = 14;
-    let ZoomLevel;
-    (function (ZoomLevel) {
-        ZoomLevel[ZoomLevel["ZM0"] = 12] = "ZM0";
-        ZoomLevel[ZoomLevel["ZM1"] = 13] = "ZM1";
-        ZoomLevel[ZoomLevel["ZM2"] = 14] = "ZM2";
-        ZoomLevel[ZoomLevel["ZM3"] = 15] = "ZM3";
-        ZoomLevel[ZoomLevel["ZM4"] = 16] = "ZM4";
-        ZoomLevel[ZoomLevel["ZM5"] = 17] = "ZM5";
-        ZoomLevel[ZoomLevel["ZM6"] = 18] = "ZM6";
-        ZoomLevel[ZoomLevel["ZM7"] = 19] = "ZM7";
-        ZoomLevel[ZoomLevel["ZM8"] = 20] = "ZM8";
-        ZoomLevel[ZoomLevel["ZM9"] = 21] = "ZM9";
-        ZoomLevel[ZoomLevel["ZM10"] = 22] = "ZM10";
-    })(ZoomLevel || (ZoomLevel = {}));
-    const minShieldDisplayLengths = {
+
+    enum CountryID {
+        AFGANISTAN = 1,
+        ALBANIA = 2,
+        ALGERIA = 3,
+        AMERICAN_SAMOA = 4,
+        ANDORRA = 5,
+        ANGOLA = 6,
+        ANGUILLA = 7,
+        ANTARCTICA = 8,
+        ANTIGUA_AND_BARBUDA = 9,
+        ARGENTINA = 10,
+        ARMENIA = 11,
+        ARUBA = 12,
+        AUSTRALIA = 13,
+        AUSTRIA = 14,
+        AZERBAIJAN = 15,
+        BAHAMAS = 16,
+        BAHRAIN = 17,
+        BAKER_ISLAND = 18,
+        BANGLADESH = 19,
+        BARBADOS = 20,
+        BELGUIM = 21,
+        BELIZE = 22,
+        BENIN = 23,
+        BERMUDA = 24,
+        BHUTAN = 25,
+        BOLIVIA = 26,
+        BOSNIA_AND_HERZEGOWINA = 27,
+        BOTSWANA = 28,
+        BOUVET_ISLAND = 29,
+        BRAZIL = 30,
+        BRITISH_INDIAN_OCEAN_TERRITORY = 31,
+        BRITISH_VIRGIN_ISLANDS = 32,
+        BRUNEI = 33,
+        BULGARIA = 34,
+        BURKINA_FASO = 35,
+        BURUNDI = 36,
+        BELARUS = 37,
+        CAMBODIA = 38,
+        CAMEROON = 39,
+        CANADA = 40,
+        CAPE_VERDE = 41,
+        CAYMAN_ISLANDS = 42,
+        CENTRAL_AFRICAN_REPUBLIC = 43,
+        CHAD = 44,
+        CHILE = 45,
+        CHINA = 46,
+        CHRISTMAS_ISLAND = 47,
+        COCOS_ISLANDS = 48,
+        KEELING_ISLANDS = 48,
+        COLOMBIA = 49,
+        COMOROS = 50,
+        CONGO = 51,
+        COOK_ISLANDS = 52,
+        COSTA_RICA = 53,
+        CROATIA = 54,
+        CUBA = 55,
+        CYPRUS = 56,
+        CZECH_REPUBLIC = 57,
+        DENMARK = 58,
+        DJIBOUTI = 59,
+        DOMINICA = 60,
+        DOMINICAN_REPUBLIC = 61,
+        ECUADOR = 62,
+        EGYPT = 63,
+        EL_SALVADOR = 64,
+        EQUATORIAL_GUINEA = 65,
+        ERITREA = 66,
+        ESTONIA = 67,
+        ETHIOPIA = 68,
+        FALKLAND_ISLANDS = 69,
+        ISLAS_MALVINAS = 69,
+        FAROE_ISLANDS = 70,
+        MICRONEISA = 71,
+        FIJI = 72,
+        FRNACE = 73,
+        FRENCH_GUIANA = 74,
+        FRENCH_POLYNESIA = 75,
+        FRENCH_SOUTHERN_TERRITORIES = 76,
+        GABON = 77,
+        GAMBIA = 78,
+        GEORGIA = 80,
+        GERMANY = 81,
+        GHANA = 82,
+        GIBRALTAR = 83,
+        GLORIOSO_ISLANDS = 84,
+        GREECE = 85,
+        GREENLAND = 86,
+        GRENADA = 87,
+        GUADELOUPE = 88,
+        GUAM = 89,
+        GUATEMALA = 90,
+        GUERNSEY = 91,
+        GUINEA = 92,
+        GUINEA_BISSAU = 93,
+        GUYANA = 94,
+        HAITI = 95,
+        HEARD_AND_MCDONAL_ISLANDS = 96,
+        HONDURAS = 97,
+        HOWLAND_ISLAND = 98,
+        HUNGARY = 99,
+        ICELAND = 100,
+        INDIA = 101,
+        INDONESIA = 102,
+        IRAN = 103,
+        IRAQ = 104,
+        IRELAND = 105,
+        ITALY = 107,
+        COTE_DIVORE = 108,
+        JAMAICA = 109,
+        JAN_MAYEN = 110,
+        JAPAN = 111,
+        JARVIS_ISLAND = 112,
+        JERSEY = 113,
+        JOHNSTON_ATOLL = 114,
+        JORDAN = 115,
+        JUAN_DE_NOVA_ISLAND = 116,
+        KAZAKHSTAN = 117,
+        KENYA = 118,
+        KIRIBATI = 119,
+        KUWAIT = 120,
+        KYRGYZSTAN = 121,
+        LAOS = 122,
+        LATVIA = 123,
+        LEBANON = 124,
+        LESOTHO = 125,
+        LIBERIA = 126,
+        LIBYA = 127,
+        LIECHTENSTEIN = 128,
+        LITHUANIA = 129,
+        LUXEMBOURG = 130,
+        MACAU = 131,
+        MACEDONIA = 132,
+        MADAGASCAR = 133,
+        MALAWI = 134,
+        MALAYSIA = 135,
+        MALDIVES = 136,
+        MALI = 137,
+        MALTA = 138,
+        ISLE_OF_MAN = 139,
+        MARSHALL_ISLANDS = 140,
+        MARTINIQUE = 141,
+        MAURITANIA = 142,
+        MAURITIUS = 143,
+        MAYOTTE = 144,
+        MEXICO = 145,
+        MIDWAY_ISLAND = 146,
+        MOLDOVA = 147,
+        MONACO = 148,
+        MONGOLIA = 149,
+        MONTENEGRO = 150,
+        MONTSERRAT = 151,
+        MOROCCO = 152,
+        MOZAMBIQUE = 153,
+        MYANMAR = 154,
+        NAMIBIA = 155,
+        NAURU = 156,
+        NEPAL = 157,
+        NETHERLANDS = 158,
+        NEW_CALEDONIA = 159,
+        NEW_ZEALAND = 161,
+        NICARAGUA = 162,
+        NIGER = 163,
+        NIGERIA = 164,
+        NIUE = 165,
+        NORFOLK_ISLAND = 166,
+        NORTHERN_MARIANA_ISLANDS = 167,
+        NORTH_KOREA = 168,
+        KOREA_NORTH = 168,
+        NORWAY = 169,
+        OMAN = 170,
+        PASIFIC_ISLANDS = 171,
+        PALAU = 171,
+        PAKISTAN = 172,
+        PANAMA = 173,
+        PAPUA_NEW_GUINEA = 174,
+        PARACEL_ISLANDS = 175,
+        PARAGUAY = 176,
+        PERU = 177,
+        PHILIPPINES = 178,
+        PITCAIRN_ISLANDS = 179,
+        POLAND = 180,
+        PORTUGAL = 181,
+        PUERTO_RICO = 182,
+        QATAR = 183,
+        REUNION = 184,
+        ROMANIA = 185,
+        RUSSIA = 186,
+        RWANDA = 187,
+        SAN_MARINO = 188,
+        SAO_TOME_AND_PRINCIPE = 189,
+        SAUDI_ARABIA = 190,
+        SENEGAL = 191,
+        SERBIA = 192,
+        SEYCHELLES = 193,
+        SIERRA_LEONE = 194,
+        SINGAPORE = 195,
+        SLOVAKIA = 196,
+        SLOVENIA = 197,
+        SOLOMON_ISLANDS = 198,
+        SOMALIA = 199,
+        SOUTH_AFRICA = 200,
+        SOUTH_GEORGIA_AND_THE_SOUTH_SANDWICH_ISLANDS = 201,
+        SOUTH_GEORGIA = 201,
+        SOUTH_SANDWICH_ISLANDS = 201,
+        SOUTH_KOREA = 202,
+        KOREA_SOUTH = 202,
+        SPAIN = 203,
+        SPRATLY_ISLANDS = 204,
+        SRI_LANKA = 205,
+        ST_MARTIN = 254,
+        SAINT_MARTIN = 254,
+        ST_HELENA = 206,
+        ST_KITTS_AND_NEVIS = 207,
+        ST_LUCIA = 208,
+        ST_PIERRE_AND_MIQUELON = 209,
+        ST_VINCENT_AND_THE_GRENADINES = 210,
+        SUDAN = 211,
+        SURINAME = 212,
+        SVALBARD = 213,
+        SWAZILAND = 214,
+        SWEDEN = 215,
+        SWITZERLAND = 216,
+        SYRIA = 217,
+        TAIWAN = 218,
+        TAJIKISTAN = 219,
+        TANZANIA = 220,
+        THAILAND = 221,
+        TOGO = 222,
+        TOKELAU = 223,
+        TONGA = 224,
+        TRINIDAD_AND_TOBAGO = 225,
+        TUNISIA = 226,
+        TURKEY = 227,
+        TURKMENISTAN = 228,
+        TURKS_AND_CAICOS_ISLANDS = 229,
+        TUVALU = 230,
+        UGANDA = 231,
+        UKRAINE = 232,
+        UNITED_ARAB_EMIRATES = 233,
+        UNITED_KINGDOM = 234,
+        UK = 234,
+        GREAT_BRITAIN = 234,
+        UNITED_STATES = 235,
+        USA = 235,
+        UNITED_STATES_OF_AMERICA = 235,
+        URUGUAY = 236,
+        UZBEKISTAN = 237,
+        VANUATU = 238,
+        VENEZUELA = 239,
+        VIETNAM = 240,
+        US_VIRGIN_ISLANDS = 241,
+        WAKE_ISLAND = 242,
+        WALLIS_AND_FUTUNA = 243,
+        WESTERN_SAHARA = 245,
+        SAMOA = 246,
+        YEMEN = 247,
+        DEMOCRATIC_REPUBLIC_OF_THE_CONGO = 248,
+        DRC = 248,
+        ZAMBIA = 249,
+        ZIMBABWE = 250,
+        FINLAND = 251,
+        CURACAO = 252,
+        BONAIRE_SINT_EUSTATIUS_SABA_ISLAND = 253,
+        BONAIRE = 253,
+        SINT_EUSTATIUS = 253,
+        SABA_ISLAND = 253,
+        SAINT_BARTHELEMY = 255,
+        SAINT_BARTHS = 255,
+        SAINT_BARTS = 255,
+        HONG_KONG = 256,
+        SINT_MAARTEN = 257,
+        TIMOR_LESTE = 258,
+        SOUTH_SUDAN = 259,
+    }
+
+    interface Coordinates {
+        x: number | null | undefined;
+        y: number | null | undefined;
+    }
+
+    interface GuidanceInterface {
+        shield: boolean;
+        exit: boolean;
+        tts: boolean;
+        towards: boolean;
+        visual: boolean;
+    }
+
+    const MIN_ZOOM_LEVEL: number = 14;
+    enum ZoomLevel {
+        ZM0 = 12,
+        ZM1 = 13,
+        ZM2 = 14,
+        ZM3 = 15,
+        ZM4 = 16,
+        ZM5 = 17,
+        ZM6 = 18,
+        ZM7 = 19,
+        ZM8 = 20,
+        ZM9 = 21,
+        ZM10 = 22,
+    }
+
+    // const [zm0, zm1, zm2, zm3, zm4, zm5, zm6, zm7, zm8, zm9, zm10] = [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22];
+
+    interface LabelDistance {
+        icon: number;
+        label: number;
+        space: number;
+    }
+
+    interface RSASettings {
+        [key: string]: string | number | boolean;
+        lastSaveAction: number;
+        enableScript: boolean;
+        HighSegShields: boolean;
+        ShowSegShields: boolean;
+        SegShieldMissing: boolean;
+        SegShieldError: boolean;
+        SegHasDir: boolean;
+        SegInvDir: boolean;
+        HighNodeShields: boolean;
+        ShowNodeShields: boolean;
+        ShowExitShields: boolean;
+        ShowTurnTTS: boolean;
+        AlertTurnTTS: boolean;
+        ShowTowards: boolean;
+        ShowVisualInst: boolean;
+        NodeShieldMissing: boolean;
+        HighSegClr: string;
+        MissSegClr: string;
+        ErrSegClr: string;
+        HighNodeClr: string;
+        MissNodeClr: string;
+        SegHasDirClr: string;
+        SegInvDirClr: string;
+        TitleCaseClr: string;
+        TitleCaseSftClr: string;
+        ShowRamps: boolean;
+        AlternativeShields: boolean;
+        mHPlus: boolean;
+        titleCase: boolean;
+        checkTWD: boolean;
+        checkTTS: boolean;
+        checkVI: boolean;
+        mapLayerVisible: boolean;
+        iconLayerVisible: boolean;
+    }
+
+    interface FeatureProperties {
+        styleName: string;
+    }
+
+    type minShieldDisplayLengthsType = Record<number, number>;
+    const minShieldDisplayLengths: minShieldDisplayLengthsType = {
         15: 150,
         16: 90,
         17: 80,
@@ -348,7 +418,15 @@ function rsaInit() {
         21: 40,
         22: 30,
     };
-    const RoadAbbr = {
+    interface Candidate {
+        isCandidate: boolean;
+        iconID: number | null | Set<number>;
+    }
+    type RoadInfo = Record<string, number | Set<number>>;
+    type StateRoadInfo = Record<string, RoadInfo>;
+    type CountryRoadInfo = Record<number, StateRoadInfo>;
+
+    const RoadAbbr: CountryRoadInfo = {
         //Canada
         40: {
             Alberta: {
@@ -385,10 +463,10 @@ function rsaInit() {
             },
             Ontario: {
                 "^QEW\\b": 5058, // 5058: Ontario QEW
-                "(^Hwy 17\\b|Hwy 17$)": new Set([5000, 5057]), // 5000: National - Trans-Canada Hwy
-                "^Hwy 407\\b": new Set([5207, 5206]), // 5060: Ontario ETR
+                "(^Hwy 17\\b|Hwy 17$)": new Set<number>([5000, 5057]), // 5000: National - Trans-Canada Hwy
+                "^Hwy 407\\b": new Set<number>([5207, 5206]), // 5060: Ontario ETR
                 "^Hwy 412\\b": 5059, // 5059: Ontario Toll Hwy
-                "^Hwy 418\\b": new Set([5059, 5057]), // 5059: Ontario Toll Hwy
+                "^Hwy 418\\b": new Set<number>([5059, 5057]), // 5059: Ontario Toll Hwy
                 // "Hwy [1-9]\\d{0,2}\\b": 5057, // 5057: Ontario King's Hwy 1-16
                 // "Hwy (1[89]|[2-9]d|[1-3]d{2}|40[0-6])\\b": 5057, // 5057: Ontario King's Hwy 18-406
                 // "Hwy (40[89]|41[01])\\b": 5057, // 5057: Ontario King's Hwy 408-411
@@ -397,7 +475,7 @@ function rsaInit() {
                 "^Hwy\\s+([1-9]|[1-68-9]\\d|[1-3]\\d{2}|40[0-68-9]|41[0-13-79]|4[2-9]\\d|[7-9]\\d{2})[A-Z]*\\b": 5057,
                 "^Hwy\\s+[5-6]\\d{2}\\b": 5061, // 5061: Ontario Secondary Hwy 500-699
                 // "Hwy (80d|8[1-9]d)\\b": 5057, // 5057: Ontario Tertiary Hwy
-                "^(Muskoka|Wellington|Winchester|Regional) (Road|Rd) [1-9]\\d{0,2}\\b": new Set([
+                "^(Muskoka|Wellington|Winchester|Regional) (Road|Rd) [1-9]\\d{0,2}\\b": new Set<number>([
                     5065, 5063, 5077,
                 ]), // Ontario Regional
             },
@@ -417,7 +495,7 @@ function rsaInit() {
             },
             "Nova Scotia": {
                 "^Hwy ([1-9]\\d{0,1})\\b": 5116, // 5116: NS Trunk Hwy 1-99
-                "^Hwy 104\\b": new Set([5115, 5000]), // In NS 104 has 2 different shields
+                "^Hwy 104\\b": new Set<number>([5115, 5000]), // In NS 104 has 2 different shields
                 "^Hwy (10[5-6])\\b": 5000, // 5000: National Trans Canada Highway 105-106
                 "^Hwy (10[0-37-9]|1[1-9]\\d)\\b": 5115, // 5115: NS Aterial Hwy 107-199
                 "^Hwy ([2-3]\\d{2})\\b": 5117, // 5117: NS Collector Hwy 200-399
@@ -463,11 +541,12 @@ function rsaInit() {
         81: { "": { "(A\\d{1,3})": 1012, "(B\\d{1,3})": 1094 } },
         // Mexico
         145: {
-            "*": { "^MEX-[1-9]\\d{0,2}[A-Z]*\\b": new Set([1107, 1106]) },
+            "*": { "^MEX-[1-9]\\d{0,2}[A-Z]*\\b": new Set<number>([1107, 1106]) },
             "Quintana Roo": { "Q.ROO-[1-9]\\d{0,2}\\b": 1000 },
             Yucatán: { "YUC-[1-9]\\d{0,2}\\b": 1000 },
             Campeche: { "CAM-[1-9]\\d{0,2}\\b": 1000 },
         },
+
         // Ukraine
         232: {
             "": {
@@ -571,7 +650,7 @@ function rsaInit() {
                 "^CR-[1-9]\\d{0,2}\\b": 2002,
                 "^SH-[1-9]\\d{0,2}\\b": 1117,
                 "^SR-[1-9]\\d{0,3}\\b": 1117,
-                "^LA-[1-9]\\d{0,3}\\b": new Set([1117, 1115]),
+                "^LA-[1-9]\\d{0,3}\\b": new Set<number>([1117, 1115]),
             },
             Maine: {
                 "^CH-[1-9]\\d{0,2}\\b": 2002,
@@ -761,8 +840,8 @@ function rsaInit() {
                 "^SR-[1-9]\\d{0,2}\\b": 2116,
             },
             Texas: {
-                "^I-[1-9]\\d{0,2}[A-Z]+\\s": new Set([5, 2206]),
-                "^SH-[1-9]\\d{0,3}": new Set([2117, 2123]),
+                "^I-[1-9]\\d{0,2}[A-Z]+\\s": new Set<number>([5, 2206]),
+                "^SH-[1-9]\\d{0,3}": new Set<number>([2117, 2123]),
                 "^[Ss][Pp][Uu][Rr] [1-9]\\d{0,3}\\b": 2126,
                 "\\b[Ll][Oo][Oo][Pp] [1-9]\\d{0,3}\\b": 2122,
                 "^SR-[1-9]\\d{0,3}": 2117,
@@ -827,6 +906,7 @@ function rsaInit() {
         },
         // Uruguay
         236: { "": { Ruta: 1111 } },
+
         // Réunion
         262: { "": { "D\\d+[^:]*": 1092, "N\\d+[^:]*": 1072 } },
         // Guadeloupe
@@ -840,7 +920,8 @@ function rsaInit() {
         // French Polynesia
         689: { "": { "D\\d+[^:]*": 1092, "N\\d+[^:]*": 1072 } },
     };
-    const iconsAllowingNoText = new Set([
+
+    const iconsAllowingNoText = new Set<number>([
         2000, // Atlantic City Expy
         2079, // Garden State Parkway
         2033, // Florida's Turnpike
@@ -854,7 +935,10 @@ function rsaInit() {
         2069, // Blue Ridge Pkwy
         5058, // QEW
     ]);
-    const Strings = {
+
+    type SettingName = Record<string, string>;
+    type LocalizedSettings = Record<string, SettingName>;
+    const Strings: LocalizedSettings = {
         en: {
             enableScript: "Script enabled",
             HighSegShields: "Segments with Shields",
@@ -1061,12 +1145,12 @@ function rsaInit() {
             checkVI: "Inclure le champ d'instruction visuel",
         },
     };
-    const CheckAltName = new Set([
+    const CheckAltName = new Set<number>([
         // France
         73,
     ]);
-    let BadNames = [];
-    let rsaSettings = {
+    let BadNames: (Street | Turn)[] = [];
+    let rsaSettings: RSASettings = {
         lastSaveAction: 0,
         enableScript: true,
         HighSegShields: false,
@@ -1104,10 +1188,11 @@ function rsaInit() {
     };
     let UpdateObj;
     let SetTurn;
+
     const rsaMapLayer = { layerName: "RSA Map Layer", zIndexing: false };
     const rsaIconLayer = { layerName: "RSA Icon Layer", zIndexing: false };
-    let LANG;
-    let alternativeType;
+    let LANG: string;
+    let alternativeType: string;
     const styleConfig = {
         styleContext: {
             highNodeColor: (context) => {
@@ -1115,8 +1200,7 @@ function rsaInit() {
             },
             labelExternalGraphic: (context) => {
                 const style = context?.feature?.properties?.style;
-                if (!style || !style?.sign || !style?.txt)
-                    return "";
+                if (!style || !style?.sign || !style?.txt) return "";
                 return `https://renderer-am.waze.com/renderer/v1/signs/${style.sign}?text=${style.txt}`;
             },
             labelGraphicHeight: (context) => {
@@ -1235,7 +1319,9 @@ function rsaInit() {
             },
         ],
     };
+
     console.debug(`SDK v. ${sdk.getSDKVersion()} on ${sdk.getWMEVersion()} initialized`);
+
     // function rsaBootstrap() {
     //     // if (!document.getElementById('edit-panel') || !sdk.DataModel.Countries.getTopCountry() || !WazeWrap.Ready) {
     //     //     setTimeout(rsaBootstrap, 200);
@@ -1246,12 +1332,16 @@ function rsaInit() {
     //         sdk.Events.once({eventName: "wme-ready"}).then(initRSA);
     //     }
     // }
+
     function initRSA() {
         const locale = sdk.Settings.getLocale();
         LANG = locale.localeCode.toLowerCase();
+
         console.log("RSA: Initializing...");
+
         // let UpdateObj = sdk.DataModel. require('Waze/Action/UpdateObject');
         // let SetTurn = require('Waze/Model/Graph/Actions/SetTurn');
+
         const rsaCss = [
             '.rsa-wrapper {position:relative;width:100%;font-size:12px;font-family:"Rubik", "Boing-light", sans-serif;user-select:none;}',
             ".rsa-section-wrapper {display:block;width:100%;padding:4px;}",
@@ -1266,6 +1356,7 @@ function rsaInit() {
             "label.rsa-label {display:inline-block;position:relative;max-width:80%;vertical-align:top;font-weight:normal;padding-left:5px;word-wrap:break-word;}",
             ".group-title.toolbar-top-level-item-title.rsa:hover {cursor:pointer;}",
         ].join(" ");
+
         const $rsaTab = $("<div>");
         $rsaTab.html = [
             `<div class='rsa-wrapper' id='rsa-tab-wrapper'>
@@ -1428,8 +1519,14 @@ function rsaInit() {
         </div>
     </div>`,
         ].join(" ");
-        const $rsaFixWrapper = $('<div id="rsa-autoWrapper" class="toolbar-button ItemInactive" style="display:none;margin-right:5px;">');
-        const $rsaFixInner = $('<div class="group-title toolbar-top-level-item-title rsa" style="margin:5px 0 0 15px;font-size:12px;">RSA Fix</div>');
+
+        const $rsaFixWrapper = $(
+            '<div id="rsa-autoWrapper" class="toolbar-button ItemInactive" style="display:none;margin-right:5px;">'
+        );
+        const $rsaFixInner = $(
+            '<div class="group-title toolbar-top-level-item-title rsa" style="margin:5px 0 0 15px;font-size:12px;">RSA Fix</div>'
+        );
+
         // WazeWrap.Interface.Tab('RSA', $rsaTab.html, setupOptions, 'RSA');
         sdk.Sidebar.registerScriptTab().then((r) => {
             r.tabLabel.innerHTML = "RSA";
@@ -1439,17 +1536,24 @@ function rsaInit() {
         $(`<style type="text/css">${rsaCss}</style>`).appendTo("head");
         // $($rsaFixInner).appendTo($rsaFixWrapper);
         // $($rsaFixWrapper).appendTo($('#primary-toolbar > div'));
-        WazeWrap.Interface.ShowScriptUpdate(GM_info.script.name, GM_info.script.version, RSA_UPDATE_NOTES, GF_LINK, FORUM_LINK);
+        WazeWrap.Interface.ShowScriptUpdate(
+            GM_info.script.name,
+            GM_info.script.version,
+            RSA_UPDATE_NOTES,
+            GF_LINK,
+            FORUM_LINK
+        );
         console.log("RSA: loaded");
     }
+
     function processAlternativeSettings() {
         if (rsaSettings.AlternativeShields) {
             const alt_primary = $("#rsa-AlternativePrimaryCity");
             alt_primary.prop("disabled", false);
             const alt_nocity = $("#rsa-AlternativeNoCity");
             alt_nocity.prop("disabled", false);
-            const primaryCityButton = alt_primary[0];
-            const noCityButton = alt_primary[0];
+            const primaryCityButton: HTMLInputElement = alt_primary[0] as HTMLInputElement;
+            const noCityButton: HTMLInputElement = alt_primary[0] as HTMLInputElement;
             if (primaryCityButton.checked) {
                 alternativeType = primaryCityButton.value;
             }
@@ -1459,46 +1563,59 @@ function rsaInit() {
         }
         toggleAlternativeShields();
     }
-    function getId(ele) {
+
+    function getId(ele: string) {
         return document.getElementById(ele);
     }
-    function setChecked(ele, status) {
+
+    function setChecked(ele: string, status: boolean) {
         $(`#${ele}`).prop("checked", status);
     }
-    function setValue(ele, value) {
+
+    function setValue(ele: string, value: string) {
         const inputElem = $(`#${ele}`);
         inputElem.attr("value", value);
         // inputElem.css('border', `1px solid ${value}`);
     }
+
     function toggleAlternativeShields() {
         if (!rsaSettings.AlternativeShields) {
             $("#rsa-AlternativePrimaryCity").prop("disabled", true);
             $("#rsa-AlternativeNoCity").prop("disabled", true);
         }
     }
-    function applyPointLabel(properties) {
+
+    function applyPointLabel(properties: FeatureProperties): boolean {
         return properties.styleName === "pointLabelStyle";
     }
-    function applyShield(properties) {
+
+    function applyShield(properties: FeatureProperties): boolean {
         return properties.styleName === "shield";
     }
-    function applySegHighlight(properties) {
+
+    function applySegHighlight(properties: FeatureProperties): boolean {
         return properties.styleName === "segHighlight";
     }
-    function applyStyleNode(properties) {
+
+    function applyStyleNode(properties: FeatureProperties): boolean {
         return properties.styleName === "styleNode";
     }
-    function applyStyleLabel(properties) {
+
+    function applyStyleLabel(properties: FeatureProperties): boolean {
         return properties.styleName === "styleLabel";
     }
+
     function updateMap() {
         removeAutoFixButton();
         tryScan();
         checkOptions();
     }
+
     async function setupOptions() {
         await loadSettings();
+
         // Create OL layer for display
+
         sdk.Map.addLayer({
             layerName: rsaMapLayer.layerName,
             styleRules: styleConfig.styleRules,
@@ -1506,6 +1623,7 @@ function rsaInit() {
         });
         sdk.LayerSwitcher.addLayerCheckbox({ name: rsaMapLayer.layerName });
         sdk.Map.setLayerVisibility({ layerName: rsaMapLayer.layerName, visibility: rsaSettings.mapLayerVisible });
+
         sdk.Map.addLayer({
             layerName: rsaIconLayer.layerName,
             styleRules: styleConfig.styleRules,
@@ -1519,14 +1637,13 @@ function rsaInit() {
                 sdk.Map.setLayerVisibility({ layerName: payload.name, visibility: payload.checked });
                 if (payload.name === rsaMapLayer.layerName) {
                     rsaSettings.mapLayerVisible = payload.checked;
-                }
-                else if (payload.name === rsaIconLayer.layerName) {
+                } else if (payload.name === rsaIconLayer.layerName) {
                     rsaSettings.iconLayerVisible = payload.checked;
                 }
-                if (payload.checked)
-                    tryScan();
+                if (payload.checked) tryScan();
             },
         });
+
         // Set user options
         function setEleStatus() {
             setChecked("rsa-enableScript", rsaSettings.enableScript);
@@ -1560,27 +1677,31 @@ function rsaInit() {
             setValue("rsa-SegInvDirClr", rsaSettings.SegInvDirClr);
             setValue("rsa-TitleCaseClr", rsaSettings.TitleCaseClr);
             setValue("rsa-TitleCaseSftClr", rsaSettings.TitleCaseSftClr);
+
             $("#rsa-AlternativeShields").on("change", (e) => {
                 processAlternativeSettings();
             });
+
             if (rsaSettings.titleCase && sdk.DataModel.Countries.getTopCountry()?.id === 235) {
                 $("#rsa-container-checkTWD").css("display", "block");
                 $("#rsa-container-checkTTS").css("display", "block");
                 $("#rsa-container-checkVI").css("display", "block");
-            }
-            else {
+            } else {
                 $("#rsa-container-checkTWD").css("display", "none");
                 $("#rsa-container-checkTTS").css("display", "none");
                 $("#rsa-container-checkVI").css("display", "none");
             }
+
             toggleAlternativeShields();
         }
+
         // Register event listeners
         // WazeWrap.Events.register('selectionchanged', null, removeAutoFixButton);
         sdk.Events.on({ eventName: "wme-selection-changed", eventHandler: removeAutoFixButton });
         // WazeWrap.Events.register('selectionchanged', null, tryScan);
         sdk.Events.on({ eventName: "wme-map-move-end", eventHandler: updateMap });
         sdk.Events.on({ eventName: "wme-map-zoom-changed", eventHandler: updateMap });
+
         sdk.Shortcuts.createShortcut({
             callback: addShieldClick,
             description: "Activates the Add Shield Button",
@@ -1593,16 +1714,20 @@ function rsaInit() {
         //                                 'Road Shield Assistant',
         //                                 rsaSettings.addShield,
         //                                 addShieldClick, null).add();
+
         setEleStatus();
+
         $("input[type=radio][name=AlternativeShields]").on("change", () => {
             processAlternativeSettings();
             saveSettings();
             removeHighlights();
             tryScan();
         });
+
         $(".rsa-checkbox").on("change", function () {
             const settingName = $(this)[0].id.substring(4);
-            rsaSettings[settingName] = this.checked;
+            rsaSettings[settingName as keyof RSASettings] = (this as HTMLInputElement).checked;
+
             // Check to ensure highlight nodes and show node shields don't overlap each other
             // if (settingName = 'ShowNodeShields') {
             //     if (this.checked) {
@@ -1615,28 +1740,26 @@ function rsaInit() {
             //         rsaSettings.ShowNodeShields = false;
             //     }
             // }
-            if (settingName === "AlternativeShields")
-                processAlternativeSettings();
+            if (settingName === "AlternativeShields") processAlternativeSettings();
             saveSettings();
             removeHighlights();
             tryScan();
         });
         $(".rsa-color-input").on("change", function () {
-            const settingName = $(this)[0].id.substring(4);
-            rsaSettings[settingName] = this.value;
+            const settingName: string = $(this)[0].id.substring(4);
+            rsaSettings[settingName as keyof RSASettings] = (this as HTMLInputElement).value;
             saveSettings();
             setEleStatus();
             removeHighlights();
             tryScan();
         });
         $("#rsa-titleCase").trigger("click", () => {
-            const titleCase = getId("rsa-titleCase");
+            const titleCase: HTMLInputElement = getId("rsa-titleCase") as HTMLInputElement;
             if (titleCase?.checked) {
                 $("#rsa-container-checkTWD").css("display", "block");
                 $("#rsa-container-checkTTS").css("display", "block");
                 $("#rsa-container-checkVI").css("display", "block");
-            }
-            else {
+            } else {
                 $("#rsa-container-checkTWD").css("display", "none");
                 $("#rsa-container-checkTTS").css("display", "none");
                 $("#rsa-container-checkVI").css("display", "none");
@@ -1647,7 +1770,7 @@ function rsaInit() {
         //     else $('.rsa-option-container.sub').show();
         // });
         $("#rsa-resetSettings").on("click", () => {
-            const defaultSettings = {
+            const defaultSettings: RSASettings = {
                 lastSaveAction: 0,
                 enableScript: true,
                 HighSegShields: false,
@@ -1683,28 +1806,31 @@ function rsaInit() {
                 mapLayerVisible: false,
                 iconLayerVisible: false,
             };
+
             rsaSettings = defaultSettings;
             saveSettings();
             setEleStatus();
         });
         // Add translated UI text
-        if (!Strings[LANG])
-            LANG = "en";
+        if (!Strings[LANG]) LANG = "en";
         const messageKeys = Object.keys(Strings[LANG]);
         for (let i = 0; i < messageKeys.length; i++) {
             const key = messageKeys[i];
             $(`#rsa-text-${key}`).text(Strings[LANG][key]);
         }
         $("#rsa-resetSettings").attr("value", Strings[LANG].resetSettings);
+
         checkOptions();
     }
+
     async function loadSettings() {
-        const localSettings = JSON.parse(localStorage.getItem("RSA_Settings"));
+        const localSettings = JSON.parse(<string>localStorage.getItem("RSA_Settings"));
         const serverSettings = await WazeWrap.Remote.RetrieveSettings("RSA_Settings");
         if (!serverSettings) {
             console.error("RSA: Error communicating with WW settings server");
         }
-        const defaultSettings = {
+
+        const defaultSettings: RSASettings = {
             lastSaveAction: 0,
             enableScript: true,
             HighSegShields: false,
@@ -1740,17 +1866,53 @@ function rsaInit() {
             mapLayerVisible: false,
             iconLayerVisible: false,
         };
+
         rsaSettings = $.extend({}, defaultSettings, localSettings);
         if (serverSettings && serverSettings.lastSaveAction > rsaSettings.lastSaveAction) {
             $.extend(rsaSettings, serverSettings);
             // console.log('RSA: server settings used');
-        }
-        else {
+        } else {
             // console.log('RSA: local settings used');
         }
     }
+
     async function saveSettings() {
-        const { enableScript, HighSegShields, ShowSegShields, SegShieldMissing, SegShieldError, HighNodeShields, ShowNodeShields, ShowExitShields, SegHasDir, SegInvDir, ShowTurnTTS, AlertTurnTTS, ShowTowards, ShowVisualInst, NodeShieldMissing, HighSegClr, MissSegClr, ErrSegClr, HighNodeClr, MissNodeClr, SegHasDirClr, SegInvDirClr, TitleCaseClr, TitleCaseSftClr, ShowRamps, AlternativeShields, mHPlus, titleCase, checkTWD, checkTTS, checkVI, mapLayerVisible, iconLayerVisible, } = rsaSettings;
+        const {
+            enableScript,
+            HighSegShields,
+            ShowSegShields,
+            SegShieldMissing,
+            SegShieldError,
+            HighNodeShields,
+            ShowNodeShields,
+            ShowExitShields,
+            SegHasDir,
+            SegInvDir,
+            ShowTurnTTS,
+            AlertTurnTTS,
+            ShowTowards,
+            ShowVisualInst,
+            NodeShieldMissing,
+            HighSegClr,
+            MissSegClr,
+            ErrSegClr,
+            HighNodeClr,
+            MissNodeClr,
+            SegHasDirClr,
+            SegInvDirClr,
+            TitleCaseClr,
+            TitleCaseSftClr,
+            ShowRamps,
+            AlternativeShields,
+            mHPlus,
+            titleCase,
+            checkTWD,
+            checkTTS,
+            checkVI,
+            mapLayerVisible,
+            iconLayerVisible,
+        } = rsaSettings;
+
         const localSettings = {
             lastSaveAction: Date.now(),
             enableScript,
@@ -1787,6 +1949,7 @@ function rsaInit() {
             mapLayerVisible,
             iconLayerVisible,
         };
+
         // Grab keyboard shortcuts and store them for saving
         // for (const name in W.accelerators.Actions) {
         //     const {shortcut, group} = W.accelerators.Actions[name];
@@ -1814,24 +1977,28 @@ function rsaInit() {
         //         localSettings[name as keyof typeof localSettings] = TempKeys;
         //     }
         // }
+
         // Required for the instant update of changes to the keyboard shortcuts on the UI
         rsaSettings = localSettings;
+
         if (localStorage) {
             localStorage.setItem("RSA_Settings", JSON.stringify(localSettings));
         }
         const serverSave = await WazeWrap.Remote.SaveSettings("RSA_Settings", localSettings);
+
         if (serverSave === null) {
             console.warn("RSA: User PIN not set in WazeWrap tab");
-        }
-        else {
+        } else {
             if (serverSave === false) {
                 console.error("RSA: Unable to save settings to server");
             }
         }
     }
+
     function checkOptions() {
         const countries = sdk.DataModel.Countries.getAll();
         // const countries = W.model.countries.getObjectArray();
+
         if (countries.length < 1) {
             setTimeout(() => {
                 checkOptions();
@@ -1839,91 +2006,97 @@ function rsaInit() {
             return;
         }
         let allowFeat = false;
+
         for (let i = 0; i < countries.length; i++) {
-            if (RoadAbbr[countries[i].id])
-                allowFeat = true;
+            if (RoadAbbr[countries[i].id]) allowFeat = true;
         }
-        const segShieldMissing = $("#rsa-SegShieldMissing");
-        const segShieldError = $("#rsa-SegShieldError");
-        const nodeShieldMissing = $("#rsa-NodeShieldMissing");
-        const textSegShieldMissing = $("#rsa-text-SegShieldMissing");
-        const textSegShieldError = $("#rsa-text-SegShieldError");
-        const textNodeShieldMissing = $("#rsa-text-NodeShieldMissing");
+
+        const segShieldMissing: JQuery<HTMLElement> = $("#rsa-SegShieldMissing");
+        const segShieldError: JQuery<HTMLElement> = $("#rsa-SegShieldError");
+        const nodeShieldMissing: JQuery<HTMLElement> = $("#rsa-NodeShieldMissing");
+        const textSegShieldMissing: JQuery<HTMLElement> = $("#rsa-text-SegShieldMissing");
+        const textSegShieldError: JQuery<HTMLElement> = $("#rsa-text-SegShieldError");
+        const textNodeShieldMissing: JQuery<HTMLElement> = $("#rsa-text-NodeShieldMissing");
         if (!allowFeat) {
             textSegShieldMissing.prop("checked", false);
             textSegShieldError.prop("checked", false);
             textNodeShieldMissing.prop("checked", false);
+
             textSegShieldMissing.text(`${Strings[LANG].SegShieldMissing} ${Strings[LANG].disabledFeat}`);
             textSegShieldError.text(`${Strings[LANG].SegShieldError} ${Strings[LANG].disabledFeat}`);
             textNodeShieldMissing.text(`${Strings[LANG].NodeShieldMissing} ${Strings[LANG].disabledFeat}`);
+
             segShieldMissing.prop("disabled", true);
             segShieldError.prop("disabled", true);
             nodeShieldMissing.prop("disabled", true);
+
             rsaSettings.SegShieldMissing = false;
             rsaSettings.SegShieldError = false;
             rsaSettings.NodeShieldMissing = false;
             saveSettings();
-        }
-        else {
+        } else {
             textSegShieldMissing.prop("checked", rsaSettings.SegShieldMissing);
             textSegShieldError.prop("checked", rsaSettings.SegShieldError);
             textNodeShieldMissing.prop("checked", rsaSettings.NodeShieldMissing);
+
             textSegShieldMissing.text(Strings[LANG].SegShieldMissing);
             textSegShieldError.text(Strings[LANG].SegShieldError);
             textNodeShieldMissing.text(Strings[LANG].NodeShieldMissing);
+
             segShieldMissing.prop("disabled", false);
             segShieldError.prop("disabled", false);
             nodeShieldMissing.prop("disabled", false);
         }
+
         const topCountry = sdk.DataModel.Countries.getTopCountry();
         if (topCountry === null || topCountry.id !== 235) {
             $("#rsa-container-titleCase").css("display", "none");
             $("#rsa-container-TitleCaseClr").css("display", "none");
             $("#rsa-container-TitleCaseSftClr").css("display", "none");
-        }
-        else {
+        } else {
             $("#rsa-container-titleCase").css("display", "block");
             $("#rsa-container-TitleCaseClr").css("display", "block");
             $("#rsa-container-TitleCaseSftClr").css("display", "block");
         }
     }
+
     function autoFixButton() {
         $("#rsa-autoWrapper").css("display", "inline-block");
         $("#rsa-autoWrapper > div").off();
+
         // console.log(BadNames);
         // Create function to fix case types when button clicked
         $("#rsa-autoWrapper > div").on("click", () => {
             // const turnGraph = W.model.getTurnGraph();
-            const turnGraph = sdk.DataModel.Turns.getAll();
+            const turnGraph: Turn[] = sdk.DataModel.Turns.getAll();
+
             for (let i = 0; i < BadNames.length; i++) {
                 // Check if street or turn
                 if (BadNames[i]) {
                     const strt = BadNames[i];
                     let dir = strt.direction;
                     if (dir !== null) {
-                        if (dir.match(/\b(north)\b/i) != null)
-                            dir = "Nᴏʀᴛʜ";
-                        if (dir.match(/\b(south)\b/i) != null)
-                            dir = "Sᴏᴜᴛʜ";
-                        if (dir.match(/\b(east)\b/i) != null)
-                            dir = "Eᴀꜱᴛ";
-                        if (dir.match(/\b(west)\b/i) != null)
-                            dir = "Wᴇꜱᴛ";
+                        if (dir.match(/\b(north)\b/i) != null) dir = "Nᴏʀᴛʜ";
+                        if (dir.match(/\b(south)\b/i) != null) dir = "Sᴏᴜᴛʜ";
+                        if (dir.match(/\b(east)\b/i) != null) dir = "Eᴀꜱᴛ";
+                        if (dir.match(/\b(west)\b/i) != null) dir = "Wᴇꜱᴛ";
+
                         W.model.actionManager.add(new UpdateObj(strt, { direction: dir }));
                     }
-                }
-                else {
-                    function fixName(name) {
+                } else {
+                    function fixName(name: string) {
                         let temp = name;
                         temp = temp.replace(/\b(north)\b/gi, "Nᴏʀᴛʜ");
                         temp = temp.replace(/\b(south)\b/gi, "Sᴏᴜᴛʜ");
                         temp = temp.replace(/\b(east)\b/gi, "Eᴀꜱᴛ");
                         temp = temp.replace(/\b(west)\b/gi, "Wᴇꜱᴛ");
+
                         temp = temp.replace(/\b(TO)\b/gi, "ᴛᴏ");
                         temp = temp.replace(/\b(VIA)\b/gi, "ᴠɪᴀ");
                         temp = temp.replace(/\b(JCT)\b/gi, "ᴊᴄᴛ");
                         return temp;
                     }
+
                     const turn = BadNames[i];
                     let turnDat = turn.getTurnData();
                     const turnGuid = turnDat.getTurnGuidance();
@@ -1932,12 +2105,11 @@ function rsaInit() {
                     for (const s in turnGuid.roadShields) {
                         turnGuid.roadShields[s].direction = fixName(turnGuid.roadShields[s].direction);
                     }
-                    if (rsaSettings.checkTWD && turnGuid.towards)
-                        turnGuid.towards = fixName(turnGuid.towards);
-                    if (rsaSettings.checkTTS && turnGuid.tts)
-                        turnGuid.tts = fixName(turnGuid.tts);
+                    if (rsaSettings.checkTWD && turnGuid.towards) turnGuid.towards = fixName(turnGuid.towards);
+                    if (rsaSettings.checkTTS && turnGuid.tts) turnGuid.tts = fixName(turnGuid.tts);
                     if (rsaSettings.checkVI && turnGuid.visualInstruction)
                         turnGuid.visualInstruction = fixName(turnGuid.visualInstruction);
+
                     console.log(turnGuid);
                     turnDat = turnDat.withTurnGuidance(turnGuid);
                     W.model.actionManager.add(new SetTurn(turnGraph, turn.withTurnData(turnDat)));
@@ -1945,39 +2117,49 @@ function rsaInit() {
             }
         });
     }
+
     function removeAutoFixButton() {
         $("#rsa-autoWrapper > div").off();
         $("#rsa-autoWrapper").css("display", "none");
     }
+
     function addShieldClick() {
         // const selFea = W.selectionManager.getSelectedFeatures();
         const selFea = sdk.Editing.getSelection();
         if (selFea && selFea.objectType === "segment") {
             $(".add-new-road-shield").trigger("click");
-        }
-        else {
-            WazeWrap.Alerts.error(GM_info.script.name, "You must have only 1 segment selected to use the shield editing menu");
+        } else {
+            WazeWrap.Alerts.error(
+                GM_info.script.name,
+                "You must have only 1 segment selected to use the shield editing menu"
+            );
         }
     }
+
     function tryScan() {
-        if (!rsaSettings.enableScript)
-            return;
+        if (!rsaSettings.enableScript) return;
+
         // Reset the array of objects that need names fixed
         BadNames = [];
-        function scanNode(node) {
+
+        function scanNode(node: Node | null) {
             processNode(node);
         }
-        function scanSeg(seg, showInfo = false) {
+
+        function scanSeg(seg: Segment, showInfo = false) {
             processSeg(seg);
         }
+
         removeHighlights();
         // let selFea = W.selectionManager.getSelectedFeatures();
         // Scan all segments on screen
-        if (rsaSettings.ShowSegShields ||
+        if (
+            rsaSettings.ShowSegShields ||
             rsaSettings.SegShieldMissing ||
             rsaSettings.SegShieldError ||
             rsaSettings.HighSegShields ||
-            rsaSettings.titleCase) {
+            rsaSettings.titleCase
+        ) {
             // _.each(W.model.segments.getObjectArray(), s => {
             //     scanSeg(s);
             // }
@@ -1987,33 +2169,31 @@ function rsaInit() {
         }
         // Scan all nodes on screen
         if (rsaSettings.HighNodeShields || rsaSettings.ShowNodeShields || rsaSettings.titleCase) {
-            const nodeSet = new Set(sdk.DataModel.Nodes.getAll());
+            const nodeSet: Set<Node> = new Set<Node>(sdk.DataModel.Nodes.getAll());
             for (const n of nodeSet) {
                 scanNode(n);
             }
         }
     }
-    function processSeg(seg) {
-        if (seg === null)
-            return;
+
+    function processSeg(seg: Segment) {
+        if (seg === null) return;
         // let segAtt = seg.attributes;
         // let streetID = segAtt.primaryStreetID;
-        const streetID = seg.primaryStreetId;
-        if (streetID === null)
-            return;
+        const streetID: number | null = seg.primaryStreetId;
+        if (streetID === null) return;
         // let oldStreet = W.model.streets.getObjectById(streetID).attributes;
-        let street = sdk.DataModel.Streets.getById({ streetId: streetID });
-        if (street === null || street.cityId === null)
-            return;
-        const city = sdk.DataModel.Cities.getById({ cityId: street.cityId });
-        if (city === null)
-            return;
+        let street: Street | null = sdk.DataModel.Streets.getById({ streetId: streetID });
+        if (street === null || street.cityId === null) return;
+        const city: City | null = sdk.DataModel.Cities.getById({ cityId: street.cityId });
+        if (city === null) return;
         const stateID = city.stateId;
+
         if (rsaSettings.AlternativeShields) {
             if (seg.alternateStreetIds.length > 0) {
                 for (let i = 0; i < seg.alternateStreetIds.length; ++i) {
                     // let oldAltStreet = W.model.streets.getObjectById(segAtt.streetIDs[i]).attributes;
-                    const altStreet = sdk.DataModel.Streets.getById({
+                    const altStreet: Street | null = sdk.DataModel.Streets.getById({
                         streetId: seg.alternateStreetIds[i],
                     });
                     if (altStreet !== null) {
@@ -2022,12 +2202,12 @@ function rsaInit() {
                                 street = altStreet;
                                 break;
                             }
-                        }
-                        else if (alternativeType === "AlternativeNoCity") {
+                        } else if (alternativeType === "AlternativeNoCity") {
                             // let altCity = W.model.cities.getObjectById(altStreet.cityID).attributes;
-                            const altCity = altStreet.cityId === null
-                                ? null
-                                : sdk.DataModel.Cities.getById({ cityId: altStreet.cityId });
+                            const altCity: City | null =
+                                altStreet.cityId === null
+                                    ? null
+                                    : sdk.DataModel.Cities.getById({ cityId: altStreet.cityId });
                             if (altCity && altCity.name === "") {
                                 street = altStreet;
                                 break;
@@ -2038,25 +2218,29 @@ function rsaInit() {
             }
         }
         // let oldStateName = W.model.states.getObjectById(cityID.stateID).attributes.name;
-        const state = stateID !== null ? sdk.DataModel.States.getById({ stateId: stateID }) : null;
-        const stateName = state === null ? "" : state.name;
+        const state: State | null = stateID !== null ? sdk.DataModel.States.getById({ stateId: stateID }) : null;
+        const stateName: string = state === null ? "" : state.name;
         const countryID = city.countryId;
-        const candidate = isSegmentCandidate(seg, stateName, countryID);
+        const candidate: Candidate = isSegmentCandidate(seg, stateName, countryID);
+
         // Exclude ramps
-        if (!rsaSettings.ShowRamps && seg.roadType === 4)
-            return;
+        if (!rsaSettings.ShowRamps && seg.roadType === 4) return;
+
         // Only show mH and above
         if (rsaSettings.mHPlus && seg.roadType !== 3 && seg.roadType !== 4 && seg.roadType !== 6 && seg.roadType !== 7)
             return;
+
         // Display shield on map
-        function checkDeclutterSettings(seg) {
+        function checkDeclutterSettings(seg: Segment): boolean {
             let result = false;
+
             const zoomLevel = sdk.Map.getZoomLevel();
             if (zoomLevel > MIN_ZOOM_LEVEL) {
                 if (seg.length > minShieldDisplayLengths[zoomLevel]) {
                     result = true;
                 }
             }
+
             return result;
         }
         if (street.signType !== null) {
@@ -2067,23 +2251,22 @@ function rsaInit() {
             if (rsaSettings.HighSegShields && candidate.isCandidate) {
                 if (isValidShield(seg, candidate.iconID)) {
                     createHighlight(seg, rsaSettings.HighSegClr);
-                }
-                else {
+                } else {
                     createHighlight(seg, rsaSettings.ErrSegClr);
                 }
             }
+
             // If not candidate and has shield
-            if (rsaSettings.SegShieldError && !candidate.isCandidate)
-                createHighlight(seg, rsaSettings.ErrSegClr);
-            if (rsaSettings.SegHasDir && street.direction)
-                createHighlight(seg, rsaSettings.SegHasDirClr);
+            if (rsaSettings.SegShieldError && !candidate.isCandidate) createHighlight(seg, rsaSettings.ErrSegClr);
+            if (rsaSettings.SegHasDir && street.direction) createHighlight(seg, rsaSettings.SegHasDirClr);
+
             // Highlight seg shields with direction
-            if (rsaSettings.SegInvDir && !street.direction)
-                createHighlight(seg, rsaSettings.SegInvDirClr);
+            if (rsaSettings.SegInvDir && !street.direction) createHighlight(seg, rsaSettings.SegInvDirClr);
         }
         // If candidate and missing shield
         if (rsaSettings.SegShieldMissing && candidate.isCandidate && street.signType === null)
             createHighlight(seg, rsaSettings.MissSegClr);
+
         // Streets without capitalized letters
         if (rsaSettings.titleCase) {
             const badName = matchTitleCase(street);
@@ -2093,10 +2276,10 @@ function rsaInit() {
             }
         }
     }
-    function processNode(node) {
-        if (node === null)
-            return;
-        const guidance = {
+
+    function processNode(node: Node | null) {
+        if (node === null) return;
+        const guidance: GuidanceInterface = {
             tts: false,
             visual: false,
             exit: false,
@@ -2111,6 +2294,7 @@ function rsaInit() {
             guidance.shield = guidance.shield || turn.hasShieldsPopulated;
             guidance.towards = guidance.towards || turn.hasTowardsGuidance;
             guidance.visual = guidance.visual || turn.hasVisualInstruction;
+
             if (rsaSettings.titleCase) {
                 const badName = matchTitleCaseThroughNode(turn);
                 if (badName.isBad) {
@@ -2120,15 +2304,20 @@ function rsaInit() {
                 }
             }
         }
-        if (rsaSettings.ShowNodeShields &&
+
+        if (
+            rsaSettings.ShowNodeShields &&
             sdk.Map.getZoomLevel() > ZoomLevel.ZM2 &&
-            (guidance.exit || guidance.tts || guidance.shield || guidance.visual || guidance.towards))
+            (guidance.exit || guidance.tts || guidance.shield || guidance.visual || guidance.towards)
+        )
             displayNodeIcons(node, guidance);
     }
+
     // Function written by kpouer to accommodate French conventions of shields being based on alt names
-    function isSegmentCandidate(seg, stateName, countryId) {
+    function isSegmentCandidate(seg: Segment, stateName: string, countryId: number | null) {
         // let street = W.model.streets.getObjectById(segAtt.primaryStreetID);
-        let street = seg.primaryStreetId === null ? null : sdk.DataModel.Streets.getById({ streetId: seg.primaryStreetId });
+        let street: Street | null =
+            seg.primaryStreetId === null ? null : sdk.DataModel.Streets.getById({ streetId: seg.primaryStreetId });
         let candidate = isStreetCandidate(street, stateName, countryId);
         if (!candidate.isCandidate && countryId !== null && CheckAltName.has(countryId)) {
             for (let i = 0; i < seg.alternateStreetIds.length; i++) {
@@ -2141,24 +2330,29 @@ function rsaInit() {
         }
         return candidate;
     }
-    function isStreetCandidate(street, stateName, countryId) {
-        const info = { isCandidate: false, iconID: null };
+
+    function isStreetCandidate(street: Street | null, stateName: string, countryId: number | null): Candidate {
+        const info: Candidate = { isCandidate: false, iconID: null };
+
         if (countryId === null || !RoadAbbr[countryId]) {
             return info;
         }
         // if (stateName === null) stateName = "";
+
         //Check to see if the country has states configured in RSA by looking for a key with nothing in it
         const name = street === null ? "" : street.name;
         if (name) {
-            const noStates = "" in RoadAbbr[countryId];
+            const noStates: boolean = "" in RoadAbbr[countryId];
             const abbrvs = noStates
                 ? RoadAbbr[countryId][""]
                 : { ...RoadAbbr[countryId][stateName], ...RoadAbbr[countryId]["*"] };
+
             const abbreviationKeys = Object.keys(abbrvs);
             for (let i = 0; i < abbreviationKeys.length; i++) {
                 const abrKey = abbreviationKeys[i];
                 const abbr = new RegExp(abrKey, "g");
                 const isMatch = name.match(abbr);
+
                 if (isMatch && name.includes(isMatch[0])) {
                     info.isCandidate = true;
                     info.iconID = abbrvs[abrKey];
@@ -2168,131 +2362,138 @@ function rsaInit() {
         }
         return info;
     }
-    function iconTextValidation(signType, signText, iconId) {
+
+    function iconTextValidation(
+        signType: number | null,
+        signText: string | null,
+        iconId: number | null | Set<number>
+    ): boolean {
         let result = true;
-        if (signType === null ||
+        if (
+            signType === null ||
             typeof signType === "undefined" ||
             typeof signText === "undefined" ||
             (iconId instanceof Set && !iconId.has(signType)) ||
-            (!(iconId instanceof Set) && signType !== iconId)) {
+            (!(iconId instanceof Set) && signType !== iconId)
+        ) {
             result = false;
         }
-        if (signType !== null &&
+        if (
+            signType !== null &&
             !iconsAllowingNoText.has(signType) &&
-            (signText === null || typeof signText === "undefined" || signText === "")) {
+            (signText === null || typeof signText === "undefined" || signText === "")
+        ) {
             result = false;
         }
         return result;
     }
-    function isValidShield(seg, iconID) {
+
+    function isValidShield(seg: Segment | null, iconID: number | null | Set<number>): boolean {
         // let primaryStreet = W.model.streets.getObjectById(segAtt.primaryStreetID);
-        if (seg === null || seg.primaryStreetId === null)
-            return false;
-        const primaryStreet = sdk.DataModel.Streets.getById({ streetId: seg.primaryStreetId });
-        if (primaryStreet === null ||
+        if (seg === null || seg.primaryStreetId === null) return false;
+        const primaryStreet: Street | null = sdk.DataModel.Streets.getById({ streetId: seg.primaryStreetId });
+        if (
+            primaryStreet === null ||
             primaryStreet.signText === null ||
-            !iconTextValidation(primaryStreet.signType, primaryStreet.signText, iconID))
+            !iconTextValidation(primaryStreet.signType, primaryStreet.signText, iconID)
+        )
             return false;
         if (primaryStreet.name?.includes(primaryStreet.signText)) {
             return true;
         }
         for (let i = 0; i < seg.alternateStreetIds.length; i++) {
-            const street = sdk.DataModel.Streets.getById({ streetId: seg.alternateStreetIds[i] });
+            const street: Street | null = sdk.DataModel.Streets.getById({ streetId: seg.alternateStreetIds[i] });
             if (street?.name?.includes(primaryStreet.signText)) {
                 return true;
             }
         }
         return false;
     }
-    function matchTitleCase(street) {
+
+    function matchTitleCase(street: Street) {
         const dir = street.direction;
         let isBad = false;
         if (dir !== "" && dir !== null) {
             // console.log(dir);
-            if (dir.match(/\\b(north|south|east|west)\\b/i) !== null)
-                isBad = true;
-            if (dir.match(/([ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘʀꜱᴛᴜᴠᴡʏᴢ][a-z]|[a-z][ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘʀꜱᴛᴜᴠᴡʏᴢ])/) !== null)
-                isBad = true;
+            if (dir.match(/\\b(north|south|east|west)\\b/i) !== null) isBad = true;
+            if (dir.match(/([ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘʀꜱᴛᴜᴠᴡʏᴢ][a-z]|[a-z][ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘʀꜱᴛᴜᴠᴡʏᴢ])/) !== null) isBad = true;
+
             if (isBad) {
                 if (BadNames.length === 0) {
                     BadNames.push(street);
-                }
-                else {
+                } else {
                     let isDuplicate = false;
                     for (let i = 0; i < BadNames.length; i++) {
                         // if (BadNames[i].type) console.log(BadNames[i].id === street.id);
-                        if (typeof BadNames[i] && BadNames[i].id === street.id)
-                            isDuplicate = true;
+                        if (typeof BadNames[i] && BadNames[i].id === street.id) isDuplicate = true;
                     }
-                    if (!isDuplicate)
-                        BadNames.push(street);
+                    if (!isDuplicate) BadNames.push(street);
                 }
             }
         }
         return isBad;
     }
-    function matchTitleCaseThroughNode(turn) {
+
+    function matchTitleCaseThroughNode(turn: Turn) {
         const info = { isBad: false, softIssue: false };
+
         return info;
+
         const turnGuid = turnData.getTurnGuidance();
         const shields = turnGuid.getRoadShields();
         const twd = turnGuid.getTowards();
         const tts = turnGuid.getTTS();
         const VI = turnGuid.getVisualInstruction();
-        function checkText(txt, isSoft = false) {
+
+        function checkText(txt: string | null, isSoft = false) {
             if (txt !== "" && txt !== null) {
                 if (txt.match(/\b(north|south|east|west)\b/i) != null) {
                     info.isBad = true;
-                    if (isSoft)
-                        info.softIssue = true;
+                    if (isSoft) info.softIssue = true;
                 }
                 if (txt.match(/\b(TO|VIA|JCT)\b/i) != null) {
                     info.isBad = true;
-                    if (isSoft)
-                        info.softIssue = true;
+                    if (isSoft) info.softIssue = true;
                 }
                 if (txt.match(/([ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘʀꜱᴛᴜᴠᴡʏᴢ][a-z]|[a-z][ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘʀꜱᴛᴜᴠᴡʏᴢ])/) != null) {
                     info.isBad = true;
-                    if (isSoft)
-                        info.softIssue = true;
+                    if (isSoft) info.softIssue = true;
                 }
             }
         }
-        function checkTTStext(txt, isSoft = false) {
+
+        function checkTTStext(txt: string, isSoft = false) {
             if (txt !== "" && txt !== null) {
                 if (txt.match(/(Nᴏʀᴛʜ|Sᴏᴜᴛʜ|Eᴀꜱᴛ|Wᴇꜱᴛ)/) != null) {
                     info.isBad = true;
-                    if (isSoft)
-                        info.softIssue = true;
+                    if (isSoft) info.softIssue = true;
                 }
                 if (txt.match(/(ᴛᴏ|ᴠɪᴀ|ᴊᴄᴛ)/) != null) {
                     info.isBad = true;
-                    if (isSoft)
-                        info.softIssue = true;
+                    if (isSoft) info.softIssue = true;
                 }
                 if (txt.match(/([ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘʀꜱᴛᴜᴠᴡʏᴢ][a-z]|[a-z][ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘʀꜱᴛᴜᴠᴡʏᴢ])/) != null) {
                     info.isBad = true;
-                    if (isSoft)
-                        info.softIssue = true;
+                    if (isSoft) info.softIssue = true;
                 }
             }
         }
+
         if (shields) {
             _.each(shields, (s) => {
                 checkText(s.direction);
             });
         }
-        if (twd && twd !== "" && rsaSettings.checkTWD)
-            checkText(twd, true);
-        if (tts && tts !== "" && rsaSettings.checkTTS)
-            checkTTStext(tts, true);
-        if (VI && VI !== "" && rsaSettings.checkVI)
-            checkText(VI, true);
-        if (info.isBad)
-            BadNames.push(turn);
+        if (twd && twd !== "" && rsaSettings.checkTWD) checkText(twd, true);
+        if (tts && tts !== "" && rsaSettings.checkTTS) checkTTStext(tts, true);
+        if (VI && VI !== "" && rsaSettings.checkVI) checkText(VI, true);
+
+        if (info.isBad) BadNames.push(turn);
+
         return info;
     }
-    function displayNodeIcons(node, guidance) {
+
+    function displayNodeIcons(node: Node, guidance: GuidanceInterface) {
         const GUIDANCE = {
             shields: { exists: guidance.shield, color: "", width: 30, height: 30, sign: "6", txt: "TG" },
             exitsign: { exists: guidance.exit, color: "", width: 30, height: 20, sign: "2159", txt: "EX" },
@@ -2301,61 +2502,78 @@ function rsaInit() {
             visualIn: { exists: guidance.visual, color: "", width: 30, height: 30, sign: "7", txt: "VI" },
         };
         let count = 0;
+
         const pixelPos = proj4("EPSG:4326", "EPSG:3857", node.geometry.coordinates);
         const startPoint = { x: pixelPos[0], y: pixelPos[1] };
         const lblStart = { x: startPoint.x - labelDistance().label, y: startPoint.y + labelDistance().label };
+
         // Array of points for line connecting node to icons
-        const points = [];
-        const pointCoordinates = [];
+        const points: GeoJSON.Feature[] = [];
+        const pointCoordinates: GeoJSON.Position[] = [];
         // Point coords
         // let pointNode = new OpenLayers.Geometry.Point(startPoint.x, startPoint.y);
-        const pointNode = turf.point(node.geometry.coordinates, {
-            styleName: "styleNode",
-            style: {
-                strokeColor: rsaSettings.HighNodeClr,
-                strokeOpacity: 0.75,
-                strokeWidth: 4,
-                fillColor: rsaSettings.HighNodeClr,
-                fillOpacity: 0.75,
-                pointRadius: 3,
+        const pointNode = turf.point(
+            node.geometry.coordinates,
+            {
+                styleName: "styleNode",
+                style: {
+                    strokeColor: rsaSettings.HighNodeClr,
+                    strokeOpacity: 0.75,
+                    strokeWidth: 4,
+                    fillColor: rsaSettings.HighNodeClr,
+                    fillOpacity: 0.75,
+                    pointRadius: 3,
+                },
             },
-        }, { id: `node_${startPoint.x} ${startPoint.y}` });
+            { id: `node_${startPoint.x} ${startPoint.y}` }
+        );
         points.push(pointNode);
         pointCoordinates.push(node.geometry.coordinates);
         // Label coords
         // var pointLabel = new OpenLayers.Geometry.Point(lblStart.x, lblStart.y);
-        const nodeLabel = turf.point(node.geometry.coordinates, {
-            styleName: "styleNode",
-            style: {
-                strokeColor: rsaSettings.HighNodeClr,
-                strokeOpacity: 0.75,
-                strokeWidth: 4,
-                fillColor: rsaSettings.HighNodeClr,
-                fillOpacity: 0.75,
-                pointRadius: 3,
+        const nodeLabel = turf.point(
+            node.geometry.coordinates,
+            {
+                styleName: "styleNode",
+                style: {
+                    strokeColor: rsaSettings.HighNodeClr,
+                    strokeOpacity: 0.75,
+                    strokeWidth: 4,
+                    fillColor: rsaSettings.HighNodeClr,
+                    fillOpacity: 0.75,
+                    pointRadius: 3,
+                },
             },
-        }, { id: `pointNode_${startPoint.x} ${startPoint.y}` });
+            { id: `pointNode_${startPoint.x} ${startPoint.y}` }
+        );
         points.push(nodeLabel);
         pointCoordinates.push(node.geometry.coordinates);
+
         sdk.Map.addFeaturesToLayer({ features: points, layerName: rsaMapLayer.layerName });
-        const newLine = turf.lineString(pointCoordinates, {
-            styleName: "styleNode",
-            style: {
-                strokeColor: rsaSettings.HighNodeClr,
-                strokeOpacity: 0.75,
-                strokeWidth: 4,
-                fillColor: rsaSettings.HighNodeClr,
-                fillOpacity: 0.75,
-                pointRadius: 3,
+        const newLine = turf.lineString(
+            pointCoordinates,
+            {
+                styleName: "styleNode",
+                style: {
+                    strokeColor: rsaSettings.HighNodeClr,
+                    strokeOpacity: 0.75,
+                    strokeWidth: 4,
+                    fillColor: rsaSettings.HighNodeClr,
+                    fillOpacity: 0.75,
+                    pointRadius: 3,
+                },
             },
-        }, { id: `line_${points[0].toString()}` });
+            { id: `line_${points[0].toString()}` }
+        );
         sdk.Map.addFeatureToLayer({ feature: newLine, layerName: rsaIconLayer.layerName });
+
         _.each(GUIDANCE, (q) => {
             if (q.exists) {
                 // console.log(q);
-                let xpoint = lblStart.x;
-                let ypoint = lblStart.y;
-                const lblDis = labelDistance();
+                let xpoint: number = lblStart.x;
+                let ypoint: number = lblStart.y;
+
+                const lblDis: LabelDistance = labelDistance();
                 switch (count) {
                     case 1:
                         xpoint = lblStart.x + lblDis.icon;
@@ -2376,35 +2594,46 @@ function rsaInit() {
                     default:
                         break;
                 }
+
                 // Label coords
                 // let pointLabel = new OpenLayers.Geometry.Point(xpoint, ypoint);
                 // labelFeat = new OpenLayers.Feature.Vector(pointLabel, null, styleLabel);
-                const pointLabelFeature = turf.point(proj4("EPSG:3857", "EPSG:4326", [xpoint, ypoint]), {
-                    styleName: "styleLabel",
-                    style: { sign: q.sign, txt: q.txt, height: q.height, width: q.width, fillOpacity: 1 },
-                }, { id: `pointLabel_${xpoint.toString()}_${ypoint.toString()}` });
+                const pointLabelFeature = turf.point(
+                    proj4("EPSG:3857", "EPSG:4326", [xpoint, ypoint]),
+                    {
+                        styleName: "styleLabel",
+                        style: { sign: q.sign, txt: q.txt, height: q.height, width: q.width, fillOpacity: 1 },
+                    },
+                    { id: `pointLabel_${xpoint.toString()}_${ypoint.toString()}` }
+                );
                 sdk.Map.addFeatureToLayer({ feature: pointLabelFeature, layerName: rsaIconLayer.layerName });
+
                 count++;
             }
         });
     }
-    function displaySegShields(segment, shieldID, shieldText, shieldDir) {
+
+    function displaySegShields(
+        segment: Segment,
+        shieldID: number,
+        shieldText: string | null,
+        shieldDir: string | null
+    ) {
         const iconURL = `https://renderer-am.waze.com/renderer/v1/signs/${shieldID}?text=${shieldText}`;
         // let SegmentPoints = [];
-        const oldparam = { x: null, y: null };
+        const oldparam: Coordinates = { x: null, y: null };
         const labelDis = labelDistance();
         let width = 37;
         let height = 37;
+
         if (shieldText !== null) {
             if (shieldText.length > 4 && shieldText.length < 7) {
                 width = 50;
                 height = 40;
-            }
-            else if (shieldText.length > 6 && shieldText.length < 9) {
+            } else if (shieldText.length > 6 && shieldText.length < 9) {
                 width = 80;
                 height = 45;
-            }
-            else if (shieldText.length > 8 && shieldText.length < 13) {
+            } else if (shieldText.length > 8 && shieldText.length < 13) {
                 width = 100;
                 height = 50;
             }
@@ -2412,9 +2641,10 @@ function rsaInit() {
         // oldparam.x = null;
         // oldparam.y = null;
         let AtLeastOne = false;
-        $.each(segment.geometry.coordinates, (idx, param) => {
+        $.each(segment.geometry.coordinates, (idx: number, param: Position) => {
             const pointParam = proj4("EPSG:4326", "EPSG:3857", param);
             // Build a new segment with same geometry
+
             // SegmentPoints.push(new OpenLayers.Geometry.Point(param[0], param[1]));
             // let newPoint = {
             //     type: "Feature",
@@ -2425,6 +2655,7 @@ function rsaInit() {
             //     id: "point_" + param[0].toString() + " " + param[1].toString(),
             // };
             // SegmentPoints.push(newPoint);
+
             // let shieldWithLabelStyle = {
             //     externalGraphic: iconURL,
             //     graphicWidth: width,
@@ -2443,29 +2674,38 @@ function rsaInit() {
             //     display: "grid",
             //     labelYOffset: 0,
             // };
+
             if (oldparam.x && oldparam.y && oldparam.x !== null && oldparam.y !== null) {
-                if (Math.abs(oldparam.x - pointParam[0]) > labelDis.space ||
+                if (
+                    Math.abs(oldparam.x - pointParam[0]) > labelDis.space ||
                     Math.abs(oldparam.y - pointParam[1]) > labelDis.space ||
-                    !AtLeastOne) {
-                    const centerparam = { x: undefined, y: undefined };
+                    !AtLeastOne
+                ) {
+                    const centerparam: Coordinates = { x: undefined, y: undefined };
                     centerparam.x = (oldparam.x + pointParam[0]) / 2;
                     centerparam.y = (oldparam.y + pointParam[1]) / 2;
-                    if ((centerparam.x && Math.abs(centerparam.x - pointParam[0]) > labelDis.space) ||
+                    if (
+                        (centerparam.x && Math.abs(centerparam.x - pointParam[0]) > labelDis.space) ||
                         (centerparam.y && Math.abs(centerparam.y - pointParam[1]) > labelDis.space) ||
-                        !AtLeastOne) {
+                        !AtLeastOne
+                    ) {
                         // let LabelPoint = new OpenLayers.Geometry.Point(centerparam.x, centerparam.y);
                         // const pointFeature = new OpenLayers.Feature.Vector(LabelPoint, null, style);
                         const coordCenterPoint = proj4("EPSG:3857", "EPSG:4326", [centerparam.x, centerparam.y]);
-                        const shieldFeature = turf.point(coordCenterPoint, {
-                            styleName: "shield",
-                            style: {
-                                externalGraphic: iconURL,
-                                graphicWidth: width,
-                                graphicHeight: height,
-                                label: shieldDir !== null ? shieldDir : "",
-                                labelYOffset: shieldDir !== null ? -20 : 0,
+                        const shieldFeature = turf.point(
+                            coordCenterPoint,
+                            {
+                                styleName: "shield",
+                                style: {
+                                    externalGraphic: iconURL,
+                                    graphicWidth: width,
+                                    graphicHeight: height,
+                                    label: shieldDir !== null ? shieldDir : "",
+                                    labelYOffset: shieldDir !== null ? -20 : 0,
+                                },
                             },
-                        }, { id: `shield_${centerparam.x.toString()}_${centerparam.y.toString()}` });
+                            { id: `shield_${centerparam.x.toString()}_${centerparam.y.toString()}` }
+                        );
                         // Shield icon style
                         // shieldWithLabelStyle.labelYOffset = -1 * labelDis.label;
                         sdk.Map.addFeatureToLayer({ feature: shieldFeature, layerName: rsaIconLayer.layerName });
@@ -2477,27 +2717,32 @@ function rsaInit() {
             oldparam.y = pointParam[1];
         });
     }
-    function createHighlight(obj, color, overSized = false) {
+
+    function createHighlight(obj: Segment | Node, color: string, overSized = false) {
         // const geo = obj.getOLGeometry().clone();
-        const geo = structuredClone(obj.geometry);
+        const geo: Point | LineString = structuredClone(obj.geometry);
         const isNode = obj instanceof Node;
+
         if (isNode) {
             // Point coords
             // let pointNode = new OpenLayers.Geometry.Point(geo.x, geo.y);
-            const pointFeature = turf.point(geo.coordinates, {
-                styleName: "styleNode",
-                style: {
-                    strokeColor: color,
-                    strokeOpacity: overSized ? 1 : 0.75,
-                    strokeWidth: 4,
-                    fillColor: color,
-                    fillOpacity: 0.75,
-                    pointRadius: overSized ? 7 : 3,
+            const pointFeature: Feature = turf.point(
+                (geo as Point).coordinates,
+                {
+                    styleName: "styleNode",
+                    style: {
+                        strokeColor: color,
+                        strokeOpacity: overSized ? 1 : 0.75,
+                        strokeWidth: 4,
+                        fillColor: color,
+                        fillOpacity: 0.75,
+                        pointRadius: overSized ? 7 : 3,
+                    },
                 },
-            }, { id: `point_${geo.coordinates[0]}_${geo.coordinates[1]}` });
+                { id: `point_${geo.coordinates[0]}_${geo.coordinates[1]}` }
+            );
             sdk.Map.addFeatureToLayer({ feature: pointFeature, layerName: rsaIconLayer.layerName });
-        }
-        else {
+        } else {
             // console.log('seg highlight')
             // Object.assign(styleRules.segHighlight.style, {
             //     strokeColor: color,
@@ -2509,27 +2754,33 @@ function rsaInit() {
             // const newFeat =  new OpenLayers.Geometry.LineString(geo.components, {});
             // const newVector = new OpenLayers.Feature.Vector(newFeat, null, style);
             // rsaMapLayer.addFeatures([newVector]);
-            const newLineFeature = turf.lineString(geo.coordinates, {
-                styleName: "segHighlight",
-                style: {
-                    strokeColor: color,
-                    strokeOpacity: overSized ? 1 : 0.75,
-                    strokeWidth: overSized ? 7 : 4,
-                    fillColor: color,
-                    fillOpacity: 0.75,
+            const newLineFeature: Feature = turf.lineString(
+                (geo as LineString).coordinates,
+                {
+                    styleName: "segHighlight",
+                    style: {
+                        strokeColor: color,
+                        strokeOpacity: overSized ? 1 : 0.75,
+                        strokeWidth: overSized ? 7 : 4,
+                        fillColor: color,
+                        fillOpacity: 0.75,
+                    },
                 },
-            }, { id: `line_${geo}` });
+                { id: `line_${geo}` }
+            );
             sdk.Map.addFeatureToLayer({ feature: newLineFeature, layerName: rsaMapLayer.layerName });
         }
     }
+
     function removeHighlights() {
         sdk.Map.removeAllFeaturesFromLayer(rsaMapLayer);
         sdk.Map.removeAllFeaturesFromLayer(rsaIconLayer);
     }
-    function labelDistance() {
+
+    function labelDistance(): LabelDistance {
         // Return object with two variables - label is the distance used to place the direction below the icon,
         // space is the space between geo points needed to render another icon
-        const label_distance = { icon: 0, label: 0, space: 0 };
+        const label_distance: LabelDistance = { icon: 0, label: 0, space: 0 };
         switch (sdk.Map.getZoomLevel()) {
             case ZoomLevel.ZM10:
                 label_distance.label = 2;
@@ -2584,5 +2835,6 @@ function rsaInit() {
         }
         return label_distance;
     }
+
     initRSA();
 }
