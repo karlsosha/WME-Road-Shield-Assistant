@@ -1505,6 +1505,7 @@ function rsaInit() {
             styleContext: styleConfig.styleContext,
         });
         sdk.LayerSwitcher.addLayerCheckbox({ name: rsaMapLayer.layerName });
+        sdk.LayerSwitcher.setLayerCheckboxChecked({ name: rsaMapLayer.layerName, isChecked: rsaSettings.mapLayerVisible });
         sdk.Map.setLayerVisibility({ layerName: rsaMapLayer.layerName, visibility: rsaSettings.mapLayerVisible });
         sdk.Map.addLayer({
             layerName: rsaIconLayer.layerName,
@@ -1513,6 +1514,7 @@ function rsaInit() {
         });
         sdk.LayerSwitcher.addLayerCheckbox({ name: rsaIconLayer.layerName });
         sdk.Map.setLayerVisibility({ layerName: rsaIconLayer.layerName, visibility: rsaSettings.iconLayerVisible });
+        sdk.LayerSwitcher.setLayerCheckboxChecked({ name: rsaIconLayer.layerName, isChecked: rsaSettings.iconLayerVisible });
         sdk.Events.on({
             eventName: "wme-layer-checkbox-toggled",
             eventHandler: (payload) => {
