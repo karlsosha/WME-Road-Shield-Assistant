@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name         WME Road Shield Assistant
 // @namespace    https://greasyfork.org/en/users/286957-skidooguy
-// @version      2024.12.05.001
+// @version      2025.05.17.001
 // @description  Adds shield information display to WME
 // @author       SkiDooGuy, jm6087, Karlsosha
 // @match        https://www.waze.com/editor*
@@ -1505,6 +1505,7 @@ function rsaInit() {
             styleContext: styleConfig.styleContext,
         });
         sdk.LayerSwitcher.addLayerCheckbox({ name: rsaMapLayer.layerName });
+        sdk.LayerSwitcher.setLayerCheckboxChecked({ name: rsaMapLayer.layerName, isChecked: rsaSettings.mapLayerVisible });
         sdk.Map.setLayerVisibility({ layerName: rsaMapLayer.layerName, visibility: rsaSettings.mapLayerVisible });
         sdk.Map.addLayer({
             layerName: rsaIconLayer.layerName,
@@ -1513,6 +1514,7 @@ function rsaInit() {
         });
         sdk.LayerSwitcher.addLayerCheckbox({ name: rsaIconLayer.layerName });
         sdk.Map.setLayerVisibility({ layerName: rsaIconLayer.layerName, visibility: rsaSettings.iconLayerVisible });
+        sdk.LayerSwitcher.setLayerCheckboxChecked({ name: rsaIconLayer.layerName, isChecked: rsaSettings.iconLayerVisible });
         sdk.Events.on({
             eventName: "wme-layer-checkbox-toggled",
             eventHandler: (payload) => {
