@@ -12,7 +12,7 @@
 // @exclude      https://www.waze.com/user/editor*
 // @require      https://greasyfork.org/scripts/24851-wazewrap/code/WazeWrap.js
 // @require      https://cdn.jsdelivr.net/npm/@turf/turf@7.2.0/turf.min.js
-// @require      https://cdn.jsdelivr.net/npm/proj4@2.15.0/dist/proj4.min.js
+// @require      https://cdn.jsdelivr.net/npm/proj4@2.16.2/dist/proj4.min.js
 // @grant        none
 // @contributionURL https://github.com/WazeDev/Thank-The-Authors
 // ==/UserScript==
@@ -1527,6 +1527,7 @@ function rsaInit() {
                 }
                 if (payload.checked)
                     tryScan();
+                saveSettings();
             },
         });
         // Set user options
@@ -2326,7 +2327,8 @@ function rsaInit() {
         pointCoordinates.push(node.geometry.coordinates);
         // Label coords
         // var pointLabel = new OpenLayers.Geometry.Point(lblStart.x, lblStart.y);
-        const nodeLabel = turf.point(node.geometry.coordinates, {
+        const nodeLabelCoordinates = proj4("EPSG:3857", "EPSG:4326", [lblStart.x, lblStart.y]);
+        const nodeLabel = turf.point(nodeLabelCoordinates, {
             styleName: "styleNode",
             style: {
                 strokeColor: rsaSettings.HighNodeClr,
@@ -2338,7 +2340,7 @@ function rsaInit() {
             },
         }, { id: `pointNode_${startPoint.x} ${startPoint.y}` });
         points.push(nodeLabel);
-        pointCoordinates.push(node.geometry.coordinates);
+        pointCoordinates.push(nodeLabelCoordinates);
         sdk.Map.addFeaturesToLayer({ features: points, layerName: rsaMapLayer.layerName });
         const newLine = turf.lineString(pointCoordinates, {
             styleName: "styleNode",
