@@ -43,7 +43,10 @@ function rsaInit() {
     const GF_LINK = "https://greasyfork.org/en/scripts/425050-wme-road-shield-assisstant";
     const FORUM_LINK = "https://www.waze.com/discuss/t/script-road-shield-assistant-rsa/227100";
     const RSA_UPDATE_NOTES = `<b>NEW:</b><br>
-- Converted to WME SDK<br><br>
+    - Converted to WME SDK<br>
+    - Added Rules for Shield Checking Logic for Mexico<br>
+    - Updated Shield Highlight Rules for All States in US<br>
+    - Updated Some Highlight Rules for Canada<br><br>
 <b>KNOWN ISSUES:</b><br>
     - Shields for Turns currently unavailable through SDK<br>
     - Some of the highlighting may be incorrect showing issues when there are none<br><br>`;
