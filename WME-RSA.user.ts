@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WME Road Shield Assistant
 // @namespace    https://greasyfork.org/en/users/286957-skidooguy
-// @version      2025.05.22.001
+// @version      2025.05.24.001
 // @description  Adds shield information display to WME
 // @author       SkiDooGuy, jm6087, Karlsosha
 // @match        https://www.waze.com/editor*
@@ -52,8 +52,10 @@ function rsaInit() {
     - Added Rules for Shield Checking Logic for Mexico<br>
     - Updated Shield Highlight Rules for All States in US<br>
     - Updated Some Highlight Rules for Canada<br><br>
+<b>BUGFIXES:</b><br>
+    - Fix error with undefined point Radius for Circle Tag<br><br>
 <b>KNOWN ISSUES:</b><br>
-    - Shields for Turns currently unavailable through SDK<br>
+    - Missing Exit Sign Shields on Node<br>
     - Some of the highlighting may be incorrect showing issues when there are none<br><br>`;
 
     enum CountryID {
@@ -1235,6 +1237,9 @@ function rsaInit() {
             },
             nodeStyleFillOpacity: (context) => {
                 return context?.feature?.properties?.style?.fillOpacity;
+            },
+            nodeStylePointRadius: (context) => {
+                return context?.feature?.properties?.style?.pointRadius;
             },
             segHighlightStrokeOpacity: (context) => {
                 return context?.feature?.properties?.style?.strokeOpacity;
