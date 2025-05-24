@@ -1236,6 +1236,9 @@ function rsaInit() {
             nodeStyleFillOpacity: (context) => {
                 return context?.feature?.properties?.style?.fillOpacity;
             },
+            nodeStylePointRadius: (context) => {
+                return context?.feature?.properties?.style?.pointRadius;
+            },
             segHighlightStrokeOpacity: (context) => {
                 return context?.feature?.properties?.style?.strokeOpacity;
             },
