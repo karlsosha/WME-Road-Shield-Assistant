@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WME Road Shield Assistant
 // @namespace    https://greasyfork.org/en/users/286957-skidooguy
-// @version      2025.05.17.001
+// @version      2025.05.22.001
 // @description  Adds shield information display to WME
 // @author       SkiDooGuy, jm6087, Karlsosha
 // @match        https://www.waze.com/editor*
@@ -11,7 +11,7 @@
 // @exclude      https://www.waze.com/user/editor*
 // @require      https://greasyfork.org/scripts/24851-wazewrap/code/WazeWrap.js
 // @require      https://cdn.jsdelivr.net/npm/@turf/turf@7.2.0/turf.min.js
-// @require      https://cdn.jsdelivr.net/npm/proj4@2.15.0/dist/proj4.min.js
+// @require      https://cdn.jsdelivr.net/npm/proj4@2.16.2/dist/proj4.min.js
 // @grant        none
 // @contributionURL https://github.com/WazeDev/Thank-The-Authors
 // ==/UserScript==
@@ -48,7 +48,10 @@ function rsaInit() {
     const GF_LINK = "https://greasyfork.org/en/scripts/425050-wme-road-shield-assisstant";
     const FORUM_LINK = "https://www.waze.com/discuss/t/script-road-shield-assistant-rsa/227100";
     const RSA_UPDATE_NOTES = `<b>NEW:</b><br>
-- Converted to WME SDK<br><br>
+    - Converted to WME SDK<br>
+    - Added Rules for Shield Checking Logic for Mexico<br>
+    - Updated Shield Highlight Rules for All States in US<br>
+    - Updated Some Highlight Rules for Canada<br><br>
 <b>KNOWN ISSUES:</b><br>
     - Shields for Turns currently unavailable through SDK<br>
     - Some of the highlighting may be incorrect showing issues when there are none<br><br>`;
@@ -1643,6 +1646,7 @@ function rsaInit() {
                     rsaSettings.iconLayerVisible = payload.checked;
                 }
                 if (payload.checked) tryScan();
+                saveSettings();
             },
         });
 
@@ -2497,11 +2501,11 @@ function rsaInit() {
 
     function displayNodeIcons(node: Node, guidance: GuidanceInterface) {
         const GUIDANCE = {
-            shields: { exists: guidance.shield, color: "", width: 30, height: 30, sign: "6", txt: "TG" },
-            exitsign: { exists: guidance.exit, color: "", width: 30, height: 20, sign: "2159", txt: "EX" },
-            tts: { exists: guidance.tts, color: "", width: 30, height: 30, sign: "7", txt: "TIO" },
-            towards: { exists: guidance.towards, color: "", width: 30, height: 30, sign: "7", txt: "TW" },
-            visualIn: { exists: guidance.visual, color: "", width: 30, height: 30, sign: "7", txt: "VI" },
+            shields: { setting: "ShowNodeShields", exists: guidance.shield, color: "", width: 30, height: 30, sign: "6", txt: "TG" },
+            exitsign: { setting: "ShowExitShields", exists: guidance.exit, color: "", width: 30, height: 20, sign: "2159", txt: "EX" },
+            tts: { setting: "ShowTurnTTS",  exists: guidance.tts, color: "", width: 30, height: 30, sign: "7", txt: "TIO" },
+            towards: { setting: "ShowTowards", exists: guidance.towards, color: "", width: 30, height: 30, sign: "7", txt: "TW" },
+            visualIn: { setting: "ShowVisualInst", exists: guidance.visual, color: "", width: 30, height: 30, sign: "7", txt: "VI" },
         };
         let count = 0;
 
@@ -2533,8 +2537,10 @@ function rsaInit() {
         pointCoordinates.push(node.geometry.coordinates);
         // Label coords
         // var pointLabel = new OpenLayers.Geometry.Point(lblStart.x, lblStart.y);
+
+        const nodeLabelCoordinates = proj4("EPSG:3857", "EPSG:4326", [lblStart.x, lblStart.y]);
         const nodeLabel = turf.point(
-            node.geometry.coordinates,
+            nodeLabelCoordinates,
             {
                 styleName: "styleNode",
                 style: {
@@ -2549,7 +2555,7 @@ function rsaInit() {
             { id: `pointNode_${startPoint.x} ${startPoint.y}` }
         );
         points.push(nodeLabel);
-        pointCoordinates.push(node.geometry.coordinates);
+        pointCoordinates.push(nodeLabelCoordinates);
 
         sdk.Map.addFeaturesToLayer({ features: points, layerName: rsaMapLayer.layerName });
         const newLine = turf.lineString(
@@ -2570,7 +2576,7 @@ function rsaInit() {
         sdk.Map.addFeatureToLayer({ feature: newLine, layerName: rsaIconLayer.layerName });
 
         _.each(GUIDANCE, (q) => {
-            if (q.exists) {
+            if (q.exists && rsaSettings[q.setting]) {
                 // console.log(q);
                 let xpoint: number = lblStart.x;
                 let ypoint: number = lblStart.y;
