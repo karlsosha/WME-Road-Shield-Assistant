@@ -2300,11 +2300,11 @@ function rsaInit() {
     }
     function displayNodeIcons(node, guidance) {
         const GUIDANCE = {
-            shields: { exists: guidance.shield, color: "", width: 30, height: 30, sign: "6", txt: "TG" },
-            exitsign: { exists: guidance.exit, color: "", width: 30, height: 20, sign: "2159", txt: "EX" },
-            tts: { exists: guidance.tts, color: "", width: 30, height: 30, sign: "7", txt: "TIO" },
-            towards: { exists: guidance.towards, color: "", width: 30, height: 30, sign: "7", txt: "TW" },
-            visualIn: { exists: guidance.visual, color: "", width: 30, height: 30, sign: "7", txt: "VI" },
+            shields: { setting: "ShowNodeShields", exists: guidance.shield, color: "", width: 30, height: 30, sign: "6", txt: "TG" },
+            exitsign: { setting: "ShowExitShields", exists: guidance.exit, color: "", width: 30, height: 20, sign: "2159", txt: "EX" },
+            tts: { setting: "ShowTurnTTS", exists: guidance.tts, color: "", width: 30, height: 30, sign: "7", txt: "TIO" },
+            towards: { setting: "ShowTowards", exists: guidance.towards, color: "", width: 30, height: 30, sign: "7", txt: "TW" },
+            visualIn: { setting: "ShowVisualInst", exists: guidance.visual, color: "", width: 30, height: 30, sign: "7", txt: "VI" },
         };
         let count = 0;
         const pixelPos = proj4("EPSG:4326", "EPSG:3857", node.geometry.coordinates);
@@ -2358,7 +2358,7 @@ function rsaInit() {
         }, { id: `line_${points[0].toString()}` });
         sdk.Map.addFeatureToLayer({ feature: newLine, layerName: rsaIconLayer.layerName });
         _.each(GUIDANCE, (q) => {
-            if (q.exists) {
+            if (q.exists && rsaSettings[q.setting]) {
                 // console.log(q);
                 let xpoint = lblStart.x;
                 let ypoint = lblStart.y;
