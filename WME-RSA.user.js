@@ -1984,9 +1984,6 @@ function rsaInit() {
             return;
         // Reset the array of objects that need names fixed
         BadNames = [];
-        function scanNode(node) {
-            processNode(node);
-        }
         removeHighlights();
         if (sdk.Map.getZoomLevel() <= MIN_ZOOM_LEVEL)
             return;
@@ -2008,7 +2005,7 @@ function rsaInit() {
         if (rsaSettings.HighNodeShields || rsaSettings.ShowNodeShields || rsaSettings.titleCase) {
             const nodeSet = new Set(sdk.DataModel.Nodes.getAll());
             for (const n of nodeSet) {
-                scanNode(n);
+                processNode(n);
             }
         }
     }
@@ -2105,8 +2102,9 @@ function rsaInit() {
             towards: false,
         };
         const turns = sdk.DataModel.Turns.getTurnsThroughNode({ nodeId: node.id });
-        for (let idx = 0; idx < turns.length; ++idx) {
-            const turn = turns[idx];
+        for (const turn of turns) {
+            if (!turn.isAllowed)
+                continue;
             // let oldTurn = W.model.getTurnGraph().getTurnThroughNode(node,turn.fromSegmentId,turn.toSegmentId);
             guidance.tts = guidance.tts || turn.hasCustomTTS;
             guidance.shield = guidance.shield || turn.hasShieldsPopulated;
