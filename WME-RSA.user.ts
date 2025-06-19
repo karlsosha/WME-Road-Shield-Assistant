@@ -2214,20 +2214,18 @@ function rsaInit() {
         let address = sdk.DataModel.Segments.getAddress({segmentId: seg.id});
 
         if (rsaSettings.AlternativeShields) {
-            if (address.altStreets.length > 0) {
-                for (const altAddress of address.altStreets) {
-                    // let oldAltStreet = W.model.streets.getObjectById(segAtt.streetIDs[i]).attributes;
-                    if (alternativeType === "AlternativePrimaryCity") {
-                        if (altAddress.city !== null) {
-                            address = altAddress
-                            break;
-                        }
-                    } 
-                    if (alternativeType === "AlternativeNoCity") {
-                        if(altAddress.city?.name === "") {
-                            address = altAddress
-                            break;
-                        }
+            for (const altAddress of address.altStreets) {
+                // let oldAltStreet = W.model.streets.getObjectById(segAtt.streetIDs[i]).attributes;
+                if (alternativeType === "AlternativePrimaryCity") {
+                    if (altAddress.city !== null) {
+                        address = altAddress
+                        break;
+                    }
+                } 
+                if (alternativeType === "AlternativeNoCity") {
+                    if(altAddress.city?.name === "") {
+                        address = altAddress
+                        break;
                     }
                 }
             }
