@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name         WME Road Shield Assistant
 // @namespace    https://greasyfork.org/en/users/286957-skidooguy
-// @version      2025.05.24.001
+// @version      2025.05.25.001
 // @description  Adds shield information display to WME
 // @author       SkiDooGuy, jm6087, Karlsosha
 // @match        https://www.waze.com/editor*
@@ -13,7 +13,9 @@
 // @require      https://greasyfork.org/scripts/24851-wazewrap/code/WazeWrap.js
 // @require      https://cdn.jsdelivr.net/npm/@turf/turf@7.2.0/turf.min.js
 // @require      https://cdn.jsdelivr.net/npm/proj4@2.16.2/dist/proj4.min.js
-// @grant        none
+// @grant        GM_xmlhttpRequest
+// @grant        unsafeWindow
+// @connect      greasyfork.org
 // @contributionURL https://github.com/WazeDev/Thank-The-Authors
 // ==/UserScript==
 /* global W */
@@ -25,11 +27,11 @@
 // import proj4 from "proj4";
 // import WazeWrap from "https://greasyfork.org/scripts/24851-wazewrap/code/WazeWrap.js";
 let sdk;
-window.SDK_INITIALIZED.then(() => {
-    if (!window.getWmeSdk) {
+unsafeWindow.SDK_INITIALIZED.then(() => {
+    if (!unsafeWindow.getWmeSdk) {
         throw new Error("SDK is not installed");
     }
-    sdk = window.getWmeSdk({ scriptId: "wme-road-shield-assistant", scriptName: "WME Road Shield Assistant" });
+    sdk = unsafeWindow.getWmeSdk({ scriptId: "wme-road-shield-assistant", scriptName: "WME Road Shield Assistant" });
     console.log(`SDK v ${sdk.getSDKVersion()} on ${sdk.getWMEVersion()} initialized`);
     sdk.Events.once({ eventName: "wme-ready" }).then(rsaInit);
 });
@@ -44,6 +46,7 @@ function rsaInit() {
     const FORUM_LINK = "https://www.waze.com/discuss/t/script-road-shield-assistant-rsa/227100";
     const RSA_UPDATE_NOTES = `<b>NEW:</b><br>
     - Converted to WME SDK<br>
+    - <b>Make Sure to Enable RSA Layers to See the Shields</b><br>
     - Added Rules for Shield Checking Logic for Mexico<br>
     - Updated Shield Highlight Rules for All States in US<br>
     - Updated Some Highlight Rules for Canada<br><br>
