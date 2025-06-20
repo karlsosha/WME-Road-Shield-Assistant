@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WME Road Shield Assistant
 // @namespace    https://greasyfork.org/en/users/286957-skidooguy
-// @version      2025.05.25.001
+// @version      2025.06.19.001
 // @description  Adds shield information display to WME
 // @author       SkiDooGuy, jm6087, Karlsosha
 // @match        https://www.waze.com/editor*
@@ -21,7 +21,7 @@
 /* global W */
 /* global WazeWrap */
 
-// import type { City, Node, Segment, State, Street, Turn, WmeSDK } from "wme-sdk-typings";
+// import type { Node, Segment, SegmentAddress, Street, Turn, WmeSDK } from "wme-sdk-typings";
 // import type { Point, LineString, Position, Feature } from "geojson";
 // import * as turf from "@turf/turf";
 // import _ from "underscore";
@@ -1633,7 +1633,10 @@ function rsaInit() {
             styleContext: styleConfig.styleContext,
         });
         sdk.LayerSwitcher.addLayerCheckbox({ name: rsaMapLayer.layerName });
-        sdk.LayerSwitcher.setLayerCheckboxChecked({name: rsaMapLayer.layerName, isChecked: rsaSettings.mapLayerVisible});
+        sdk.LayerSwitcher.setLayerCheckboxChecked({
+            name: rsaMapLayer.layerName,
+            isChecked: rsaSettings.mapLayerVisible,
+        });
         sdk.Map.setLayerVisibility({ layerName: rsaMapLayer.layerName, visibility: rsaSettings.mapLayerVisible });
 
         sdk.Map.addLayer({
@@ -1643,7 +1646,10 @@ function rsaInit() {
         });
         sdk.LayerSwitcher.addLayerCheckbox({ name: rsaIconLayer.layerName });
         sdk.Map.setLayerVisibility({ layerName: rsaIconLayer.layerName, visibility: rsaSettings.iconLayerVisible });
-        sdk.LayerSwitcher.setLayerCheckboxChecked({name: rsaIconLayer.layerName, isChecked: rsaSettings.iconLayerVisible});
+        sdk.LayerSwitcher.setLayerCheckboxChecked({
+            name: rsaIconLayer.layerName,
+            isChecked: rsaSettings.iconLayerVisible,
+        });
         sdk.Events.on({
             eventName: "wme-layer-checkbox-toggled",
             eventHandler: (payload) => {
@@ -2156,15 +2162,8 @@ function rsaInit() {
         // Reset the array of objects that need names fixed
         BadNames = [];
 
-        function scanNode(node: Node | null) {
-            processNode(node);
-        }
-
-        function scanSeg(seg: Segment, showInfo = false) {
-            processSeg(seg);
-        }
-
         removeHighlights();
+        if (sdk.Map.getZoomLevel() <= MIN_ZOOM_LEVEL) return;
         // let selFea = W.selectionManager.getSelectedFeatures();
         // Scan all segments on screen
         if (
@@ -2178,71 +2177,59 @@ function rsaInit() {
             //     scanSeg(s);
             // }
             for (const s of sdk.DataModel.Segments.getAll()) {
-                scanSeg(s);
+                processSeg(s);
             }
         }
         // Scan all nodes on screen
         if (rsaSettings.HighNodeShields || rsaSettings.ShowNodeShields || rsaSettings.titleCase) {
             const nodeSet: Set<Node> = new Set<Node>(sdk.DataModel.Nodes.getAll());
             for (const n of nodeSet) {
-                scanNode(n);
+                processNode(n);
             }
         }
     }
 
+    const majorRoads = new Set<number>([3, 4, 5, 6]);
     function processSeg(seg: Segment) {
-        if (seg === null) return;
+        if (
+            (!rsaSettings.ShowRamps && seg.roadType === 4) ||
+            (rsaSettings.mHPlus && !majorRoads.has(seg.roadType))
+        )
+            return;
+
         // let segAtt = seg.attributes;
         // let streetID = segAtt.primaryStreetID;
-        const streetID: number | null = seg.primaryStreetId;
-        if (streetID === null) return;
-        // let oldStreet = W.model.streets.getObjectById(streetID).attributes;
-        let street: Street | null = sdk.DataModel.Streets.getById({ streetId: streetID });
-        if (street === null || street.cityId === null) return;
-        const city: City | null = sdk.DataModel.Cities.getById({ cityId: street.cityId });
-        if (city === null) return;
-        const stateID = city.stateId;
+        // const streetID: number | null = seg.primaryStreetId;
+        // if (streetID === null) return;
+        // // let oldStreet = W.model.streets.getObjectById(streetID).attributes;
+        // let street: Street | null = sdk.DataModel.Streets.getById({ streetId: streetID });
+        // if (street === null || street.cityId === null) return;
+        // const city: City | null = sdk.DataModel.Cities.getById({ cityId: street.cityId });
+        // if (city === null) return;
+        // const stateID = city.stateId;
+        let address = sdk.DataModel.Segments.getAddress({segmentId: seg.id});
 
         if (rsaSettings.AlternativeShields) {
-            if (seg.alternateStreetIds.length > 0) {
-                for (let i = 0; i < seg.alternateStreetIds.length; ++i) {
-                    // let oldAltStreet = W.model.streets.getObjectById(segAtt.streetIDs[i]).attributes;
-                    const altStreet: Street | null = sdk.DataModel.Streets.getById({
-                        streetId: seg.alternateStreetIds[i],
-                    });
-                    if (altStreet !== null) {
-                        if (alternativeType === "AlternativePrimaryCity") {
-                            if (street.cityId === altStreet.cityId) {
-                                street = altStreet;
-                                break;
-                            }
-                        } else if (alternativeType === "AlternativeNoCity") {
-                            // let altCity = W.model.cities.getObjectById(altStreet.cityID).attributes;
-                            const altCity: City | null =
-                                altStreet.cityId === null
-                                    ? null
-                                    : sdk.DataModel.Cities.getById({ cityId: altStreet.cityId });
-                            if (altCity && altCity.name === "") {
-                                street = altStreet;
-                                break;
-                            }
-                        }
+            for (const altAddress of address.altStreets) {
+                // let oldAltStreet = W.model.streets.getObjectById(segAtt.streetIDs[i]).attributes;
+                if (alternativeType === "AlternativePrimaryCity") {
+                    if (altAddress.city !== null) {
+                        address = altAddress
+                        break;
+                    }
+                } 
+                if (alternativeType === "AlternativeNoCity") {
+                    if(altAddress.city?.name === "") {
+                        address = altAddress
+                        break;
                     }
                 }
             }
         }
         // let oldStateName = W.model.states.getObjectById(cityID.stateID).attributes.name;
-        const state: State | null = stateID !== null ? sdk.DataModel.States.getById({ stateId: stateID }) : null;
-        const stateName: string = state === null ? "" : state.name;
-        const countryID = city.countryId;
-        const candidate: Candidate = isSegmentCandidate(seg, stateName, countryID);
-
-        // Exclude ramps
-        if (!rsaSettings.ShowRamps && seg.roadType === 4) return;
-
-        // Only show mH and above
-        if (rsaSettings.mHPlus && seg.roadType !== 3 && seg.roadType !== 4 && seg.roadType !== 6 && seg.roadType !== 7)
-            return;
+        const stateName: string = address.state === null ? "" : address.state.name;
+        const countryID = address.country?.id;
+        const candidate: Candidate = isSegmentCandidate(address, stateName, countryID);
 
         // Display shield on map
         function checkDeclutterSettings(seg: Segment): boolean {
@@ -2257,9 +2244,9 @@ function rsaInit() {
 
             return result;
         }
-        if (street.signType !== null) {
+        if (address.street !== null && address.street.signType !== null) {
             if (rsaSettings.ShowSegShields && checkDeclutterSettings(seg)) {
-                displaySegShields(seg, street.signType, street.signText, street.direction);
+                displaySegShields(seg, address.street.signType, address.street.signText, address.street.direction);
             }
             // If candidate and has shield
             if (rsaSettings.HighSegShields && candidate.isCandidate) {
@@ -2269,21 +2256,22 @@ function rsaInit() {
                     createHighlight(seg, rsaSettings.ErrSegClr);
                 }
             }
+            
 
             // If not candidate and has shield
             if (rsaSettings.SegShieldError && !candidate.isCandidate) createHighlight(seg, rsaSettings.ErrSegClr);
-            if (rsaSettings.SegHasDir && street.direction) createHighlight(seg, rsaSettings.SegHasDirClr);
+            if (rsaSettings.SegHasDir && address.street?.direction) createHighlight(seg, rsaSettings.SegHasDirClr);
 
             // Highlight seg shields with direction
-            if (rsaSettings.SegInvDir && !street.direction) createHighlight(seg, rsaSettings.SegInvDirClr);
+            if (rsaSettings.SegInvDir && !address.street?.direction) createHighlight(seg, rsaSettings.SegInvDirClr);
         }
         // If candidate and missing shield
-        if (rsaSettings.SegShieldMissing && candidate.isCandidate && street.signType === null)
+        if (rsaSettings.SegShieldMissing && candidate.isCandidate && address.street !== null && address.street.signType === null)
             createHighlight(seg, rsaSettings.MissSegClr);
 
         // Streets without capitalized letters
         if (rsaSettings.titleCase) {
-            const badName = matchTitleCase(street);
+            const badName = matchTitleCase(address.street);
             if (badName) {
                 createHighlight(seg, rsaSettings.TitleCaseClr, true);
                 // autoFixButton();
@@ -2301,8 +2289,8 @@ function rsaInit() {
             towards: false,
         };
         const turns = sdk.DataModel.Turns.getTurnsThroughNode({ nodeId: node.id });
-        for (let idx = 0; idx < turns.length; ++idx) {
-            const turn = turns[idx];
+        for (const turn of turns) {
+            if(!turn.isAllowed) continue;
             // let oldTurn = W.model.getTurnGraph().getTurnThroughNode(node,turn.fromSegmentId,turn.toSegmentId);
             guidance.tts = guidance.tts || turn.hasCustomTTS;
             guidance.shield = guidance.shield || turn.hasShieldsPopulated;
@@ -2328,15 +2316,11 @@ function rsaInit() {
     }
 
     // Function written by kpouer to accommodate French conventions of shields being based on alt names
-    function isSegmentCandidate(seg: Segment, stateName: string, countryId: number | null) {
-        // let street = W.model.streets.getObjectById(segAtt.primaryStreetID);
-        let street: Street | null =
-            seg.primaryStreetId === null ? null : sdk.DataModel.Streets.getById({ streetId: seg.primaryStreetId });
-        let candidate = isStreetCandidate(street, stateName, countryId);
-        if (!candidate.isCandidate && countryId !== null && CheckAltName.has(countryId)) {
-            for (let i = 0; i < seg.alternateStreetIds.length; i++) {
-                street = sdk.DataModel.Streets.getById({ streetId: seg.alternateStreetIds[i] });
-                candidate = isStreetCandidate(street, stateName, countryId);
+    function isSegmentCandidate(address: SegmentAddress, stateName: string, countryId: number | null | undefined) {
+        let candidate = isStreetCandidate(address.street, stateName, countryId);
+        if (!candidate.isCandidate && address.country !== null && address.country?.id !== undefined && CheckAltName.has(address.country.id)) {
+            for (const altAddress of address.altStreets) {
+                candidate = isStreetCandidate(altAddress.street, stateName, countryId);
                 if (candidate.isCandidate) {
                     return candidate;
                 }
@@ -2345,17 +2329,16 @@ function rsaInit() {
         return candidate;
     }
 
-    function isStreetCandidate(street: Street | null, stateName: string, countryId: number | null): Candidate {
+    function isStreetCandidate(street: Street | null, stateName: string, countryId: number | null | undefined): Candidate {
         const info: Candidate = { isCandidate: false, iconID: null };
 
-        if (countryId === null || !RoadAbbr[countryId]) {
+        if (street === null || countryId === null || countryId === undefined || !RoadAbbr[countryId]) {
             return info;
         }
         // if (stateName === null) stateName = "";
 
         //Check to see if the country has states configured in RSA by looking for a key with nothing in it
-        const name = street === null ? "" : street.name;
-        if (name) {
+        if (street.name) {
             const noStates: boolean = "" in RoadAbbr[countryId];
             const abbrvs = noStates
                 ? RoadAbbr[countryId][""]
@@ -2365,9 +2348,9 @@ function rsaInit() {
             for (let i = 0; i < abbreviationKeys.length; i++) {
                 const abrKey = abbreviationKeys[i];
                 const abbr = new RegExp(abrKey, "g");
-                const isMatch = name.match(abbr);
+                const isMatch = street.name.match(abbr);
 
-                if (isMatch && name.includes(isMatch[0])) {
+                if (isMatch && street.name.includes(isMatch[0])) {
                     info.isCandidate = true;
                     info.iconID = abbrvs[abrKey];
                     break;
@@ -2424,7 +2407,8 @@ function rsaInit() {
         return false;
     }
 
-    function matchTitleCase(street: Street) {
+    function matchTitleCase(street: Street | null) {
+        if(!street) return;
         const dir = street.direction;
         let isBad = false;
         if (dir !== "" && dir !== null) {
@@ -2509,11 +2493,51 @@ function rsaInit() {
 
     function displayNodeIcons(node: Node, guidance: GuidanceInterface) {
         const GUIDANCE = {
-            shields: { setting: "ShowNodeShields", exists: guidance.shield, color: "", width: 30, height: 30, sign: "6", txt: "TG" },
-            exitsign: { setting: "ShowExitShields", exists: guidance.exit, color: "", width: 30, height: 20, sign: "2159", txt: "EX" },
-            tts: { setting: "ShowTurnTTS",  exists: guidance.tts, color: "", width: 30, height: 30, sign: "7", txt: "TIO" },
-            towards: { setting: "ShowTowards", exists: guidance.towards, color: "", width: 30, height: 30, sign: "7", txt: "TW" },
-            visualIn: { setting: "ShowVisualInst", exists: guidance.visual, color: "", width: 30, height: 30, sign: "7", txt: "VI" },
+            shields: {
+                setting: "ShowNodeShields",
+                exists: guidance.shield,
+                color: "",
+                width: 30,
+                height: 30,
+                sign: "6",
+                txt: "TG",
+            },
+            exitsign: {
+                setting: "ShowExitShields",
+                exists: guidance.exit,
+                color: "",
+                width: 30,
+                height: 20,
+                sign: "2159",
+                txt: "EX",
+            },
+            tts: {
+                setting: "ShowTurnTTS",
+                exists: guidance.tts,
+                color: "",
+                width: 30,
+                height: 30,
+                sign: "7",
+                txt: "TIO",
+            },
+            towards: {
+                setting: "ShowTowards",
+                exists: guidance.towards,
+                color: "",
+                width: 30,
+                height: 30,
+                sign: "7",
+                txt: "TW",
+            },
+            visualIn: {
+                setting: "ShowVisualInst",
+                exists: guidance.visual,
+                color: "",
+                width: 30,
+                height: 30,
+                sign: "7",
+                txt: "VI",
+            },
         };
         let count = 0;
 
