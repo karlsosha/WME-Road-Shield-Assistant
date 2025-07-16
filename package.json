@@ -26,7 +26,6 @@
   "dependencies": {
     "jquery": "^3.7.1",
     "prettier": "^3.6.1",
-    "proj4": "^2.19.4",
-    "wme-road-shield-assistant": "file:"
+    "proj4": "^2.19.4"
   }
 }
