@@ -12,7 +12,6 @@
 // @exclude      https://www.waze.com/user/editor*
 // @require      https://greasyfork.org/scripts/24851-wazewrap/code/WazeWrap.js
 // @require      https://cdn.jsdelivr.net/npm/@turf/turf@7.2.0/turf.min.js
-// @require      https://cdn.jsdelivr.net/npm/proj4@2.16.2/dist/proj4.min.js
 // @grant        GM_xmlhttpRequest
 // @grant        unsafeWindow
 // @connect      greasyfork.org
@@ -24,7 +23,6 @@
 // import type { Point, LineString, Position, Feature } from "geojson";
 // import * as turf from "@turf/turf";
 // import _ from "underscore";
-// import proj4 from "proj4";
 // import WazeWrap from "https://greasyfork.org/scripts/24851-wazewrap/code/WazeWrap.js";
 let sdk;
 unsafeWindow.SDK_INITIALIZED.then(() => {
@@ -2338,8 +2336,9 @@ function rsaInit() {
             },
         };
         let count = 0;
-        const pixelPos = proj4("EPSG:4326", "EPSG:3857", node.geometry.coordinates);
-        const startPoint = { x: pixelPos[0], y: pixelPos[1] };
+        const pixelPos = sdk.Map.getPixelFromLonLat({ lonLat: { lon: node.geometry.coordinates[0], lat: node.geometry.coordinates[1] } });
+        // const pixelPos = proj4("EPSG:4326", "EPSG:3857", node.geometry.coordinates);
+        const startPoint = { x: pixelPos.x, y: pixelPos.y };
         const lblStart = { x: startPoint.x - labelDistance().label, y: startPoint.y + labelDistance().label };
         // Array of points for line connecting node to icons
         const points = [];
@@ -2361,8 +2360,9 @@ function rsaInit() {
         pointCoordinates.push(node.geometry.coordinates);
         // Label coords
         // var pointLabel = new OpenLayers.Geometry.Point(lblStart.x, lblStart.y);
-        const nodeLabelCoordinates = proj4("EPSG:3857", "EPSG:4326", [lblStart.x, lblStart.y]);
-        const nodeLabel = turf.point(nodeLabelCoordinates, {
+        // const nodeLabelCoordinates = proj4("EPSG:3857", "EPSG:4326", [lblStart.x, lblStart.y]);
+        const nodeLabelCoordinates = sdk.Map.getLonLatFromPixel({ x: lblStart.x, y: lblStart.y });
+        const nodeLabel = turf.point([nodeLabelCoordinates.lon, nodeLabelCoordinates.lat], {
             styleName: "styleNode",
             style: {
                 strokeColor: rsaSettings.HighNodeClr,
@@ -2374,7 +2374,7 @@ function rsaInit() {
             },
         }, { id: `pointNode_${startPoint.x} ${startPoint.y}` });
         points.push(nodeLabel);
-        pointCoordinates.push(nodeLabelCoordinates);
+        pointCoordinates.push([nodeLabelCoordinates.lon, nodeLabelCoordinates.lat]);
         sdk.Map.addFeaturesToLayer({ features: points, layerName: rsaMapLayer.layerName });
         const newLine = turf.lineString(pointCoordinates, {
             styleName: "styleNode",
@@ -2417,7 +2417,8 @@ function rsaInit() {
                 // Label coords
                 // let pointLabel = new OpenLayers.Geometry.Point(xpoint, ypoint);
                 // labelFeat = new OpenLayers.Feature.Vector(pointLabel, null, styleLabel);
-                const pointLabelFeature = turf.point(proj4("EPSG:3857", "EPSG:4326", [xpoint, ypoint]), {
+                const lonLat = sdk.Map.getLonLatFromPixel({ x: xpoint, y: ypoint });
+                const pointLabelFeature = turf.point([lonLat.lon, lonLat.lat], {
                     styleName: "styleLabel",
                     style: { sign: q.sign, txt: q.txt, height: q.height, width: q.width, fillOpacity: 1 },
                 }, { id: `pointLabel_${xpoint.toString()}_${ypoint.toString()}` });
@@ -2451,7 +2452,8 @@ function rsaInit() {
         // oldparam.y = null;
         let AtLeastOne = false;
         $.each(segment.geometry.coordinates, (idx, param) => {
-            const pointParam = proj4("EPSG:4326", "EPSG:3857", param);
+            // const pointParam = proj4("EPSG:4326", "EPSG:3857", param);
+            const pointParam = sdk.Map.getPixelFromLonLat({ lonLat: { lon: param[0], lat: param[1] } });
             // Build a new segment with same geometry
             // SegmentPoints.push(new OpenLayers.Geometry.Point(param[0], param[1]));
             // let newPoint = {
@@ -2482,19 +2484,20 @@ function rsaInit() {
             //     labelYOffset: 0,
             // };
             if (oldparam.x && oldparam.y && oldparam.x !== null && oldparam.y !== null) {
-                if (Math.abs(oldparam.x - pointParam[0]) > labelDis.space ||
-                    Math.abs(oldparam.y - pointParam[1]) > labelDis.space ||
+                if (Math.abs(oldparam.x - pointParam.x) > labelDis.space ||
+                    Math.abs(oldparam.y - pointParam.y) > labelDis.space ||
                     !AtLeastOne) {
                     const centerparam = { x: undefined, y: undefined };
-                    centerparam.x = (oldparam.x + pointParam[0]) / 2;
-                    centerparam.y = (oldparam.y + pointParam[1]) / 2;
-                    if ((centerparam.x && Math.abs(centerparam.x - pointParam[0]) > labelDis.space) ||
-                        (centerparam.y && Math.abs(centerparam.y - pointParam[1]) > labelDis.space) ||
+                    centerparam.x = (oldparam.x + pointParam.x) / 2;
+                    centerparam.y = (oldparam.y + pointParam.y) / 2;
+                    if ((centerparam.x && Math.abs(centerparam.x - pointParam.x) > labelDis.space) ||
+                        (centerparam.y && Math.abs(centerparam.y - pointParam.y) > labelDis.space) ||
                         !AtLeastOne) {
                         // let LabelPoint = new OpenLayers.Geometry.Point(centerparam.x, centerparam.y);
                         // const pointFeature = new OpenLayers.Feature.Vector(LabelPoint, null, style);
-                        const coordCenterPoint = proj4("EPSG:3857", "EPSG:4326", [centerparam.x, centerparam.y]);
-                        const shieldFeature = turf.point(coordCenterPoint, {
+                        // const coordCenterPoint = proj4("EPSG:3857", "EPSG:4326", [centerparam.x, centerparam.y]);
+                        const coordCenterPoint = sdk.Map.getLonLatFromPixel({ x: centerparam.x, y: centerparam.y });
+                        const shieldFeature = turf.point([coordCenterPoint.lon, coordCenterPoint.lat], {
                             styleName: "shield",
                             style: {
                                 externalGraphic: iconURL,
@@ -2511,8 +2514,8 @@ function rsaInit() {
                     }
                 }
             }
-            oldparam.x = pointParam[0];
-            oldparam.y = pointParam[1];
+            oldparam.x = pointParam.x;
+            oldparam.y = pointParam.y;
         });
     }
     function createHighlight(obj, color, overSized = false) {
