@@ -2339,7 +2339,7 @@ function rsaInit() {
         const pixelPos = sdk.Map.getPixelFromLonLat({ lonLat: { lon: node.geometry.coordinates[0], lat: node.geometry.coordinates[1] } });
         // const pixelPos = proj4("EPSG:4326", "EPSG:3857", node.geometry.coordinates);
         const startPoint = { x: pixelPos.x, y: pixelPos.y };
-        const lblStart = { x: startPoint.x - labelDistance().label, y: startPoint.y + labelDistance().label };
+        const lblStart = { x: startPoint.x - labelDistance().label, y: startPoint.y - labelDistance().label };
         // Array of points for line connecting node to icons
         const points = [];
         const pointCoordinates = [];
@@ -2570,59 +2570,7 @@ function rsaInit() {
     function labelDistance() {
         // Return object with two variables - label is the distance used to place the direction below the icon,
         // space is the space between geo points needed to render another icon
-        const label_distance = { icon: 0, label: 0, space: 0 };
-        switch (sdk.Map.getZoomLevel()) {
-            case ZoomLevel.ZM10:
-                label_distance.label = 2;
-                label_distance.space = 30;
-                label_distance.icon = 1.1;
-                break;
-            case ZoomLevel.ZM9:
-                label_distance.label = 4;
-                label_distance.space = 30;
-                label_distance.icon = 2.2;
-                break;
-            case ZoomLevel.ZM8:
-                label_distance.label = 8;
-                label_distance.space = 30;
-                label_distance.icon = 4.5;
-                break;
-            case ZoomLevel.ZM7:
-                label_distance.label = 14;
-                label_distance.space = 30;
-                label_distance.icon = 8.3;
-                break;
-            case ZoomLevel.ZM6:
-                label_distance.label = 28;
-                label_distance.space = 30;
-                label_distance.icon = 17;
-                break;
-            case ZoomLevel.ZM5:
-                label_distance.label = 50;
-                label_distance.space = 30;
-                label_distance.icon = 34;
-                break;
-            case ZoomLevel.ZM4:
-                label_distance.label = 100;
-                label_distance.space = 40;
-                label_distance.icon = 68;
-                break;
-            case ZoomLevel.ZM3:
-                label_distance.label = 300;
-                label_distance.space = 70;
-                label_distance.icon = 140;
-                break;
-            case ZoomLevel.ZM2:
-                label_distance.label = 300;
-                label_distance.space = 200;
-                label_distance.icon = 140;
-                break;
-            case ZoomLevel.ZM1:
-                label_distance.label = 300;
-                label_distance.space = 250;
-                label_distance.icon = 140;
-                break;
-        }
+        const label_distance = { icon: 27, label: 40, space: 30 };
         return label_distance;
     }
     initRSA();
