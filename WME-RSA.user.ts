@@ -11,7 +11,6 @@
 // @exclude      https://www.waze.com/user/editor*
 // @require      https://greasyfork.org/scripts/24851-wazewrap/code/WazeWrap.js
 // @require      https://cdn.jsdelivr.net/npm/@turf/turf@7.2.0/turf.min.js
-// @require      https://cdn.jsdelivr.net/npm/proj4@2.16.2/dist/proj4.min.js
 // @grant        GM_xmlhttpRequest
 // @grant        unsafeWindow
 // @connect      greasyfork.org
@@ -25,7 +24,6 @@
 // import type { Point, LineString, Position, Feature } from "geojson";
 // import * as turf from "@turf/turf";
 // import _ from "underscore";
-// import proj4 from "proj4";
 // import WazeWrap from "https://greasyfork.org/scripts/24851-wazewrap/code/WazeWrap.js";
 
 let sdk: WmeSDK;
@@ -2541,9 +2539,10 @@ function rsaInit() {
         };
         let count = 0;
 
-        const pixelPos = proj4("EPSG:4326", "EPSG:3857", node.geometry.coordinates);
-        const startPoint = { x: pixelPos[0], y: pixelPos[1] };
-        const lblStart = { x: startPoint.x - labelDistance().label, y: startPoint.y + labelDistance().label };
+        const pixelPos = sdk.Map.getPixelFromLonLat({ lonLat: {lon: node.geometry.coordinates[0], lat: node.geometry.coordinates[1]} });
+        // const pixelPos = proj4("EPSG:4326", "EPSG:3857", node.geometry.coordinates);
+        const startPoint = { x: pixelPos.x, y: pixelPos.y };
+        const lblStart = { x: startPoint.x - labelDistance().label, y: startPoint.y - labelDistance().label };
 
         // Array of points for line connecting node to icons
         const points: GeoJSON.Feature[] = [];
@@ -2570,9 +2569,10 @@ function rsaInit() {
         // Label coords
         // var pointLabel = new OpenLayers.Geometry.Point(lblStart.x, lblStart.y);
 
-        const nodeLabelCoordinates = proj4("EPSG:3857", "EPSG:4326", [lblStart.x, lblStart.y]);
+        // const nodeLabelCoordinates = proj4("EPSG:3857", "EPSG:4326", [lblStart.x, lblStart.y]);
+        const nodeLabelCoordinates = sdk.Map.getLonLatFromPixel( { x: lblStart.x, y: lblStart.y } );
         const nodeLabel = turf.point(
-            nodeLabelCoordinates,
+            [nodeLabelCoordinates.lon, nodeLabelCoordinates.lat],
             {
                 styleName: "styleNode",
                 style: {
@@ -2587,7 +2587,7 @@ function rsaInit() {
             { id: `pointNode_${startPoint.x} ${startPoint.y}` }
         );
         points.push(nodeLabel);
-        pointCoordinates.push(nodeLabelCoordinates);
+        pointCoordinates.push([nodeLabelCoordinates.lon, nodeLabelCoordinates.lat]);
 
         sdk.Map.addFeaturesToLayer({ features: points, layerName: rsaMapLayer.layerName });
         const newLine = turf.lineString(
@@ -2638,8 +2638,9 @@ function rsaInit() {
                 // Label coords
                 // let pointLabel = new OpenLayers.Geometry.Point(xpoint, ypoint);
                 // labelFeat = new OpenLayers.Feature.Vector(pointLabel, null, styleLabel);
+                const lonLat = sdk.Map.getLonLatFromPixel({ x: xpoint, y: ypoint });
                 const pointLabelFeature = turf.point(
-                    proj4("EPSG:3857", "EPSG:4326", [xpoint, ypoint]),
+                    [lonLat.lon, lonLat.lat],
                     {
                         styleName: "styleLabel",
                         style: { sign: q.sign, txt: q.txt, height: q.height, width: q.width, fillOpacity: 1 },
@@ -2682,7 +2683,8 @@ function rsaInit() {
         // oldparam.y = null;
         let AtLeastOne = false;
         $.each(segment.geometry.coordinates, (idx: number, param: Position) => {
-            const pointParam = proj4("EPSG:4326", "EPSG:3857", param);
+            // const pointParam = proj4("EPSG:4326", "EPSG:3857", param);
+            const pointParam = sdk.Map.getPixelFromLonLat({ lonLat: { lon: param[0], lat: param[1] } });
             // Build a new segment with same geometry
 
             // SegmentPoints.push(new OpenLayers.Geometry.Point(param[0], param[1]));
@@ -2717,23 +2719,24 @@ function rsaInit() {
 
             if (oldparam.x && oldparam.y && oldparam.x !== null && oldparam.y !== null) {
                 if (
-                    Math.abs(oldparam.x - pointParam[0]) > labelDis.space ||
-                    Math.abs(oldparam.y - pointParam[1]) > labelDis.space ||
+                    Math.abs(oldparam.x - pointParam.x) > labelDis.space ||
+                    Math.abs(oldparam.y - pointParam.y) > labelDis.space ||
                     !AtLeastOne
                 ) {
                     const centerparam: Coordinates = { x: undefined, y: undefined };
-                    centerparam.x = (oldparam.x + pointParam[0]) / 2;
-                    centerparam.y = (oldparam.y + pointParam[1]) / 2;
+                    centerparam.x = (oldparam.x + pointParam.x) / 2;
+                    centerparam.y = (oldparam.y + pointParam.y) / 2;
                     if (
-                        (centerparam.x && Math.abs(centerparam.x - pointParam[0]) > labelDis.space) ||
-                        (centerparam.y && Math.abs(centerparam.y - pointParam[1]) > labelDis.space) ||
+                        (centerparam.x && Math.abs(centerparam.x - pointParam.x) > labelDis.space) ||
+                        (centerparam.y && Math.abs(centerparam.y - pointParam.y) > labelDis.space) ||
                         !AtLeastOne
                     ) {
                         // let LabelPoint = new OpenLayers.Geometry.Point(centerparam.x, centerparam.y);
                         // const pointFeature = new OpenLayers.Feature.Vector(LabelPoint, null, style);
-                        const coordCenterPoint = proj4("EPSG:3857", "EPSG:4326", [centerparam.x, centerparam.y]);
+                        // const coordCenterPoint = proj4("EPSG:3857", "EPSG:4326", [centerparam.x, centerparam.y]);
+                        const coordCenterPoint = sdk.Map.getLonLatFromPixel({ x: centerparam.x, y: centerparam.y });
                         const shieldFeature = turf.point(
-                            coordCenterPoint,
+                            [coordCenterPoint.lon, coordCenterPoint.lat],
                             {
                                 styleName: "shield",
                                 style: {
@@ -2753,8 +2756,8 @@ function rsaInit() {
                     }
                 }
             }
-            oldparam.x = pointParam[0];
-            oldparam.y = pointParam[1];
+            oldparam.x = pointParam.x;
+            oldparam.y = pointParam.y;
         });
     }
 
@@ -2820,59 +2823,7 @@ function rsaInit() {
     function labelDistance(): LabelDistance {
         // Return object with two variables - label is the distance used to place the direction below the icon,
         // space is the space between geo points needed to render another icon
-        const label_distance: LabelDistance = { icon: 0, label: 0, space: 0 };
-        switch (sdk.Map.getZoomLevel()) {
-            case ZoomLevel.ZM10:
-                label_distance.label = 2;
-                label_distance.space = 30;
-                label_distance.icon = 1.1;
-                break;
-            case ZoomLevel.ZM9:
-                label_distance.label = 4;
-                label_distance.space = 30;
-                label_distance.icon = 2.2;
-                break;
-            case ZoomLevel.ZM8:
-                label_distance.label = 8;
-                label_distance.space = 30;
-                label_distance.icon = 4.5;
-                break;
-            case ZoomLevel.ZM7:
-                label_distance.label = 14;
-                label_distance.space = 30;
-                label_distance.icon = 8.3;
-                break;
-            case ZoomLevel.ZM6:
-                label_distance.label = 28;
-                label_distance.space = 30;
-                label_distance.icon = 17;
-                break;
-            case ZoomLevel.ZM5:
-                label_distance.label = 50;
-                label_distance.space = 30;
-                label_distance.icon = 34;
-                break;
-            case ZoomLevel.ZM4:
-                label_distance.label = 100;
-                label_distance.space = 40;
-                label_distance.icon = 68;
-                break;
-            case ZoomLevel.ZM3:
-                label_distance.label = 300;
-                label_distance.space = 70;
-                label_distance.icon = 140;
-                break;
-            case ZoomLevel.ZM2:
-                label_distance.label = 300;
-                label_distance.space = 200;
-                label_distance.icon = 140;
-                break;
-            case ZoomLevel.ZM1:
-                label_distance.label = 300;
-                label_distance.space = 250;
-                label_distance.icon = 140;
-                break;
-        }
+        const label_distance: LabelDistance = { icon: 27, label: 40, space: 30 };
         return label_distance;
     }
 
