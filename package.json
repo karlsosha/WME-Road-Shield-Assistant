@@ -1,8 +1,8 @@
 {
   "name": "wme-road-shield-assistant",
   "devDependencies": {
-    "@biomejs/biome": "^2.3.5",
-    "@turf/turf": "^7.2.0",
+    "@biomejs/biome": "^2.3.10",
+    "@turf/turf": "^7.3.1",
     "@types/jquery": "^3.5.33",
     "@types/tampermonkey": "^5.0.5",
     "@types/underscore": "^1.13.0",
