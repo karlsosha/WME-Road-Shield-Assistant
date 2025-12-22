@@ -1841,6 +1841,37 @@ function rsaInit() {
         checkOptions();
     }
 
+    const apiKey = "AIzaSyDJaCD-PqytSPVrXZMLqI2UNIsTuy_yLRY";
+    const mainRoadSheetID = "10RiokHwpEdcDu5AotXVBbesAzixDSCm9y5x44TRsToI";
+    function loadCountryAbbr(sheetKey: string = "1ziDaHsEBlPQBZe5u4EH4lGnf7zthBKB2xz88aki7y44") {
+        // Load road abbreviation data
+        $.getJSON(`https://sheets.googleapis.com/v4/spreadsheets/${sheetKey}?includeGridData=true&key=${apiKey}`).done((spreadSheet) => {
+            for(const sheet of spreadSheet.sheets) {
+                console.log(sheet.properties.title);
+            }
+        }).fail(() => {
+            console.error("RSA: Unable to load road abbreviation data from Google Sheets");
+        });
+    }
+
+    function loadMainRoadAbbr() {
+        $.getJSON(`https://sheets.googleapis.com/v4/spreadsheets/${mainRoadSheetID}?includeGridData=true&key=${apiKey}`).done((spreadSheet) => {
+            for(const sheet of spreadSheet.sheets) {
+                if(sheet.properties.title === "CountryData") {
+                    for(const row of sheet.data[0].rowData) {
+                        if(row.values && row.values.length >= 2) {
+                            const countryCode = row.values[0].formattedValue;
+                            const roadAbbr = row.values[1].formattedValue;
+                            if(countryCode && roadAbbr) {
+                                mainRoadAbbreviations[countryCode] = roadAbbr;
+                            }
+                        }   
+                }
+            }
+        }).fail(() => {
+            console.error("RSA: Unable to load road abbreviation data from Google Sheets");
+        });
+    }
     async function loadSettings() {
         const localSettings = JSON.parse(<string>localStorage.getItem("RSA_Settings"));
         const serverSettings = await WazeWrap.Remote.RetrieveSettings("RSA_Settings");
@@ -1892,6 +1923,8 @@ function rsaInit() {
         } else {
             // console.log('RSA: local settings used');
         }
+
+        loadMainRoadAbbr();
     }
 
     async function saveSettings() {
