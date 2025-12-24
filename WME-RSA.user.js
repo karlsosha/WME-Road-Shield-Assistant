@@ -1739,7 +1739,7 @@ function rsaInit() {
                 for (const row of sheet.data[0].rowData) {
                     if (row.values && row.values.length >= 2) {
                         const matchingRegex = row.values[0].formattedValue;
-                        if (matchingRegex === "MatchingRegex")
+                        if (matchingRegex === "Matching Condition")
                             continue;
                         const shieldId = row.values[1].formattedValue;
                         stateWide[matchingRegex] = shieldId;
