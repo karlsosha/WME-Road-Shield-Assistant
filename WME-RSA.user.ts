@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         WME Road Shield Assistant
+// @name         WME Road Shield Assistant (BETA ONLY)
 // @namespace    https://greasyfork.org/en/users/286957-skidooguy
 // @version      2026.01.11.001
 // @description  Adds shield information display to WME
