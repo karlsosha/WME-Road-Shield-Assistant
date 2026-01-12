@@ -1,14 +1,14 @@
 // ==UserScript==
 // @name         WME Road Shield Assistant (BETA ONLY)
 // @namespace    https://greasyfork.org/en/users/1442373-mikhail-veygman-karlsosha
-// @version      2026.01.12.001
+// @version      2026.01.12.002
 // @description  Adds shield information display to WME
 // @author       SkiDooGuy, jm6087, Karlsosha
 // @match        https://beta.waze.com/editor*
 // @match        https://beta.waze.com/*/editor*
 // @exclude      https://www.waze.com/user/editor*
 // @require      https://greasyfork.org/scripts/24851-wazewrap/code/WazeWrap.js
-// @require      https://cdn.jsdelivr.net/npm/@turf/turf@7.2.0/turf.min.js
+// @require      https://cdn.jsdelivr.net/npm/@turf/turf@7.3.1/turf.min.js
 // @grant        GM_xmlhttpRequest
 // @grant        unsafeWindow
 // @connect      greasyfork.org
@@ -46,16 +46,10 @@ function rsaInit() {
     const GF_LINK = "https://greasyfork.org/en/scripts/425050-wme-road-shield-assisstant";
     const FORUM_LINK = "https://www.waze.com/discuss/t/script-road-shield-assistant-rsa/227100";
     const RSA_UPDATE_NOTES = `<b>NEW:</b><br>
-    - Converted to WME SDK<br>
-    - <b>Make Sure to Enable RSA Layers to See the Shields</b><br>
-    - Added Rules for Shield Checking Logic for Mexico<br>
-    - Updated Shield Highlight Rules for All States in US<br>
-    - Updated Some Highlight Rules for Canada<br><br>
+    - Make Configurations External and Managed via Google Sheets<br>
 <b>BUGFIXES:</b><br>
-    - Fix error with undefined point Radius for Circle Tag<br><br>
-<b>KNOWN ISSUES:</b><br>
-    - Missing Exit Sign Shields on Node<br>
-    - Some of the highlighting may be incorrect showing issues when there are none<br><br>`;
+    - None<br>
+<b>KNOWN ISSUES:</b><br><br>`;
 
     enum CountryID {
         AFGANISTAN = 1,
