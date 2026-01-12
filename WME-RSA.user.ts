@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WME Road Shield Assistant (BETA ONLY)
 // @namespace    https://greasyfork.org/en/users/1442373-mikhail-veygman-karlsosha
-// @version      2026.01.11.003
+// @version      2026.01.12.001
 // @description  Adds shield information display to WME
 // @author       SkiDooGuy, jm6087, Karlsosha
 // @match        https://beta.waze.com/editor*
@@ -1367,7 +1367,7 @@ function rsaInit() {
                     if (row.values && row.values.length >= 2) {
                         const matchingRegex = row.values[0].formattedValue;
                         if (matchingRegex === "Matching Condition") continue;
-                        const shieldId = row.values[1].formattedValue;
+                        const shieldId = Number.parseInt(row.values[1].formattedValue, 10);
                         stateWide[matchingRegex] = shieldId;
                     }
                 }
