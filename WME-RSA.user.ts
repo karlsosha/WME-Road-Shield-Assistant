@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WME Road Shield Assistant (BETA ONLY)
 // @namespace    https://greasyfork.org/en/users/1442373-mikhail-veygman-karlsosha
-// @version      2026.01.12.002
+// @version      2026.01.13.001
 // @description  Adds shield information display to WME
 // @author       SkiDooGuy, jm6087, Karlsosha
 // @match        https://beta.waze.com/editor*
@@ -48,7 +48,7 @@ function rsaInit() {
     const RSA_UPDATE_NOTES = `<b>NEW:</b><br>
     - Make Configurations External and Managed via Google Sheets<br>
 <b>BUGFIXES:</b><br>
-    - None<br>
+    - Issue with Minor Highways or Greater<br>
 <b>KNOWN ISSUES:</b><br><br>`;
 
     enum CountryID {
@@ -1748,7 +1748,7 @@ function rsaInit() {
         }
     }
 
-    const majorRoads = new Set<number>([3, 4, 5, 6]);
+    const majorRoads = new Set<number>([3, 4, 6, 7]);
     function processSeg(seg: Segment) {
         if (
             (!rsaSettings.ShowRamps && seg.roadType === 4) ||
