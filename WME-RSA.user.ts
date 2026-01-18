@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         WME Road Shield Assistant (BETA ONLY)
+// @name         WME Road Shield Assistant
 // @namespace    https://greasyfork.org/en/scripts/425050-wme-road-shield-assistant
 // @version      2026.01.17.001
 // @description  Adds shield information display to WME
