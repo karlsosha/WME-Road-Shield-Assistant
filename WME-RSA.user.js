@@ -348,7 +348,6 @@ function rsaInit() {
         21: 40,
         22: 30,
     };
-    const RoadAbbr = {};
     const CountryDataSheetInfo = {};
     const RoadAbbr = {};
     let mainSheetLoaded = false;

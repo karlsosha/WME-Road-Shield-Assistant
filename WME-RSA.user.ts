@@ -426,7 +426,6 @@ function rsaInit() {
     type StateRoadInfo = Record<string, RoadInfo>;
     type CountryRoadInfo = Record<number, StateRoadInfo>;
 
-    const RoadAbbr: CountryRoadInfo = {}
     const CountryDataSheetInfo: CountryDataSheetMap = {};
 
     const RoadAbbr: CountryRoadInfo = {};
