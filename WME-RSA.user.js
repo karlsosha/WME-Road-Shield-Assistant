@@ -1284,10 +1284,10 @@ function rsaInit() {
     }
     async function loadSettings() {
         const localSettings = JSON.parse(localStorage.getItem("RSA_Settings"));
-        const serverSettings = await WazeWrap.Remote.RetrieveSettings("RSA_Settings");
-        if (!serverSettings) {
-            console.error("RSA: Error communicating with WW settings server");
-        }
+        // const serverSettings = await WazeWrap.Remote.RetrieveSettings("RSA_Settings");
+        // if (!serverSettings) {
+        //     console.error("RSA: Error communicating with WW settings server");
+        // }
         const defaultSettings = {
             lastSaveAction: 0,
             enableScript: true,
@@ -1325,13 +1325,12 @@ function rsaInit() {
             iconLayerVisible: false,
         };
         rsaSettings = $.extend({}, defaultSettings, localSettings);
-        if (serverSettings && serverSettings.lastSaveAction > rsaSettings.lastSaveAction) {
-            $.extend(rsaSettings, serverSettings);
-            // console.log('RSA: server settings used');
-        }
-        else {
-            // console.log('RSA: local settings used');
-        }
+        // if (serverSettings && serverSettings.lastSaveAction > rsaSettings.lastSaveAction) {
+        //     $.extend(rsaSettings, serverSettings);
+        //     // console.log('RSA: server settings used');
+        // } else {
+        //     // console.log('RSA: local settings used');
+        // }
         loadMainRoadAbbr();
     }
     async function saveSettings() {
@@ -1404,15 +1403,14 @@ function rsaInit() {
         if (localStorage) {
             localStorage.setItem("RSA_Settings", JSON.stringify(localSettings));
         }
-        const serverSave = await WazeWrap.Remote.SaveSettings("RSA_Settings", localSettings);
-        if (serverSave === null) {
-            console.warn("RSA: User PIN not set in WazeWrap tab");
-        }
-        else {
-            if (serverSave === false) {
-                console.error("RSA: Unable to save settings to server");
-            }
-        }
+        // const serverSave = await WazeWrap.Remote.SaveSettings("RSA_Settings", localSettings);
+        // if (serverSave === null) {
+        //     console.warn("RSA: User PIN not set in WazeWrap tab");
+        // } else {
+        //     if (serverSave === false) {
+        //         console.error("RSA: Unable to save settings to server");
+        //     }
+        // }
     }
     function checkOptions() {
         const countries = sdk.DataModel.Countries.getAll();
