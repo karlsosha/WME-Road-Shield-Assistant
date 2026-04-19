@@ -10,7 +10,6 @@
 // @match        https://beta.waze.com/*/editor*
 // @exclude      https://www.waze.com/user/editor*
 // @require      https://greasyfork.org/scripts/24851-wazewrap/code/WazeWrap.js
-// @require      https://cdn.jsdelivr.net/npm/@turf/turf@7.3.1/turf.min.js
 // @grant        GM_xmlhttpRequest
 // @grant        unsafeWindow
 // @connect      greasyfork.org
@@ -19,6 +18,7 @@
 
 /* global W */
 /* global WazeWrap */
+/* global turf */
 
 // import type { Node, Segment, SegmentAddress, Street, Turn, WmeSDK } from "wme-sdk-typings";
 // import type { Point, LineString, Position, Feature } from "geojson";
