@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WME Road Shield Assistant
 // @namespace    https://greasyfork.org/en/users/286957-skidooguy
-// @version      2025.12.22.001
+// @version      2026.04.19.001
 // @description  Adds shield information display to WME
 // @author       SkiDooGuy, jm6087, Karlsosha
 // @match        https://www.waze.com/editor*
@@ -10,7 +10,6 @@
 // @match        https://beta.waze.com/*/editor*
 // @exclude      https://www.waze.com/user/editor*
 // @require      https://greasyfork.org/scripts/24851-wazewrap/code/WazeWrap.js
-// @require      https://cdn.jsdelivr.net/npm/@turf/turf@7.3.1/turf.min.js
 // @grant        GM_xmlhttpRequest
 // @grant        unsafeWindow
 // @connect      greasyfork.org
@@ -19,6 +18,7 @@
 
 /* global W */
 /* global WazeWrap */
+/* global turf */
 
 // import type { Node, Segment, SegmentAddress, Street, Turn, WmeSDK } from "wme-sdk-typings";
 // import type { Point, LineString, Position, Feature } from "geojson";
@@ -48,9 +48,8 @@ function rsaInit() {
     const GF_LINK = "https://greasyfork.org/en/scripts/425050-wme-road-shield-assisstant";
     const FORUM_LINK = "https://www.waze.com/discuss/t/script-road-shield-assistant-rsa/227100";
     const RSA_UPDATE_NOTES = `<b>NEW:</b><br>
-    - Make Configurations External and Managed via Google Sheets<br>
+    - Remove Waze Wrap Remote Storage<br>
 <b>BUGFIXES:</b><br>
-    - Issue with Minor Highways or Greater<br>
 <b>KNOWN ISSUES:</b><br><br>`;
 
     enum CountryID {
