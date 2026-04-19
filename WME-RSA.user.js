@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name         WME Road Shield Assistant
 // @namespace    https://greasyfork.org/en/users/286957-skidooguy
-// @version      2025.12.22.001
+// @version      2026.04.19.001
 // @description  Adds shield information display to WME
 // @author       SkiDooGuy, jm6087, Karlsosha
 // @match        https://www.waze.com/editor*
@@ -11,7 +11,6 @@
 // @match        https://beta.waze.com/*/editor*
 // @exclude      https://www.waze.com/user/editor*
 // @require      https://greasyfork.org/scripts/24851-wazewrap/code/WazeWrap.js
-// @require      https://cdn.jsdelivr.net/npm/@turf/turf@7.3.1/turf.min.js
 // @grant        GM_xmlhttpRequest
 // @grant        unsafeWindow
 // @connect      greasyfork.org
@@ -19,6 +18,7 @@
 // ==/UserScript==
 /* global W */
 /* global WazeWrap */
+/* global turf */
 // import type { Node, Segment, SegmentAddress, Street, Turn, WmeSDK } from "wme-sdk-typings";
 // import type { Point, LineString, Position, Feature } from "geojson";
 // import * as turf from "@turf/turf";
@@ -43,9 +43,8 @@ function rsaInit() {
     const GF_LINK = "https://greasyfork.org/en/scripts/425050-wme-road-shield-assisstant";
     const FORUM_LINK = "https://www.waze.com/discuss/t/script-road-shield-assistant-rsa/227100";
     const RSA_UPDATE_NOTES = `<b>NEW:</b><br>
-    - Make Configurations External and Managed via Google Sheets<br>
+    - Remove Waze Wrap Remote Storage<br>
 <b>BUGFIXES:</b><br>
-    - Issue with Minor Highways or Greater<br>
 <b>KNOWN ISSUES:</b><br><br>`;
     let CountryID;
     (function (CountryID) {
@@ -1284,10 +1283,10 @@ function rsaInit() {
     }
     async function loadSettings() {
         const localSettings = JSON.parse(localStorage.getItem("RSA_Settings"));
-        const serverSettings = await WazeWrap.Remote.RetrieveSettings("RSA_Settings");
-        if (!serverSettings) {
-            console.error("RSA: Error communicating with WW settings server");
-        }
+        // const serverSettings = await WazeWrap.Remote.RetrieveSettings("RSA_Settings");
+        // if (!serverSettings) {
+        //     console.error("RSA: Error communicating with WW settings server");
+        // }
         const defaultSettings = {
             lastSaveAction: 0,
             enableScript: true,
@@ -1325,13 +1324,12 @@ function rsaInit() {
             iconLayerVisible: false,
         };
         rsaSettings = $.extend({}, defaultSettings, localSettings);
-        if (serverSettings && serverSettings.lastSaveAction > rsaSettings.lastSaveAction) {
-            $.extend(rsaSettings, serverSettings);
-            // console.log('RSA: server settings used');
-        }
-        else {
-            // console.log('RSA: local settings used');
-        }
+        // if (serverSettings && serverSettings.lastSaveAction > rsaSettings.lastSaveAction) {
+        //     $.extend(rsaSettings, serverSettings);
+        //     // console.log('RSA: server settings used');
+        // } else {
+        //     // console.log('RSA: local settings used');
+        // }
         loadMainRoadAbbr();
     }
     async function saveSettings() {
@@ -1404,15 +1402,14 @@ function rsaInit() {
         if (localStorage) {
             localStorage.setItem("RSA_Settings", JSON.stringify(localSettings));
         }
-        const serverSave = await WazeWrap.Remote.SaveSettings("RSA_Settings", localSettings);
-        if (serverSave === null) {
-            console.warn("RSA: User PIN not set in WazeWrap tab");
-        }
-        else {
-            if (serverSave === false) {
-                console.error("RSA: Unable to save settings to server");
-            }
-        }
+        // const serverSave = await WazeWrap.Remote.SaveSettings("RSA_Settings", localSettings);
+        // if (serverSave === null) {
+        //     console.warn("RSA: User PIN not set in WazeWrap tab");
+        // } else {
+        //     if (serverSave === false) {
+        //         console.error("RSA: Unable to save settings to server");
+        //     }
+        // }
     }
     function checkOptions() {
         const countries = sdk.DataModel.Countries.getAll();
