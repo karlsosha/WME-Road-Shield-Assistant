@@ -1174,7 +1174,6 @@
                                 for (let cidx = 0; cidx < row.values.length; cidx++) {
                                     if(tempTranslationKeys[cidx] === "locality") {
                                         locality = row.values[cidx].formattedValue;
-                                        Localizations[locality] = {};
                                         translate = false;
                                         continue;
                                     }
@@ -1183,6 +1182,8 @@
                                         continue;
                                     }
                                     if(translate) {
+                                        if(!Localizations[locality]) Localizations[locality] = {};
+
                                         Localizations[locality][tempTranslationKeys[cidx]] = row.values[cidx].formattedValue;
                                     }
                                     else continue;
